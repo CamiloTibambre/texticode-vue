@@ -132,8 +132,8 @@ h1 { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; ma
 .search { width: 300px; padding: 9px 12px 9px 36px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px; font-size: 14px; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z'/%3E%3C/svg%3E") no-repeat 10px center; outline: none; }
 .cards { display: flex; gap: 20px; margin-bottom: 30px; }
 .card { background: white; flex: 1; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
-.card h3 { font-size: 14px; color: #6b7280; font-weight: 500; }
-.card p { font-size: 26px; font-weight: 600; margin-top: 10px; }
+.card h3 { font-size: 14px; color: #6b7280; font-weight: 500; margin: 0; }
+.card p { font-size: 26px; font-weight: 600; margin: 10px 0 0 0; }
 .green { color: #16a34a; } .blue { color: #2563eb; }
 .table-container { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 30px; }
 .table-container h2 { font-size: 16px; margin-bottom: 10px; }
