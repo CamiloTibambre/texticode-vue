@@ -9,17 +9,27 @@
       <div class="top-bar">
         <div class="filters">
           <input v-model="busqueda" class="search" type="text" placeholder="Buscar usuarios...">
-          <select v-model="filtroRol" class="select">
-            <option value="">Todos los roles</option>
-            <option value="administrador">Administrador</option>
-            <option value="operador">Operario</option>
-            <option value="cliente">Cliente</option>
-          </select>
-          <select v-model="filtroEstado" class="select">
-            <option value="">Todos los estados</option>
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
-          </select>
+          <div class="select-wrapper">
+            <select v-model="filtroRol" class="select">
+              <option value="">Todos los roles</option>
+              <option value="administrador">Administrador</option>
+              <option value="operador">Operario</option>
+              <option value="cliente">Cliente</option>
+            </select>
+            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+            </svg>
+          </div>
+          <div class="select-wrapper">
+            <select v-model="filtroEstado" class="select">
+              <option value="">Todos los estados</option>
+              <option value="active">Activo</option>
+              <option value="inactive">Inactivo</option>
+            </select>
+            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+            </svg>
+          </div>
         </div>
         <button class="btn" @click="abrirModal(null)">
           <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -32,20 +42,20 @@
       <!-- STATS -->
       <div class="stats">
         <div class="stat-card">
-          <div class="stat-title">Total Usuarios</div>
-          <div class="stat-number">{{ usuarios.length }}</div>
+          <h3>Total Usuarios</h3>
+          <p>{{ usuarios.length }}</p>
         </div>
         <div class="stat-card">
-          <div class="stat-title">Activos</div>
-          <div class="stat-number green">{{ usuarios.filter(u => u.estado === 'active').length }}</div>
+          <h3>Activos</h3>
+          <p class="green">{{ usuarios.filter(u => u.estado === 'active').length }}</p>
         </div>
         <div class="stat-card">
-          <div class="stat-title">Operarios</div>
-          <div class="stat-number blue">{{ usuarios.filter(u => u.rol === 'operador').length }}</div>
+          <h3>Operarios</h3>
+          <p class="blue">{{ usuarios.filter(u => u.rol === 'operador').length }}</p>
         </div>
         <div class="stat-card">
-          <div class="stat-title">Clientes</div>
-          <div class="stat-number">{{ usuarios.filter(u => u.rol === 'cliente').length }}</div>
+          <h3>Clientes</h3>
+          <p>{{ usuarios.filter(u => u.rol === 'cliente').length }}</p>
         </div>
       </div>
 
@@ -126,12 +136,6 @@
           <option value="administrador">Administrador</option>
           <option value="operador">Operario</option>
           <option value="cliente">Cliente</option>
-        </select>
-
-        <label>Estado</label>
-        <select v-model="form.estado">
-          <option value="active">Activo</option>
-          <option value="inactive">Inactivo</option>
         </select>
 
         <div class="modal-buttons">
@@ -216,18 +220,20 @@ function eliminarUsuario(id) {
 <style scoped>
 .layout { display: flex; min-height: 100vh; }
 .main { flex: 1; padding: 28px 30px; }
-.title { font-size: 26px; font-weight: 600; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
+.title { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
 .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
 .filters { display: flex; gap: 12px; flex-wrap: wrap; }
 .search { padding: 9px 12px 9px 36px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 14px; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z'/%3E%3C/svg%3E") no-repeat 10px center; width: 220px; outline: none; }
-.select { padding: 9px 32px 9px 12px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 14px; background: white; appearance: none; outline: none; cursor: pointer; }
+.select { padding: 9px 32px 9px 12px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 14px; background: white; appearance: none; -webkit-appearance: none; outline: none; cursor: pointer; }
+.select-wrapper { position: relative; display: inline-flex; align-items: center; }
+.select-arrow { position: absolute; right: 10px; width: 14px; height: 14px; color: #6b7280; pointer-events: none; }
 .btn { display: flex; align-items: center; gap: 8px; background: #1f3a52; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
 .btn:hover { background: #162b3c; }
 .btn-icon { width: 18px; height: 18px; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
-.stat-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px 20px; }
-.stat-title { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
-.stat-number { font-size: 22px; font-weight: 700; }
+.stats { display: flex; gap: 20px; margin-bottom: 30px; }
+.stat-card { background: white; flex: 1; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
+.stat-card h3 { font-size: 14px; color: #6b7280; font-weight: 500; margin: 0; }
+.stat-card p { font-size: 26px; font-weight: 600; margin: 10px 0 0 0; }
 .green { color: #16a34a; } .blue { color: #2563eb; }
 .table-box { background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
 .table-header { padding: 16px 18px; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
