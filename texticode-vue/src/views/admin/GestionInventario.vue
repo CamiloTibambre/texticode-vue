@@ -5,8 +5,6 @@
     <main class="content">
       <div class="main-content">
         <h1>Gestión de Inventario</h1>
-        <hr class="title-divider">
-
         <!-- TOP BAR -->
         <div class="top-bar">
           <div class="search-wrapper">
@@ -39,15 +37,15 @@
         <!-- CARDS RESUMEN -->
         <div class="summary-cards">
           <div class="card">
-            <h4>Total Materiales</h4>
+            <h3>Total Materiales</h3>
             <p class="number">{{ materiales.length }}</p>
           </div>
           <div class="card">
-            <h4>Alertas de Stock</h4>
+            <h3>Alertas de Stock</h3>
             <p class="number number-danger">{{ alertas.length }}</p>
           </div>
           <div class="card">
-            <h4>Categorías</h4>
+            <h3>Categorías</h3>
             <p class="number number-primary">{{ categorias.length }}</p>
           </div>
         </div>
@@ -243,10 +241,10 @@ function eliminar(id) {
 
 <style scoped>
 .layout       { display: flex; min-height: 100vh; }
-.content      { flex: 1; padding: 30px; background-color: #f5f7fa; min-height: 100vh; }
+.content      { flex: 1; padding: 28px 30px; }
 .main-content { max-width: 100%; }
 
-h1 { margin-bottom: 25px; font-size: 26px; font-weight: 600; color: #1a1a2e; }
+h1 { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
 
 /* ── TOP BAR ── */
 .top-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 25px; }
@@ -322,34 +320,26 @@ h1 { margin-bottom: 25px; font-size: 26px; font-weight: 600; color: #1a1a2e; }
 .btn-primary:hover { background-color: #162b36; }
 
 /* ── CARDS ── */
-.summary-cards { display: flex; gap: 20px; margin-bottom: 25px; }
-.card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  flex: 1;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border: 1px solid #e5e7eb;
-}
-.card h4 { font-size: 14px; color: #6b7280; font-weight: 500; margin-bottom: 10px; }
-.title-divider { border: none; border-top: 1px solid #e5e7eb; margin-bottom: 25px; margin-top: -10px; }
-.number { font-size: 32px; font-weight: 700; color: #111827; }
+.summary-cards { display: flex; gap: 20px; margin-bottom: 30px; }
+.card { background: white; flex: 1; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
+.card > h3 { font-size: 14px; color: #6b7280; font-weight: 500; margin: 0; }
+.number { font-size: 26px; font-weight: 600; color: #111827; margin: 10px 0 0 0; }
 .number-danger  { color: #dc2626; }
 .number-primary { color: #1f3c4d; }
 
 /* ── ALERT BOX ── */
 .alert-box {
-  background: #f3f4f6;
+  background: #d1d5db;
   padding: 20px 24px;
   border-radius: 12px;
   margin-bottom: 25px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #9ca3af;
 }
 .alert-box h3 {
   font-size: 15px;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 14px;
+  margin: 0 0 14px 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -373,16 +363,15 @@ h1 { margin-bottom: 25px; font-size: 26px; font-weight: 600; color: #1a1a2e; }
 /* ── TABLE ── */
 .table-container {
   background: white;
-  padding: 24px;
+  padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   border: 1px solid #e5e7eb;
 }
 .table-container h3 {
   font-size: 15px;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 16px;
+  margin: 0 0 16px 0;
   display: flex;
   align-items: center;
   gap: 6px;

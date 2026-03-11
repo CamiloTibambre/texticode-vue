@@ -162,17 +162,17 @@ function eliminar(id) {
 
 <style scoped>
 .main { flex: 1; padding: 28px 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 22px; }
-.title { font-size: 26px; font-weight: 600; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
+.title { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
 .ordenes-header { display: flex; align-items: center; justify-content: space-between; }
 .btn-nueva-orden { display: inline-flex; align-items: center; gap: 7px; background: #1f3a52; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.stat-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px 20px; }
-.stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.stat-title { font-size: 13px; color: #6b7280; }
+.stats { display: flex; gap: 20px; margin-bottom: 30px; }
+.stat-card { background: white; flex: 1; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
+.stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.stat-title { font-size: 14px; color: #6b7280; font-weight: 500; }
 .stat-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .stat-icon.orange { background: #fff7ed; color: #ea580c; } .stat-icon.blue { background: #eff6ff; color: #2563eb; }
 .stat-icon.green { background: #f0fdf4; color: #16a34a; } .stat-icon.gray { background: #f3f4f6; color: #6b7280; }
-.stat-number { font-size: 26px; font-weight: 700; }
+.stat-number { font-size: 26px; font-weight: 600; margin-top: 0; }
 .stat-number.orange { color: #ea580c; } .stat-number.blue { color: #2563eb; } .stat-number.green { color: #16a34a; } .stat-number.gray { color: #374151; }
 .section-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 20px 24px; }
 .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
