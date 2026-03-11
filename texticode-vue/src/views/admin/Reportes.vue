@@ -6,8 +6,6 @@
       <div class="main-content">
 
         <h1>Reportes</h1>
-        <hr class="title-divider">
-
         <!-- FILTRO -->
         <div class="filter-bar">
           <div class="select-wrapper">
@@ -139,13 +137,13 @@
               <div class="report-right">
                 <span class="badge-generado">Generado</span>
                 <button class="btn-descargar">
-                  <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;">
+                  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                   </svg>
                   Descargar
                 </button>
                 <button class="btn-excel">
-                  <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;">
+                  <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
                   </svg>
                   Exportar a Excel
@@ -219,10 +217,10 @@ const reportes = computed(() =>
 
 <style scoped>
 .layout      { display: flex; min-height: 100vh; }
-.content     { flex: 1; padding: 30px; background-color: #f5f7fa; min-height: 100vh; }
+.content     { flex: 1; padding: 28px 30px; min-height: 100vh; }
 .main-content { max-width: 100%; }
 
-h1 { font-size: 26px; font-weight: 600; color: #1a1a2e; margin-bottom: 10px; }
+h1 { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
 .title-divider { border: none; border-top: 1px solid #e5e7eb; margin-bottom: 25px; }
 
 /* ── FILTER ── */
@@ -245,22 +243,22 @@ h1 { font-size: 26px; font-weight: 600; color: #1a1a2e; margin-bottom: 10px; }
 .select-arrow { position: absolute; right: 10px; width: 14px; height: 14px; color: #6b7280; pointer-events: none; }
 
 /* ── STAT CARDS ── */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 25px; }
+.stats-grid { display: flex; gap: 20px; margin-bottom: 30px; }
 .stat-card {
   background: white;
+  flex: 1;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 20px 22px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  padding: 20px;
 }
-.stat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.stat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .stat-icon { width: 18px; height: 18px; flex-shrink: 0; }
 .stat-icon.blue   { color: #2563eb; }
 .stat-icon.green  { color: #16a34a; }
 .stat-icon.purple { color: #7c3aed; }
 .stat-icon.orange { color: #f97316; }
-.stat-label { font-size: 13px; font-weight: 500; color: #6b7280; }
-.stat-value { font-size: 30px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+.stat-label { font-size: 14px; font-weight: 500; color: #6b7280; }
+.stat-value { font-size: 26px; font-weight: 600; color: #111827; margin-top: 10px; margin-bottom: 8px; }
 .stat-change { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; }
 .stat-change.positive { color: #16a34a; }
 .stat-change.warning  { color: #f97316; }
