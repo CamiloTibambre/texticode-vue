@@ -1,5 +1,5 @@
 <template>
-  <div style="display:flex;min-height:100vh;background:#f5f6fa">
+  <div style="display:flex; min-height:100vh; background:#f5f6fa;">
     <AppSidebar rol="cliente" />
 
     <main class="main">
@@ -11,129 +11,255 @@
         <div class="tab" :class="{ active: tab === 'contacto' }" @click="tab = 'contacto'">Contacto</div>
       </div>
 
-      <!-- COMPROBANTES -->
-      <div v-if="tab === 'comprobantes'">
+      <!-- TAB COMPROBANTES -->
+      <div v-if="tab === 'comprobantes'" id="tab-comprobantes">
         <div class="search-bar">
-          <svg viewBox="0 0 24 24" fill="#aaa"><path d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
-          <input v-model="busqueda" placeholder="Buscar comprobante...">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#aaa" stroke-width="2" fill="none"/>
+          </svg>
+          <input v-model="busqueda" type="text" placeholder="Buscar comprobantes...">
         </div>
 
-        <div v-for="c in comprobantes" :key="c.id" class="card">
+        <div v-for="c in comprobanteFiltrados" :key="c.id" class="card">
           <div class="card-left">
-            <div class="doc-icon"><svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#4a90d9"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg></div>
-            <div>
-              <div class="doc-num">{{ c.numero }}</div>
-              <span class="badge-available">Disponible</span>
+            <div class="doc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4a90d9" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
             </div>
+            <span class="doc-num">{{ c.numero }}</span>
+            <span class="badge-available">Disponible</span>
           </div>
           <div class="card-info">
-            <div class="info-block"><label>Fecha</label><span>{{ c.fecha }}</span></div>
-            <div class="info-block"><label>Productos</label><span>{{ c.productos }}</span></div>
-            <div class="info-block"><label>Estado</label><span>{{ c.estado }}</span></div>
+            <div class="info-block"><label>Tipo:</label><span>{{ c.tipo }}</span></div>
+            <div class="info-block"><label>Fecha entrega:</label><span>{{ c.fecha }}</span></div>
+            <div class="info-block"><label>Tamaño:</label><span>{{ c.tamano }}</span></div>
+            <div class="info-block"><label>Cliente:</label><span>{{ c.cliente }}</span></div>
           </div>
           <div class="card-actions">
             <button class="btn-ver">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
               Ver
             </button>
             <button class="btn-descargar">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
               Descargar
             </button>
           </div>
         </div>
       </div>
 
-      <!-- CONTACTO -->
-      <div v-if="tab === 'contacto'" id="tab-contacto" style="display:block">
-        <div class="contact-grid">
-          <div class="contact-card">
-            <div class="contact-card-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg></div>
-            <div class="contact-card-body"><h3>Teléfono</h3><p>Lunes a Viernes, 8am - 6pm</p><span>+57 (1) 234-5678</span></div>
-          </div>
-          <div class="contact-card">
-            <div class="contact-card-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg></div>
-            <div class="contact-card-body"><h3>Email</h3><p>Respuesta en 24 horas</p><a href="mailto:soporte@texticode.com">soporte@texticode.com</a></div>
-          </div>
-        </div>
+      <!-- TAB CONTACTO -->
+      <div v-if="tab === 'contacto'" id="tab-contacto">
+        <div class="contacto-grid">
 
-        <div class="contact-form-card">
-          <h2>Enviar Mensaje</h2>
-          <p>Completa el formulario y te contactaremos pronto.</p>
-          <div class="form-row">
-            <div class="form-group"><label>Nombre</label><input v-model="contactForm.nombre" type="text" placeholder="Tu nombre"></div>
-            <div class="form-group"><label>Email</label><input v-model="contactForm.email" type="email" placeholder="tu@email.com"></div>
-          </div>
-          <div class="form-group"><label>Asunto</label><input v-model="contactForm.asunto" type="text" placeholder="¿En qué podemos ayudarte?"></div>
-          <div class="form-group"><label>Mensaje</label><textarea v-model="contactForm.mensaje" rows="4" placeholder="Describe tu consulta..."></textarea></div>
-          <button class="btn-enviar" @click="enviarMensaje">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
-            Enviar Mensaje
-          </button>
-        </div>
+          <!-- Tarjeta: Información de Contacto -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.45 2 2 0 0 1 3.54 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span>Información de Contacto</span>
+            </div>
 
-        <!-- TOAST -->
-        <div v-if="toastVisible" class="toast show">✓ Mensaje enviado correctamente</div>
+            <!-- Teléfono -->
+            <div class="info-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.45 2 2 0 0 1 3.54 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <div>
+                <div class="info-label">Teléfono</div>
+                <a href="tel:" class="info-value">+57 (4) 444-5555</a>
+              </div>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="info-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              </svg>
+              <div>
+                <div class="info-label">WhatsApp</div>
+                <a href="https://wa.me/" class="info-value">+57 300 123 4567</a>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="info-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <div>
+                <div class="info-label">Email</div>
+                <a href="mailto:soporte@texticode.com" class="info-value">soporte@texticode.com</a>
+              </div>
+            </div>
+
+            <!-- Dirección -->
+            <div class="info-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <div>
+                <div class="info-label">Dirección</div>
+                <span class="info-value">Carrera 70 #45-30, Bogotá, Colombia</span>
+              </div>
+            </div>
+
+            <!-- Horarios -->
+            <div class="info-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <div>
+                <div class="info-label">Horarios de Atención</div>
+                <div class="info-value">Lunes a Viernes: 8:00 AM - 6:00 PM</div>
+                <div class="info-value">Sábados: 8:00 AM - 12:00 PM</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta: Preguntas Frecuentes -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>Preguntas Frecuentes</span>
+            </div>
+
+            <div v-for="faq in faqs" :key="faq.id" class="faq-row">
+              <div class="faq-bar" :style="{ background: faq.color }"></div>
+              <div>
+                <div class="faq-question">{{ faq.pregunta }}</div>
+                <div class="faq-answer">{{ faq.respuesta }}</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </main>
+
+    <button class="help-btn">?</button>
+
+    <!-- TOAST -->
+    <div class="toast" :class="{ show: toastVisible }">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      ¡Mensaje enviado con éxito! Te responderemos pronto.
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 
-const tab     = ref('comprobantes')
-const busqueda = ref('')
+const tab          = ref('comprobantes')
+const busqueda     = ref('')
 const toastVisible = ref(false)
-const contactForm = ref({ nombre: '', email: '', asunto: '', mensaje: '' })
 
 const comprobantes = ref([
-  { id: 1, numero: 'Comprobante #001', fecha: '2024-02-15', productos: 'Camisetas Polo x 50', estado: 'Entregado' },
-  { id: 2, numero: 'Comprobante #002', fecha: '2024-03-01', productos: 'Pantalones x 30',     estado: 'Entregado' },
+  { id: 1, numero: '001', tipo: 'Comprobante', fecha: '19/01/2024', tamano: '245 KB', cliente: 'María González' },
+  { id: 2, numero: '002', tipo: 'Factura',     fecha: '16/01/2024', tamano: '189 KB', cliente: 'María González' },
+  { id: 3, numero: '003', tipo: 'Guía',        fecha: '04/01/2024', tamano: '156 KB', cliente: 'María González' },
 ])
 
-function enviarMensaje() {
-  if (!contactForm.value.nombre || !contactForm.value.mensaje) return
-  toastVisible.value = true
-  contactForm.value = { nombre: '', email: '', asunto: '', mensaje: '' }
-  setTimeout(() => { toastVisible.value = false }, 3000)
-}
+const faqs = ref([
+  { id: 1, color: '#4a90d9', pregunta: '¿Cómo puedo rastrear mi pedido?',    respuesta: 'Puedes rastrear tu pedido en la sección "Pedidos y Entregas" donde encontrarás el estado actualizado y la información de seguimiento.' },
+  { id: 2, color: '#27ae60', pregunta: '¿Dónde descargo mis comprobantes?',   respuesta: 'Los comprobantes están disponibles en la pestaña "Comprobantes" de esta sección una vez que tu pedido haya sido entregado.' },
+  { id: 3, color: '#9b59b6', pregunta: '¿Cómo modifico un pedido?',           respuesta: 'Para modificar un pedido, crea un ticket de soporte en la categoría "Pedidos" con los detalles del cambio requerido.' },
+  { id: 4, color: '#f39c12', pregunta: '¿Qué hacer si hay retrasos?',         respuesta: 'Si tu pedido presenta retrasos, te notificaremos automáticamente. También puedes contactarnos para obtener información detallada.' },
+])
+
+const comprobanteFiltrados = computed(() => {
+  if (!busqueda.value) return comprobantes.value
+  const q = busqueda.value.toLowerCase()
+  return comprobantes.value.filter(c =>
+    c.numero.includes(q) ||
+    c.tipo.toLowerCase().includes(q) ||
+    c.cliente.toLowerCase().includes(q)
+  )
+})
 </script>
 
 <style scoped>
 .main { flex: 1; padding: 32px; overflow-y: auto; }
 h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 24px; }
+
+/* TABS */
 .tabs { display: flex; background: #ebebeb; border-radius: 12px; padding: 4px; margin-bottom: 20px; max-width: 860px; }
-.tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; }
+.tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; transition: background 0.15s; }
 .tab.active { background: white; color: #1a1a2e; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+/* SEARCH */
 .search-bar { display: flex; align-items: center; background: #f0f2f5; border-radius: 10px; padding: 10px 16px; gap: 8px; max-width: 320px; margin-bottom: 24px; }
 .search-bar input { border: none; background: transparent; outline: none; font-size: 14px; color: #555; width: 100%; }
-.search-bar svg { width: 16px; height: 16px; }
+.search-bar svg { width: 16px; height: 16px; fill: #aaa; }
+
+/* COMPROBANTE CARDS */
 .card { background: white; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; max-width: 860px; display: flex; align-items: center; gap: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
 .card-left { display: flex; align-items: center; gap: 12px; min-width: 120px; }
+.doc-icon { color: #4a90d9; }
+.doc-icon svg { width: 28px; height: 28px; }
 .doc-num { font-size: 16px; font-weight: 600; color: #1a1a2e; }
 .badge-available { background: #e6f9f0; color: #27ae60; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
 .card-info { display: flex; gap: 40px; flex: 1; }
 .info-block label { font-size: 12px; color: #888; display: block; margin-bottom: 2px; }
 .info-block span { font-size: 14px; font-weight: 600; color: #1a1a2e; }
 .card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.btn-ver { display: flex; align-items: center; gap: 6px; border: 1px solid #ddd; background: white; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+.btn-ver { display: flex; align-items: center; gap: 6px; border: 1px solid #ddd; background: white; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; color: #444; font-weight: 500; }
+.btn-ver:hover { background: #f5f5f5; }
+.btn-ver svg { width: 16px; height: 16px; }
 .btn-descargar { display: flex; align-items: center; gap: 6px; background: #1a3a4a; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; cursor: pointer; font-weight: 600; }
-.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; max-width: 860px; }
-.contact-card { background: white; border-radius: 14px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; align-items: flex-start; gap: 16px; }
-.contact-card-icon { width: 44px; height: 44px; border-radius: 10px; background: #f0f4f8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.contact-card-body h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-.contact-card-body p { font-size: 13px; color: #888; margin-bottom: 8px; }
-.contact-card-body a, .contact-card-body span { font-size: 14px; font-weight: 600; color: #1a3a4a; text-decoration: none; }
-.contact-form-card { background: white; border-radius: 14px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); max-width: 860px; }
-.contact-form-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-.contact-form-card p { font-size: 13px; color: #888; margin-bottom: 24px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.form-group label { font-size: 12px; font-weight: 600; color: #444; }
-.form-group input, .form-group textarea { border: 1px solid #e0e3e8; border-radius: 8px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; background: #fafbfc; }
-.form-group textarea { resize: vertical; min-height: 110px; }
-.btn-enviar { background: #1a3a4a; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-.toast { position: fixed; top: 24px; right: 24px; background: #27ae60; color: white; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999; }
+.btn-descargar:hover { background: #224d62; }
+.btn-descargar svg { width: 16px; height: 16px; }
+
+/* CONTACTO */
+#tab-contacto { max-width: 860px; }
+.contacto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.info-card { background: white; border-radius: 14px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+.info-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.info-card-header span { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+
+.info-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+.info-row:last-child { margin-bottom: 0; }
+.info-row svg { margin-top: 2px; flex-shrink: 0; }
+.info-label { font-size: 12px; color: #888; margin-bottom: 2px; }
+.info-value { font-size: 15px; font-weight: 700; color: #1a1a2e; text-decoration: none; display: block; }
+a.info-value:hover { text-decoration: underline; }
+
+/* FAQ */
+.faq-row { display: flex; gap: 14px; margin-bottom: 20px; }
+.faq-row:last-child { margin-bottom: 0; }
+.faq-bar { width: 4px; min-width: 4px; border-radius: 4px; }
+.faq-question { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 5px; }
+.faq-answer { font-size: 13px; color: #666; line-height: 1.5; }
+
+/* HELP BTN */
+.help-btn { position: fixed; bottom: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; background: #1a3a4a; color: white; border: none; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+/* TOAST */
+.toast { display: none; position: fixed; top: 24px; right: 24px; background: #27ae60; color: white; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); align-items: center; gap: 10px; z-index: 999; animation: slidein 0.3s ease; }
+.toast.show { display: flex; }
+@keyframes slidein { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
