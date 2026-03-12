@@ -274,8 +274,12 @@
 </template>
 
 <script setup>
+import { getMateriales, crearMaterial, actualizarMaterial, eliminarMaterial } from '../../services/api.js'
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
+
+// ── Datos ────────────────────────────────────────────────────
+const materiales = ref([])
 
 const busqueda        = ref('')
 const categoriaFiltro = ref('')
@@ -289,7 +293,7 @@ const confirmItem     = ref(null)
 
 const form = ref({ id: null, nombre: '', categoria: '', stock: 0, unidad: '', minimo: 0, maximo: 0, cliente: '' })
 
-// ── Contadores animados ─────────────────────────────────────
+// ── Contadores animados ──────────────────────────────────────
 const displayTotal      = ref(0)
 const displayAlertas    = ref(0)
 const displayCategorias = ref(0)
@@ -304,7 +308,7 @@ function animateCount(targetRef, target) {
   }, 20)
 }
 
-// ── Helpers ─────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────
 const categorias = ['Telas', 'Hilos', 'Accesorios', 'Otros']
 
 function calcularEstado(m) {
@@ -322,15 +326,7 @@ function stockPct(m) {
   return Math.min(100, Math.round((m.stock / m.maximo) * 100))
 }
 
-// ── Datos ───────────────────────────────────────────────────
-const materiales = ref([
-  { id: 1, nombre: 'Tela de Algodón Blanca',  categoria: 'Telas',      stock: 150, unidad: 'metros',   minimo: 50,  maximo: 500,  cliente: 'María González', fecha: '2024-02-15', eliminando: false },
-  { id: 2, nombre: 'Hilo de Poliéster Negro', categoria: 'Hilos',      stock: 25,  unidad: 'rollos',   minimo: 30,  maximo: 200,  cliente: 'Juan Pérez',     fecha: '2024-02-14', eliminando: false },
-  { id: 3, nombre: 'Botones Metálicos 15mm',  categoria: 'Accesorios', stock: 0,   unidad: 'unidades', minimo: 100, maximo: 1000, cliente: 'María González', fecha: '2024-02-10', eliminando: false },
-  { id: 4, nombre: 'Tela Denim Azul',         categoria: 'Telas',      stock: 80,  unidad: 'metros',   minimo: 40,  maximo: 300,  cliente: 'Juan Pérez',     fecha: '2024-02-12', eliminando: false },
-].map(m => ({ ...m, ...calcularEstado(m) })))
-
-// ── Ordenamiento ────────────────────────────────────────────
+// ── Ordenamiento ─────────────────────────────────────────────
 const sortKey = ref('nombre')
 const sortDir = ref(1)
 
@@ -343,7 +339,7 @@ function sIcon(key) {
   return sortDir.value === 1 ? '↑' : '↓'
 }
 
-// ── Computed ────────────────────────────────────────────────
+// ── Computed ─────────────────────────────────────────────────
 const alertas = computed(() => materiales.value.filter(m => m.estadoClass !== 'success'))
 
 const materialesFiltrados = computed(() => {
@@ -365,7 +361,7 @@ const errores = computed(() => ({
 }))
 const formValido = computed(() => !errores.value.nombre && !errores.value.categoria)
 
-// ── Acciones ────────────────────────────────────────────────
+// ── Acciones ─────────────────────────────────────────────────
 function abrirModal(m) {
   editando.value = !!m
   form.value = m ? { ...m } : { id: null, nombre: '', categoria: '', stock: 0, unidad: '', minimo: 0, maximo: 0, cliente: '' }
@@ -376,30 +372,73 @@ function cerrarModal() { modalVisible.value = false }
 async function guardar() {
   if (!formValido.value) return
   guardando.value = true
-  await new Promise(r => setTimeout(r, 600))
-  const estadoData = calcularEstado(form.value)
-  if (editando.value) {
-    const idx = materiales.value.findIndex(m => m.id === form.value.id)
-    if (idx !== -1) materiales.value[idx] = { ...form.value, ...estadoData, fecha: new Date().toISOString().split('T')[0], eliminando: false }
-    showToast('Material actualizado correctamente', 'toast-success')
-  } else {
-    materiales.value.push({ ...form.value, id: Date.now(), ...estadoData, fecha: new Date().toISOString().split('T')[0], eliminando: false })
-    showToast('Material agregado correctamente', 'toast-success')
+
+  try {
+    if (editando.value) {
+      // Actualizar en MySQL
+      await actualizarMaterial(form.value.id, {
+        Nombre_Producto: form.value.nombre,
+        Categoria:       form.value.categoria,
+        Stock_Actual:    form.value.stock,
+        Unidad:          form.value.unidad,
+        Stock_Minimo:    form.value.minimo,
+        Stock_Maximo:    form.value.maximo,
+      })
+      showToast('Material actualizado correctamente', 'toast-success')
+    } else {
+      // Crear en MySQL
+      await crearMaterial({
+        Nombre_Producto: form.value.nombre,
+        Categoria:       form.value.categoria,
+        Stock_Actual:    form.value.stock,
+        Unidad:          form.value.unidad,
+        Stock_Minimo:    form.value.minimo,
+        Stock_Maximo:    form.value.maximo,
+      })
+      showToast('Material agregado correctamente', 'toast-success')
+    }
+
+    // Recargar lista desde MySQL
+    const data = await getMateriales()
+    materiales.value = data.map(m => ({
+      id:        m.Id_Producto,
+      nombre:    m.Nombre_Producto,
+      categoria: m.Categoria,
+      stock:     m.Stock_Actual,
+      unidad:    m.Unidad,
+      minimo:    m.Stock_Minimo,
+      maximo:    m.Stock_Maximo,
+      fecha:     m.Fecha ? m.Fecha.split('T')[0] : '',
+      cliente:   '',
+      eliminando: false,
+      ...calcularEstado({ stock: m.Stock_Actual, minimo: m.Stock_Minimo })
+    }))
+
+  } catch (err) {
+    showToast(err.message || 'Error al guardar', 'toast-danger')
   }
+
   guardando.value = false
   cerrarModal()
 }
 
-function eliminar(m) { confirmItem.value = m }
-
-function confirmarEliminar() {
+async function confirmarEliminar() {
   const m = confirmItem.value
   confirmItem.value = null
   m.eliminando = true
-  setTimeout(() => {
-    materiales.value = materiales.value.filter(x => x.id !== m.id)
-    showToast(`"${m.nombre}" eliminado`, 'toast-danger')
-  }, 400)
+
+  try {
+    await eliminarMaterial(m.id)
+
+    setTimeout(() => {
+      materiales.value = materiales.value.filter(x => x.id !== m.id)
+      showToast(`"${m.nombre}" eliminado`, 'toast-danger')
+    }, 400)
+
+  } catch (err) {
+    m.eliminando = false
+    showToast(err.message || 'Error al eliminar', 'toast-danger')
+  }
 }
 
 function showToast(msg, type = 'toast-success') {
@@ -408,12 +447,34 @@ function showToast(msg, type = 'toast-success') {
   setTimeout(() => { toastMsg.value = '' }, 3000)
 }
 
-// ── onMounted ───────────────────────────────────────────────
-onMounted(() => {
+// ── onMounted (solo uno) ──────────────────────────────────────
+onMounted(async () => {
+  // Cargar datos reales de MySQL
+  try {
+    const data = await getMateriales()
+    // Mapear campos de la BD al formato que usa la vista
+    materiales.value = data.map(m => ({
+      id:       m.Id_Producto,
+      nombre:   m.Nombre_Producto,
+      categoria:m.Categoria,
+      stock:    m.Stock_Actual,
+      unidad:   m.Unidad,
+      minimo:   m.Stock_Minimo,
+      maximo:   m.Stock_Maximo,
+      fecha:    m.Fecha ? m.Fecha.split('T')[0] : '',
+      cliente:  '',
+      eliminando: false,
+      ...calcularEstado({ stock: m.Stock_Actual, minimo: m.Stock_Minimo })
+    }))
+  } catch (err) {
+    console.error('Error cargando materiales:', err)
+  }
+
+  // Animaciones de entrada
   setTimeout(() => {
     mounted.value = true
-    animateCount(displayTotal, materiales.value.length)
-    animateCount(displayAlertas, alertas.value.length)
+    animateCount(displayTotal,      materiales.value.length)
+    animateCount(displayAlertas,    alertas.value.length)
     animateCount(displayCategorias, categorias.length)
   }, 80)
 })
