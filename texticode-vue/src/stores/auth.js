@@ -1,22 +1,42 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-
+import { loginUsuario } from '../services/api'
+ 
 export const useAuthStore = defineStore('auth', () => {
-  // Estado del usuario logueado
   const usuario = ref(null)
-
-  // Getter: rol del usuario actual
-  const rol = computed(() => usuario.value?.rol || null)
+ 
+  // Rol normalizado: demo guarda { rol: 'operario' }, API real devuelve { Rol: 'Operario' }
+  const rol = computed(() => {
+    if (!usuario.value) return null
+    if (usuario.value.rol) return usuario.value.rol
+    if (usuario.value.Rol) return usuario.value.Rol.toLowerCase()
+    return null
+  })
+ 
+  // ID real de BD — null si es demo
+  const idUsuario = computed(() => usuario.value?.Id_Usuario ?? null)
+ 
   const estaLogueado = computed(() => !!usuario.value)
-
-  // Simular login (aquí conectarás con Supabase después)
+ 
+  // Login demo (botones de acceso rápido — no toca la BD)
   function login(datos) {
     usuario.value = datos
   }
-
+ 
+  // Login real contra la BD
+  async function loginConCredenciales(correo, contrasena) {
+    const data = await loginUsuario({ correo, contrasena })
+    usuario.value = {
+      ...data.usuario,
+      rol: data.usuario.Rol?.toLowerCase(),
+    }
+    return usuario.value
+  }
+ 
   function logout() {
     usuario.value = null
   }
-
-  return { usuario, rol, estaLogueado, login, logout }
+ 
+  return { usuario, rol, idUsuario, estaLogueado, login, loginConCredenciales, logout }
 })
+ 
