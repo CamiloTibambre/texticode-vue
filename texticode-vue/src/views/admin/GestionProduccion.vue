@@ -19,9 +19,9 @@
  
       <!-- STATS -->
       <div class="stats-grid" :class="{ visible: mounted }">
-        <div v-for="(s, i) in stats" :key="i" class="stat-card" :class="s.color">
-          <div class="stat-num">{{ s.valor }}</div>
+        <div v-for="(s, i) in stats" :key="i" class="stat-card">
           <div class="stat-lbl">{{ s.label }}</div>
+          <div class="stat-num" :class="s.color">{{ s.valor }}</div>
         </div>
       </div>
  
@@ -318,10 +318,10 @@ onMounted(async () => {
  
 // ── COMPUTED ──────────────────────────────────────────────────
 const stats = computed(() => [
-  { label: 'Total Órdenes', valor: ordenes.value.length,                                          color: 'stat-orange' },
-  { label: 'En Proceso',    valor: ordenes.value.filter(o => o.Estado === 'En Proceso').length,   color: 'stat-blue'   },
-  { label: 'Completadas',   valor: ordenes.value.filter(o => o.Estado === 'Completada').length,   color: 'stat-green'  },
-  { label: 'Canceladas',    valor: ordenes.value.filter(o => o.Estado === 'Cancelada').length,    color: 'stat-gray'   },
+  { label: 'Total Órdenes', valor: ordenes.value.length,                                        color: 'stat-orange' },
+  { label: 'En Proceso',    valor: ordenes.value.filter(o => o.Estado === 'En Proceso').length, color: 'stat-blue'   },
+  { label: 'Completadas',   valor: ordenes.value.filter(o => o.Estado === 'Completada').length, color: 'stat-green'  },
+  { label: 'Canceladas',    valor: ordenes.value.filter(o => o.Estado === 'Cancelada').length,  color: 'stat-gray'   },
 ])
  
 const ordenesFiltradas = computed(() => {
@@ -477,15 +477,15 @@ function showToast(msg, type = 'toast-success') {
 .btn-nueva:hover { background: #162d42; }
  
 /* STATS */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; opacity: 0; transform: translateY(-6px); transition: opacity 0.4s 0.1s, transform 0.4s 0.1s; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; opacity: 0; transform: translateY(-6px); transition: opacity 0.4s 0.1s, transform 0.4s 0.1s; }
 .stats-grid.visible { opacity: 1; transform: none; }
-.stat-card { background: white; border-radius: 12px; padding: 18px 20px; border: 1px solid #e5e7eb; }
-.stat-num  { font-size: 28px; font-weight: 700; }
-.stat-lbl  { font-size: 12px; color: #6b7280; margin-top: 4px; }
-.stat-orange .stat-num { color: #ea580c; }
-.stat-blue  .stat-num  { color: #2563eb; }
-.stat-green .stat-num  { color: #16a34a; }
-.stat-gray  .stat-num  { color: #6b7280; }
+.stat-card { background: white; border-radius: 12px; padding: 20px 24px; border: 1px solid #e5e7eb; }
+.stat-lbl  { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+.stat-num  { font-size: 32px; font-weight: 700; color: #111827; }
+.stat-num.stat-orange { color: #111827; }
+.stat-num.stat-blue   { color: #2563eb; }
+.stat-num.stat-green  { color: #16a34a; }
+.stat-num.stat-gray   { color: #6b7280; }
  
 /* CARGANDO / ERROR */
 .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px; gap: 14px; color: #9ca3af; font-size: 14px; }
@@ -587,4 +587,3 @@ tr:hover td { background: #fafafa; }
 .row-enter-active, .row-leave-active { transition: opacity 0.3s; }
 .row-enter-from, .row-leave-to { opacity: 0; }
 </style>
- 
