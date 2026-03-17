@@ -163,64 +163,74 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '@/components/AppSidebar.vue'
+import { getOrdenesDeUsuario, getMaterialesDeOrden } from '../../services/api.js'
 
-const busqueda = ref('')
-const filtroEstado = ref('')
+const busqueda      = ref('')
+const filtroEstado  = ref('')
 const filtroPrioridad = ref('')
 
-const tareas = ref([
-  {
-    id: 1,
-    estado: 'en-proceso',
-    prioridad: 'alta',
-    nombre: 'Camisas Polo Azules',
-    descripcion: 'Confección de 50 camisas polo en color azul marino, talla M',
-    cliente: 'Textiles del Norte',
-    entrega: '19/01/2024',
-    tiempoEstimado: '3 días',
-    progreso: 75,
-    materiales: ['Tela Polo Azul', 'Hilo Azul', 'Botones Blancos'],
-    instrucciones: 'Seguir patrón estándar para polo. Atención especial en costuras del cuello.'
-  },
-  {
-    id: 2,
-    estado: 'pendiente',
-    prioridad: 'media',
-    nombre: 'Camisetas Estampadas',
-    descripcion: 'Aplicación de estampado en 30 camisetas blancas',
-    cliente: 'Moda & Estilo',
-    entrega: '21/01/2024',
-    tiempoEstimado: '2 días',
-    progreso: undefined,
-    materiales: ['Camisetas Blancas', 'Tinta Serigrafía', 'Plantillas'],
-    instrucciones: 'Verificar alineación del estampado antes de aplicar.'
-  }
-])
+const tareas = ref([])
 
-const estadoLabel = (estado) => {
-  const labels = {
-    'en-proceso': 'En Proceso',
-    'pendiente': 'Pendiente',
-    'completado': 'Completado',
-    'atrasado': 'Atrasado',
-    'pausado': 'Pausado'
+onMounted(async () => {
+  try {
+    // ID del operario logueado — cámbialo por el del store de auth cuando lo conectes
+    const idUsuario = 1
+    const data = await getOrdenesDeUsuario(idUsuario)
+
+    // Por cada tarea traer sus materiales
+    const tareasConMateriales = await Promise.all(
+      data.map(async (t) => {
+        const mats = await getMaterialesDeOrden(t.Id_Orden)
+        return {
+          id:             t.Id_Orden,
+          nombre:         t.Descripcion,
+          descripcion:    t.Descripcion,
+          estado:         mapearEstado(t.Estado),
+          prioridad:      t.Prioridad?.toLowerCase() || 'media',
+          cliente:        t.Cliente || '—',
+          entrega:        t.Fecha_Limite?.split('T')[0] || '—',
+          tiempoEstimado: '—',
+          progreso:       t.Estado === 'Completada' ? 100 : t.Estado === 'En Proceso' ? 50 : 0,
+          materiales:     mats.map(m => m.Nombre_Producto),
+          instrucciones:  t.Descripcion,
+          funcion:        t.Funcion || '—',
+        }
+      })
+    )
+    tareas.value = tareasConMateriales
+  } catch (err) {
+    console.error('Error cargando tareas:', err)
   }
-  return labels[estado] || estado
+})
+
+function mapearEstado(estado) {
+  const mapa = {
+    'En Proceso': 'en-proceso',
+    'Completada': 'completado',
+    'Cancelada':  'atrasado',
+  }
+  return mapa[estado] || 'pendiente'
 }
+
+const estadoLabel = (estado) => ({
+  'en-proceso': 'En Proceso',
+  'pendiente':  'Pendiente',
+  'completado': 'Completado',
+  'atrasado':   'Atrasado',
+  'pausado':    'Pausado'
+})[estado] || estado
 
 const contarPor = (estado) => tareas.value.filter(t => t.estado === estado).length
 
-const tareasFiltradas = computed(() => {
-  return tareas.value.filter(t => {
-    const coincideBusqueda = t.nombre.toLowerCase().includes(busqueda.value.toLowerCase()) ||
-      t.descripcion.toLowerCase().includes(busqueda.value.toLowerCase())
-    const coincideEstado = filtroEstado.value === '' || t.estado === filtroEstado.value
-    const coincidePrioridad = filtroPrioridad.value === '' || t.prioridad === filtroPrioridad.value
-    return coincideBusqueda && coincideEstado && coincidePrioridad
-  })
-})
+const tareasFiltradas = computed(() => tareas.value.filter(t => {
+  const b = t.nombre.toLowerCase().includes(busqueda.value.toLowerCase()) ||
+            t.descripcion.toLowerCase().includes(busqueda.value.toLowerCase())
+  const e = filtroEstado.value    === '' || t.estado    === filtroEstado.value
+  const p = filtroPrioridad.value === '' || t.prioridad === filtroPrioridad.value
+  return b && e && p
+}))
 </script>
 
 <style scoped>
