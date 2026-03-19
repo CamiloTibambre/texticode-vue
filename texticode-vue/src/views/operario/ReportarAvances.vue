@@ -109,8 +109,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '@/components/AppSidebar.vue'
-import { getOrdenesDeUsuario } from '../../services/api.js'
+import { useAuthStore } from '../../stores/auth'
+import { actualizarOrden } from '../../services/api.js'
 
+const auth = useAuthStore()
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 const tabActivo    = ref('activas')
 const modalVisible = ref(false)
 const ordenActual  = ref(null)
@@ -120,22 +123,31 @@ const ordenes      = ref([])
 const reporte = ref({ nuevas: 0, nota: '' })
 
 onMounted(async () => {
+  // ANTES tenías: const idUsuario = 1
+  // Ahora usa el store:
+  if (!auth.idUsuario) return
+
   try {
-    const idUsuario = 1 // reemplazar con auth store
-    const data = await getOrdenesDeUsuario(idUsuario)
+    const res  = await fetch(`${BASE}/ordenes/operario/${auth.idUsuario}`)
+    const data = await res.json()
 
     ordenes.value = data
       .filter(t => t.Estado !== 'Cancelada')
       .map(t => ({
-        id:             `OP-${String(t.Id_Orden).padStart(3,'0')}`,
-        idReal:         t.Id_Orden,
-        nombre:         t.Descripcion,
-        estado:         t.Estado === 'Completada' ? 'completado' : t.Estado === 'En Proceso' ? 'en-proceso' : 'pendiente',
-        prioridad:      t.Prioridad?.toLowerCase() || 'media',
-        unidadesHechas: t.Estado === 'Completada' ? t.Cantidad : Math.floor(t.Cantidad * 0.5),
-        unidadesTotales:t.Cantidad,
-        fechaLimite:    t.Fecha_Limite?.split('T')[0] || '—',
-        progreso:       t.Estado === 'Completada' ? 100 : 50,
+        id:              `OP-${String(t.Id_Orden).padStart(3,'0')}`,
+        idReal:          t.Id_Orden,
+        nombre:          t.Descripcion,
+        estado:          t.Estado === 'Completada' ? 'completado'
+                       : t.Estado === 'En Proceso' ? 'en-proceso'
+                       : 'pendiente',
+        prioridad:       t.Prioridad?.toLowerCase() || 'media',
+        unidadesHechas:  t.Unidades_Realizadas ?? 0,
+        unidadesTotales: t.Cantidad,
+        fechaLimite:     t.Fecha_Limite?.split('T')[0] || '—',
+        progreso:        t.Estado === 'Completada' ? 100
+                       : t.Unidades && t.Unidades_Realizadas
+                         ? Math.round((t.Unidades_Realizadas / t.Unidades) * 100)
+                         : 50,
       }))
   } catch (err) {
     console.error('Error cargando avances:', err)
@@ -153,22 +165,67 @@ function togglePausa(o) {
   o.estado = o.estado === 'pausado' ? 'en-proceso' : 'pausado'
 }
 
-function enviarReporte() {
+async function enviarReporte() {
   if (!reporte.value.nuevas || reporte.value.nuevas <= 0) return
-  const o = ordenActual.value
-  o.unidadesHechas = Math.min(o.unidadesHechas + reporte.value.nuevas, o.unidadesTotales)
-  o.progreso = Math.round((o.unidadesHechas / o.unidadesTotales) * 100)
-  if (o.unidadesHechas >= o.unidadesTotales) o.estado = 'completado'
 
-  historial.value.unshift({
-    id:       Date.now(),
-    orden:    `${o.id} — ${o.nombre}`,
-    nuevas:   reporte.value.nuevas,
-    progreso: o.progreso,
-    nota:     reporte.value.nota,
-    fecha:    new Date().toLocaleDateString('es-CO'),
-  })
-  cerrarModal()
+  const o = ordenActual.value
+
+  const nuevasHechas  = Math.min(o.unidadesHechas + reporte.value.nuevas, o.unidadesTotales)
+  const nuevoProgreso = Math.round((nuevasHechas / o.unidadesTotales) * 100)
+  const nuevoEstado   = nuevasHechas >= o.unidadesTotales ? 'Completada' : 'En Proceso'
+
+  try {
+    // Primero traemos la orden completa
+    const res  = await fetch(`${BASE}/ordenes/${o.idReal}`)
+    if (!res.ok) throw new Error(`GET orden falló: ${res.status} ${await res.text()}`)
+    const data = await res.json()
+    console.log('Orden traída:', data)
+
+    // Armamos el payload
+    const payload = {
+      Id_Cliente:          data.Id_Cliente,
+      Id_Material:         data.Id_Material,
+      Id_Operario:         data.Id_Operario  || null,
+      Producto:            data.Producto     || null,
+      Descripcion:         data.Descripcion,
+      Cantidad:            data.Cantidad,
+      Prioridad:           data.Prioridad,
+      Fecha_Limite:        data.Fecha_Limite?.split('T')[0] || data.Fecha_Limite,
+      Estado:              nuevoEstado,
+      Unidades:            data.Unidades            ?? o.unidadesTotales,
+      Unidades_Realizadas: nuevasHechas,
+    }
+    console.log('Payload enviado:', payload)
+
+    const putRes = await fetch(`${BASE}/ordenes/${o.idReal}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const putData = await putRes.json()
+    console.log('Respuesta PUT:', putRes.status, putData)
+
+    if (!putRes.ok) throw new Error(`PUT falló: ${putRes.status} — ${JSON.stringify(putData)}`)
+
+    // Actualizar estado local
+    o.unidadesHechas = nuevasHechas
+    o.progreso       = nuevoProgreso
+    if (nuevoEstado === 'Completada') o.estado = 'completado'
+
+    historial.value.unshift({
+      id:       Date.now(),
+      orden:    `${o.id} — ${o.nombre}`,
+      nuevas:   reporte.value.nuevas,
+      progreso: nuevoProgreso,
+      nota:     reporte.value.nota,
+      fecha:    new Date().toLocaleDateString('es-CO'),
+    })
+
+    cerrarModal()
+  } catch (err) {
+    console.error('Error completo:', err)
+    alert(`Error: ${err.message}`)
+  }
 }
 
 const ordenesActivas  = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))

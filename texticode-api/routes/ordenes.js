@@ -136,30 +136,26 @@ router.post('/', async (req, res) => {
 // PUT actualizar orden
 router.put('/:id', async (req, res) => {
   const {
-    Id_Cliente, Id_Material, Id_Operario,
-    Producto, Descripcion, Cantidad,
-    Prioridad, Fecha_Limite, Estado, Unidades_Realizadas
+    Id_Cliente, Id_Material, Id_Operario, Producto, Descripcion,
+    Cantidad, Prioridad, Fecha_Limite, Estado,
+    Unidades, Unidades_Realizadas   // ← agregar estos dos
   } = req.body
+
   try {
     const [result] = await pool.query(`
       UPDATE orden_produccion
-      SET Id_Cliente=?, Id_Material=?, Id_Operario=?, Producto=?,
-          Descripcion=?, Cantidad=?, Prioridad=?, Fecha_Limite=?,
-          Estado=?, Unidades_Realizadas=?
+      SET Id_Cliente=?, Id_Material=?, Id_Operario=?, Producto=?, Descripcion=?,
+          Cantidad=?, Prioridad=?, Fecha_Limite=?, Estado=?,
+          Unidades=?, Unidades_Realizadas=?
       WHERE Id_Orden=?
     `, [
-      Id_Cliente,
-      Id_Material,
-      Id_Operario          || null,
-      Producto             || null,
-      Descripcion,
-      Cantidad,
-      Prioridad,
-      Fecha_Limite,
-      Estado,
-      Unidades_Realizadas  ?? null,
+      Id_Cliente, Id_Material, Id_Operario || null,
+      Producto || null, Descripcion, Cantidad, Prioridad,
+      Fecha_Limite, Estado,
+      Unidades ?? null, Unidades_Realizadas ?? null,   // ← agregar estos dos
       req.params.id,
     ])
+
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Orden no encontrada' })
     res.json({ mensaje: 'Orden actualizada' })
   } catch (err) {
