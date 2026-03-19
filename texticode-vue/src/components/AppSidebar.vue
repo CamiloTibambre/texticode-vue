@@ -2,9 +2,15 @@
   <aside class="sidebar" :class="{ 'sidebar-visible': animVisible }">
 
     <div class="sidebar-top">
-      <!-- Logo -->
+      <!-- Logo con anillo giratorio -->
       <div class="logo" :class="{ visible: animVisible }">
-        <img src="/img/LogoTexticode.png" alt="Logo Texticode">
+        <div class="logo-ring-wrap">
+          <div class="logo-ring">
+            <span class="logo-spark spark-1"></span>
+            <span class="logo-spark spark-2"></span>
+          </div>
+          <img src="/img/LogoTexticode.png" alt="Logo Texticode">
+        </div>
       </div>
 
       <!-- Panel label con badge de rol -->
@@ -134,11 +140,13 @@ const menuConfig = {
   }
 }
 
-const panelLabel = computed(() => menuConfig[props.rol]?.label     || '')
-const menuItems  = computed(() => menuConfig[props.rol]?.items     || [])
-const roleLabel  = computed(() => menuConfig[props.rol]?.roleLabel || '')
-const userName   = computed(() => menuConfig[props.rol]?.userName  || '')
-const userInitial = computed(() => userName.value?.charAt(0) || '?')
+const panelLabel  = computed(() => menuConfig[props.rol]?.label     || "")
+const menuItems   = computed(() => menuConfig[props.rol]?.items     || [])
+const roleLabel   = computed(() => menuConfig[props.rol]?.roleLabel || "")
+
+// Nombre real del usuario logueado desde el store
+const userName    = computed(() => auth.usuario?.Nombre_Completo || auth.usuario?.Nombre_Usuario || "")
+const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || "?")
 
 // Color del badge según rol
 const rolClass = computed(() => ({
@@ -178,9 +186,9 @@ function cerrarSesion() {
   opacity: 0; transform: translateY(-8px);
   transition: opacity 0.35s ease, transform 0.35s ease;
   transition-delay: 40ms;
+  overflow: visible;
 }
 .logo.visible { opacity: 1; transform: none; }
-.logo img { width: 120px; }
 
 /* ── PANEL LABEL / BADGE ── */
 .panel-label {
@@ -296,4 +304,48 @@ function cerrarSesion() {
 .fade-enter-active { transition: all 0.2s ease; }
 .fade-leave-active { transition: all 0.15s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(6px); }
+
+/* ── ANILLO LOGO ── */
+.logo-ring-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+.logo-ring-wrap img {
+  width: 120px;
+  position: relative;
+  z-index: 2;
+}
+.logo-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 128px; height: 128px;
+  margin-left: -64px; margin-top: -64px;
+  border-radius: 50%;
+  border: 1px solid rgba(31,58,82,0.1);
+  border-top-color: rgba(31,58,82,0.3);
+  animation: sidebarspinring 6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes sidebarspinring { to { transform: rotate(360deg); } }
+
+.logo-spark {
+  position: absolute; top: 50%; left: 50%;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(31,58,82,0.65);
+  box-shadow: 0 0 4px 1px rgba(31,58,82,0.25);
+  transform-origin: 0 0;
+  animation: sidebarorbitspark 6s linear infinite;
+  z-index: 3;
+}
+.spark-1 { animation-delay:  0s; }
+.spark-2 { animation-delay: -3s; }
+
+@keyframes sidebarorbitspark {
+  0%   { transform: rotate(0deg)   translateX(62px) translateX(-2px); opacity: 0.7; }
+  30%  { opacity: 0.25; }
+  60%  { opacity: 0.6; }
+  100% { transform: rotate(360deg) translateX(62px) translateX(-2px); opacity: 0.7; }
+}
 </style>
