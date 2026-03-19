@@ -65,16 +65,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
             </svg>
           </div>
-          <div class="select-wrapper">
-            <select v-model="filtroEstado" class="select">
-              <option value="">Todos los estados</option>
-              <option value="active">Activo</option>
-              <option value="inactive">Inactivo</option>
-            </select>
-            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-            </svg>
-          </div>
         </div>
         <button class="btn" @click="abrirModal(null)">
           <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -114,9 +104,6 @@
               <th class="th-sortable" @click="sortBy('rol')">
                 Rol <span class="sort-icon">{{ sortIcon('rol') }}</span>
               </th>
-              <th class="th-sortable" @click="sortBy('estado')">
-                Estado <span class="sort-icon">{{ sortIcon('estado') }}</span>
-              </th>
               <th>Teléfono</th>
               <th class="th-sortable" @click="sortBy('fechaRegistro')">
                 Fecha Registro <span class="sort-icon">{{ sortIcon('fechaRegistro') }}</span>
@@ -143,7 +130,6 @@
                   </div>
                 </td>
                 <td><span class="badge-role" :class="u.rol">{{ u.rolLabel }}</span></td>
-                <td><span class="badge-status" :class="u.estado">{{ u.estado === 'active' ? 'Activo' : 'Inactivo' }}</span></td>
                 <td>
                   <div class="phone-cell">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -200,6 +186,13 @@
           >
           <span v-if="errores.nombre && formTouched" class="error-msg">{{ errores.nombre }}</span>
 
+          <label>Nombre de Usuario</label>
+          <input
+            v-model="form.nombreUsuario"
+            type="text"
+            placeholder="usuario123 (se genera automáticamente si lo dejas vacío)"
+          >
+
           <label>Correo Electrónico</label>
           <input
             v-model="form.email"
@@ -220,12 +213,23 @@
           >
           <span v-if="errores.telefono && formTouched" class="error-msg">{{ errores.telefono }}</span>
 
+
           <label>Rol</label>
-          <select v-model="form.rol">
-            <option value="administrador">Administrador</option>
-            <option value="operador">Operario</option>
-            <option value="cliente">Cliente</option>
+          <select v-model="form.Id_Rol" :class="{ 'input-error': errores.Id_Rol && formTouched }">
+            <option value="" disabled>Selecciona un rol</option>
+            <option v-for="r in roles" :key="r.Id_Rol" :value="r.Id_Rol">{{ r.Nombre_Rol }}</option>
           </select>
+          <span v-if="errores.Id_Rol && formTouched" class="error-msg">{{ errores.Id_Rol }}</span>
+
+          <label>Contraseña{{ editando ? ' (dejar vacío para no cambiar)' : '' }}</label>
+          <input
+            v-model="form.contrasena"
+            type="password"
+            :placeholder="editando ? 'Dejar vacío para mantener la actual' : 'Contraseña del usuario'"
+            :class="{ 'input-error': errores.contrasena && formTouched }"
+            @blur="formTouched = true"
+          >
+          <span v-if="errores.contrasena && formTouched" class="error-msg">{{ errores.contrasena }}</span>
 
           <!-- Preview del usuario -->
           <div v-if="form.nombre" class="user-preview">
@@ -253,68 +257,129 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
+import {
+  getUsuarios, getRoles, crearUsuario, actualizarUsuario
+} from '../../services/api.js'
 
-// ── ANIMACIÓN DE ENTRADA ──
-const animVisible = ref(false)
-onMounted(() => {
+// ── ESTADO ──
+const animVisible  = ref(false)
+const cargando     = ref(true)
+const guardando    = ref(false)
+const searchFocus  = ref(false)
+const busqueda     = ref('')
+const filtroRol    = ref('')
+const modalVisible = ref(false)
+const editando     = ref(false)
+const formTouched  = ref(false)
+const roles        = ref([])   // lista de roles de la BD
+const usuarios     = ref([])
+
+const confirmDialog = ref({ visible: false, id: null })
+const toast         = ref({ visible: false, msg: '', type: 'success' })
+
+// ── ROL HELPERS ──
+// Normaliza el nombre de rol de la BD al valor que usan los badges/filtros
+const ROL_NORM = { 'administrador': 'administrador', 'admin': 'administrador', 'operario': 'operador', 'operador': 'operador', 'cliente': 'cliente' }
+const ROL_LABEL= { administrador: 'Administrador', operador: 'Operario', cliente: 'Cliente' }
+function normRol(nombreRol) { return ROL_NORM[(nombreRol || '').toLowerCase()] || 'operador' }
+
+// ── MAPEO BD → vista ──
+// usuarios.js devuelve el rol como campo "Rol" (alias del JOIN), no "Nombre_Rol"
+// y el SELECT no expone Id_Rol directamente, lo buscamos desde roles[]
+function mapear(u) {
+  const rolNombreRaw = u.Rol || u.Nombre_Rol || ''
+  const rol          = normRol(rolNombreRaw)
+  const nombre       = u.Nombre_Completo || u.Nombre_Usuario || ''
+  const rolObj       = roles.value.find(r =>
+    (r.Nombre_Rol || '').toLowerCase() === rolNombreRaw.toLowerCase()
+  )
+  return {
+    id:            u.Id_Usuario,
+    nombre,
+    nombreUsuario: u.Nombre_Usuario || '',
+    email:         u.Correo         || '',
+    telefono:      u.Telefono       || '',
+    Id_Rol:        rolObj?.Id_Rol   ?? '',
+    rol,
+    rolLabel:      ROL_LABEL[rol]   || rolNombreRaw,
+    estado:        u.Estado === 'activo' ? 'active' : 'inactive',
+    fechaRegistro: u.Fecha_Registro ? new Date(u.Fecha_Registro).toLocaleDateString('es-CO') : '—',
+    iniciales:     nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase(),
+    flash:         false,
+    eliminating:   false,
+  }
+}
+
+// ── CARGA INICIAL ──
+async function cargarDatos() {
+  cargando.value = true
+  try {
+    const [dataU, dataR] = await Promise.all([getUsuarios(), getRoles()])
+    roles.value    = dataR
+    // Solo mostrar usuarios activos en la lista
+    usuarios.value = dataU.filter(u => u.Estado === 'activo').map(mapear)
+  } catch (e) {
+    mostrarToast('Error al cargar usuarios', 'danger')
+  } finally {
+    cargando.value = false
+  }
+}
+
+onMounted(async () => {
+  await cargarDatos()
   setTimeout(() => animVisible.value = true, 50)
   setTimeout(() => animateStats(), 200)
 })
 
 // ── TOAST ──
-const toast = ref({ visible: false, msg: '', type: 'success' })
 function mostrarToast(msg, type = 'success') {
   toast.value = { visible: true, msg, type }
   setTimeout(() => toast.value.visible = false, 2800)
 }
 
-// ── CONFIRM DIALOG ──
-const confirmDialog = ref({ visible: false, id: null })
-function pedirEliminar(id) {
-  confirmDialog.value = { visible: true, id }
-}
-function confirmarEliminar() {
-  const u = usuarios.value.find(u => u.id === confirmDialog.value.id)
-  if (u) {
-    u.eliminating = true
-    setTimeout(() => {
-      usuarios.value = usuarios.value.filter(u => u.id !== confirmDialog.value.id)
-      mostrarToast('Usuario eliminado', 'danger')
-    }, 350)
-  }
+// ── CONFIRM / ELIMINAR ──
+function pedirEliminar(id) { confirmDialog.value = { visible: true, id } }
+
+async function confirmarEliminar() {
+  const id = confirmDialog.value.id
   confirmDialog.value.visible = false
+  const u = usuarios.value.find(u => u.id === id)
+  if (!u) return
+  u.eliminating = true
+  try {
+    // Marcar como inactivo en la BD en lugar de eliminar
+    await actualizarUsuario(id, {
+      Id_Rol:          u.Id_Rol,
+      Nombre_Completo: u.nombre,
+      Nombre_Usuario:  u.nombreUsuario,
+      Correo:          u.email,
+      Telefono:        u.telefono || null,
+      Estado:          'inactivo',
+    })
+    setTimeout(() => {
+      usuarios.value = usuarios.value.filter(x => x.id !== id)
+      animateStats()
+      mostrarToast('Usuario desactivado', 'danger')
+    }, 350)
+  } catch (e) {
+    u.eliminating = false
+    mostrarToast(e.message || 'Error al desactivar', 'danger')
+  }
 }
-
-// ── SEARCH FOCUS ──
-const searchFocus = ref(false)
-
-// ── DATOS ──
-const busqueda     = ref('')
-const filtroRol    = ref('')
-const filtroEstado = ref('')
-const modalVisible = ref(false)
-const editando     = ref(false)
-const formTouched  = ref(false)
-
-const form = ref({ id: null, nombre: '', email: '', telefono: '', rol: 'operador', estado: 'active' })
-
-const usuarios = ref([
-  { id: 1, nombre: 'Admin Texticode', email: 'admin@texticode.com',  telefono: '+57 300 000 0001', rol: 'administrador', rolLabel: 'Administrador', estado: 'active', iniciales: 'AT', fechaRegistro: '2024-01-01', flash: false, eliminating: false },
-  { id: 2, nombre: 'Carlos Mendoza',  email: 'carlos@texticode.com', telefono: '+57 300 123 4567', rol: 'operador',      rolLabel: 'Operario',      estado: 'active', iniciales: 'CM', fechaRegistro: '2024-01-15', flash: false, eliminating: false },
-  { id: 3, nombre: 'María González',  email: 'maria@empresa.com',    telefono: '+57 300 987 6543', rol: 'cliente',       rolLabel: 'Cliente',       estado: 'active', iniciales: 'MG', fechaRegistro: '2024-02-01', flash: false, eliminating: false },
-  { id: 4, nombre: 'Juan Pérez',      email: 'juan@comercial.com',   telefono: '+57 300 555 7890', rol: 'cliente',       rolLabel: 'Cliente',       estado: 'active', iniciales: 'JP', fechaRegistro: '2024-02-05', flash: false, eliminating: false },
-])
 
 // ── CONTADORES ANIMADOS ──
 const statsDisplay = ref({ total: 0, activos: 0, operarios: 0, clientes: 0 })
 function animateCount(key, target) {
   let val = 0
-  const step = Math.max(1, Math.ceil(target / 30))
-  const interval = setInterval(() => {
+  const steps = 80
+  const duration = 2000
+  const intervalMs = Math.round(duration / steps)
+  const step = Math.max(0.1, target / steps)
+  const iv = setInterval(() => {
     val += step
-    if (val >= target) { statsDisplay.value[key] = target; clearInterval(interval) }
-    else statsDisplay.value[key] = val
-  }, 30)
+    if (val >= target) { statsDisplay.value[key] = target; clearInterval(iv) }
+    else statsDisplay.value[key] = Math.floor(val)
+  }, intervalMs)
 }
 function animateStats() {
   animateCount('total',     usuarios.value.length)
@@ -322,68 +387,50 @@ function animateStats() {
   animateCount('operarios', usuarios.value.filter(u => u.rol === 'operador').length)
   animateCount('clientes',  usuarios.value.filter(u => u.rol === 'cliente').length)
 }
-
 const statsCards = computed(() => [
-  { label: 'Total Usuarios', display: statsDisplay.value.total,     color: '' },
-  { label: 'Activos',        display: statsDisplay.value.activos,    color: 'green' },
-  { label: 'Operarios',      display: statsDisplay.value.operarios,  color: 'blue' },
-  { label: 'Clientes',       display: statsDisplay.value.clientes,   color: '' },
+  { label: 'Total Usuarios', display: statsDisplay.value.total,    color: '' },
+  { label: 'Activos',        display: statsDisplay.value.activos,   color: 'green' },
+  { label: 'Operarios',      display: statsDisplay.value.operarios, color: 'blue' },
+  { label: 'Clientes',       display: statsDisplay.value.clientes,  color: '' },
 ])
 
-// ── COLORES DINÁMICOS DE AVATAR ──
-const AVATAR_PALETTES = [
-  { bg: '#dbeafe', color: '#1d4ed8' },
-  { bg: '#fce7f3', color: '#be185d' },
-  { bg: '#d1fae5', color: '#065f46' },
-  { bg: '#fef9c3', color: '#92400e' },
-  { bg: '#ede9fe', color: '#5b21b6' },
-  { bg: '#fee2e2', color: '#991b1b' },
+// ── AVATAR COLORS ──
+const PALETTES = [
+  { bg: '#dbeafe', color: '#1d4ed8' }, { bg: '#fce7f3', color: '#be185d' },
+  { bg: '#d1fae5', color: '#065f46' }, { bg: '#fef9c3', color: '#92400e' },
+  { bg: '#ede9fe', color: '#5b21b6' }, { bg: '#fee2e2', color: '#991b1b' },
 ]
-function avatarBg(nombre) {
-  const idx = (nombre?.charCodeAt(0) || 0) % AVATAR_PALETTES.length
-  return AVATAR_PALETTES[idx].bg
-}
-function avatarColor(nombre) {
-  const idx = (nombre?.charCodeAt(0) || 0) % AVATAR_PALETTES.length
-  return AVATAR_PALETTES[idx].color
-}
+function avatarBg(n)    { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].bg }
+function avatarColor(n) { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].color }
 
 // ── ORDENAMIENTO ──
 const sortKey = ref('nombre')
 const sortDir = ref(1)
-function sortBy(key) {
-  if (sortKey.value === key) sortDir.value *= -1
-  else { sortKey.value = key; sortDir.value = 1 }
-}
-function sortIcon(key) {
-  if (sortKey.value !== key) return '⇅'
-  return sortDir.value === 1 ? '↑' : '↓'
-}
+function sortBy(key) { sortKey.value === key ? sortDir.value *= -1 : (sortKey.value = key, sortDir.value = 1) }
+function sortIcon(key) { return sortKey.value !== key ? '⇅' : sortDir.value === 1 ? '↑' : '↓' }
 
 // ── FILTRADO ──
 const usuariosFiltrados = computed(() =>
   usuarios.value.filter(u => {
-    const matchBusqueda = u.nombre.toLowerCase().includes(busqueda.value.toLowerCase()) ||
-                          u.email.toLowerCase().includes(busqueda.value.toLowerCase())
-    const matchRol    = !filtroRol.value    || u.rol    === filtroRol.value
-    const matchEstado = !filtroEstado.value || u.estado === filtroEstado.value
-    return matchBusqueda && matchRol && matchEstado
+    const q = busqueda.value.toLowerCase()
+    return (u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
+           (!filtroRol.value    || u.rol    === filtroRol.value)
   })
 )
-
-// ── FILTRADO + ORDENAMIENTO ──
 const usuariosOrdenados = computed(() =>
   [...usuariosFiltrados.value].sort((a, b) => {
-    const va = a[sortKey.value] || ''
-    const vb = b[sortKey.value] || ''
-    return va > vb ? sortDir.value : va < vb ? -sortDir.value : 0
+    const va = a[sortKey.value] || '', vb = b[sortKey.value] || ''
+    return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir.value
   })
 )
 
-// ── VALIDACIÓN EN TIEMPO REAL ──
+// ── VALIDACIÓN ──
+const form = ref({ id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: '', estado: 'activo', contrasena: '' })
 const errores = computed(() => ({
-  nombre:   !form.value.nombre.trim() ? 'El nombre es requerido' : '',
-  email:    !form.value.email.includes('@') ? 'Ingresa un email válido' : '',
+  nombre:   !form.value.nombre.trim()         ? 'El nombre es requerido'  : '',
+  email:    !form.value.email.includes('@')   ? 'Ingresa un email válido' : '',
+  Id_Rol:   !form.value.Id_Rol                ? 'Selecciona un rol'       : '',
+  contrasena: !editando.value && !form.value.contrasena.trim() ? 'La contraseña es requerida' : '',
   telefono: form.value.telefono && !/^\+?[\d\s]{7,}$/.test(form.value.telefono) ? 'Teléfono inválido' : '',
 }))
 const tieneErrores = computed(() => Object.values(errores.value).some(e => e !== ''))
@@ -393,47 +440,56 @@ function abrirModal(usuario) {
   formTouched.value = false
   if (usuario) {
     editando.value = true
-    form.value = { ...usuario }
+    form.value = {
+      id:            usuario.id,
+      nombre:        usuario.nombre,
+      nombreUsuario: usuario.nombreUsuario,
+      email:         usuario.email,
+      telefono:      usuario.telefono,
+      Id_Rol:        usuario.Id_Rol,
+      estado:        usuario.estado === 'active' ? 'activo' : 'inactivo',
+      contrasena:    '',
+    }
   } else {
     editando.value = false
-    form.value = { id: null, nombre: '', email: '', telefono: '', rol: 'operador', estado: 'active' }
+    form.value = { id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: roles.value[0]?.Id_Rol || '', estado: 'activo', contrasena: '' }
   }
   modalVisible.value = true
 }
-function cerrarModal() { modalVisible.value = false }
+function cerrarModal() { modalVisible.value = false; formTouched.value = false }
 
-function guardarUsuario() {
+async function guardarUsuario() {
   formTouched.value = true
   if (tieneErrores.value) return
-  const rolLabels = { administrador: 'Administrador', operador: 'Operario', cliente: 'Cliente' }
-  const iniciales = form.value.nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase()
+  guardando.value = true
 
-  if (editando.value) {
-    const idx = usuarios.value.findIndex(u => u.id === form.value.id)
-    if (idx !== -1) {
-      usuarios.value[idx] = { ...form.value, rolLabel: rolLabels[form.value.rol], iniciales, flash: true, eliminating: false }
-      setTimeout(() => { if (usuarios.value[idx]) usuarios.value[idx].flash = false }, 1200)
-      mostrarToast('Usuario actualizado correctamente', 'info')
-    }
-  } else {
-    const nuevo = {
-      ...form.value,
-      id: Date.now(),
-      rolLabel: rolLabels[form.value.rol],
-      iniciales,
-      fechaRegistro: new Date().toISOString().split('T')[0],
-      flash: true,
-      eliminating: false
-    }
-    usuarios.value.push(nuevo)
-    setTimeout(() => {
-      const u = usuarios.value.find(u => u.id === nuevo.id)
-      if (u) u.flash = false
-    }, 1200)
-    mostrarToast('Usuario creado exitosamente', 'success')
-    animateStats()
+  const payload = {
+    Nombre_Completo: form.value.nombre,
+    Nombre_Usuario:  form.value.nombreUsuario || form.value.nombre.toLowerCase().replace(/\s+/g, '.'),
+    Correo:          form.value.email,
+    Telefono:        form.value.telefono  || null,
+    Id_Rol:          form.value.Id_Rol,
+    Estado:          form.value.estado,
+    // Contraseña por defecto para usuarios nuevos; el admin deberá cambiarla
+    ...(form.value.contrasena.trim() ? { Contrasena: form.value.contrasena.trim() } : {}),
   }
-  cerrarModal()
+
+  try {
+    if (editando.value) {
+      await actualizarUsuario(form.value.id, payload)
+      mostrarToast('Usuario actualizado correctamente', 'info')
+    } else {
+      await crearUsuario(payload)
+      mostrarToast('Usuario creado exitosamente', 'success')
+    }
+    await cargarDatos()
+    animateStats()
+    cerrarModal()
+  } catch (e) {
+    mostrarToast(e.message || 'Error al guardar', 'danger')
+  } finally {
+    guardando.value = false
+  }
 }
 </script>
 

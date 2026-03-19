@@ -158,13 +158,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
+import { getUsuarios, getComprobantes, getOrdenes } from '../../services/api.js'
 
-const busqueda         = ref('')
+const busqueda          = ref('')
 const ordenSeleccionada = ref(null)
-const mounted          = ref(false)
-const toastMsg         = ref('')
+const mounted           = ref(false)
+const toastMsg          = ref('')
+const cargando          = ref(true)
 
-// ── Contadores animados ─────────────────────────────────────
+// ── Contadores animados ──
 const displayTotalClientes = ref(0)
 const displayActivos       = ref(0)
 const displayOrdenes       = ref(0)
@@ -179,30 +181,81 @@ function animateCount(targetRef, target) {
   }, 20)
 }
 
-// ── Datos ───────────────────────────────────────────────────
-const clientes = ref([
-  { id: 1, nombre: 'María González', email: 'maria.gonzalez@empresa.com', telefono: '+57 300 987 6543', estado: 'Activo', iniciales: 'MG' },
-  { id: 2, nombre: 'Juan Pérez',     email: 'juan.perez@comercial.com',   telefono: '+57 300 555 7890', estado: 'Activo', iniciales: 'JP' },
-])
+// ── Datos ──
+const clientes = ref([])
+const ordenes  = ref([])
 
-const ordenes = ref([
-  { id: 1, numero: '001', cliente: 'María González', fecha: '2024-02-15', productos: 'Camisetas Polo x 50, Pantalones x 30', estado: 'Entregado', estadoClass: 'success', productosList: ['Camisetas Polo x 50', 'Pantalones x 30'], flash: false },
-  { id: 2, numero: '002', cliente: 'Juan Pérez',     fecha: '2024-02-20', productos: 'Vestidos x 25, Blusas x 40',           estado: 'Pendiente', estadoClass: 'danger',  productosList: ['Vestidos x 25', 'Blusas x 40'],         flash: false },
-])
+// ── CARGA DESDE LA BD ──
+async function cargarDatos() {
+  cargando.value = true
+  try {
+    // Traemos todos los usuarios y filtramos los que tienen Rol = 'cliente'
+    const [dataUsuarios, dataOrdenes, dataComprobantes] = await Promise.all([
+      getUsuarios(),
+      getOrdenes(),
+      getComprobantes(),
+    ])
 
-// ── Ordenamiento ────────────────────────────────────────────
+    // Clientes: usuarios cuyo rol sea 'cliente' (acepta variantes del nombre)
+    clientes.value = dataUsuarios
+      .filter(u => (u.Nombre_Rol || u.Rol || '').toLowerCase() === 'cliente' && u.Estado === 'activo')
+      .map(u => ({
+        id:        u.Id_Usuario,
+        nombre:    u.Nombre_Completo || u.Nombre_Usuario || '',
+        email:     u.Correo         || '',
+        telefono:  u.Telefono       || '—',
+        estado:    u.Estado === 'activo' ? 'Activo' : 'Inactivo',
+        iniciales: (u.Nombre_Completo || u.Nombre_Usuario || '?')
+                     .split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase(),
+      }))
+
+    // Mapa id_cliente → nombre para enriquecer las órdenes
+    const mapaClientes = {}
+    clientes.value.forEach(c => { mapaClientes[c.id] = c.nombre })
+
+    // Órdenes enriquecidas con datos de comprobante si existe
+    const mapaComp = {}
+    dataComprobantes.forEach(c => { mapaComp[c.Id_Orden] = c })
+
+    ordenes.value = dataOrdenes
+      .filter(o => mapaClientes[o.Id_Cliente])   // solo órdenes de clientes
+      .map(o => {
+        const comp       = mapaComp[o.Id_Orden]
+        const estadoComp = comp?.Estado || o.Estado
+        const esEntregado= estadoComp === 'Entregado' || o.Estado === 'Completada'
+        return {
+          id:           o.Id_Orden,
+          numero:       String(o.Id_Orden).padStart(3, '0'),
+          cliente:      mapaClientes[o.Id_Cliente] || `Cliente #${o.Id_Cliente}`,
+          fecha:        o.Fecha_Limite?.split('T')[0] || o.Fecha_Limite || '—',
+          productos:    o.Producto      || o.Descripcion || '—',
+          estado:       esEntregado ? 'Entregado' : 'Pendiente',
+          estadoClass:  esEntregado ? 'success' : 'danger',
+          productosList:[o.Producto || o.Descripcion || '—'],
+          flash:        false,
+        }
+      })
+
+  } catch (e) {
+    console.error('Error cargando datos de clientes:', e)
+    clientes.value = []
+    ordenes.value  = []
+  } finally {
+    cargando.value = false
+  }
+}
+
+// ── Ordenamiento ──
 const sortKeyClientes = ref('nombre')
 const sortDirClientes = ref(1)
 const sortKeyOrdenes  = ref('numero')
 const sortDirOrdenes  = ref(1)
 
 function sortClientes(key) {
-  if (sortKeyClientes.value === key) sortDirClientes.value *= -1
-  else { sortKeyClientes.value = key; sortDirClientes.value = 1 }
+  sortKeyClientes.value === key ? sortDirClientes.value *= -1 : (sortKeyClientes.value = key, sortDirClientes.value = 1)
 }
 function sortOrdenes(key) {
-  if (sortKeyOrdenes.value === key) sortDirOrdenes.value *= -1
-  else { sortKeyOrdenes.value = key; sortDirOrdenes.value = 1 }
+  sortKeyOrdenes.value === key ? sortDirOrdenes.value *= -1 : (sortKeyOrdenes.value = key, sortDirOrdenes.value = 1)
 }
 function sortIcon(tabla, key) {
   const k = tabla === 'clientes' ? sortKeyClientes.value : sortKeyOrdenes.value
@@ -211,32 +264,32 @@ function sortIcon(tabla, key) {
   return d === 1 ? '↑' : '↓'
 }
 
-// ── Computed ────────────────────────────────────────────────
+// ── Computed ──
 const clientesFiltradosOrdenados = computed(() => {
+  const q = busqueda.value.toLowerCase()
   const lista = clientes.value.filter(c =>
-    c.nombre.toLowerCase().includes(busqueda.value.toLowerCase()) ||
-    c.email.toLowerCase().includes(busqueda.value.toLowerCase())
+    c.nombre.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
   )
   return [...lista].sort((a, b) => {
     const k = sortKeyClientes.value
-    return a[k] > b[k] ? sortDirClientes.value : -sortDirClientes.value
+    return (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * sortDirClientes.value
   })
 })
 
 const ordenesOrdenadas = computed(() =>
   [...ordenes.value].sort((a, b) => {
     const k = sortKeyOrdenes.value
-    return a[k] > b[k] ? sortDirOrdenes.value : -sortDirOrdenes.value
+    return (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * sortDirOrdenes.value
   })
 )
 
-// ── Colores avatar ──────────────────────────────────────────
+// ── Colores avatar ──
 const avatarPalette = ['#dbeafe', '#fce7f3', '#d1fae5', '#fef3c7', '#ede9fe']
 function avatarColor(iniciales) {
-  return avatarPalette[iniciales.charCodeAt(0) % avatarPalette.length]
+  return avatarPalette[(iniciales?.charCodeAt(0) || 0) % avatarPalette.length]
 }
 
-// ── Acciones ────────────────────────────────────────────────
+// ── Acciones ──
 function verDetalle(orden) { ordenSeleccionada.value = orden }
 
 function descargar(orden) {
@@ -250,13 +303,14 @@ function showToast(msg) {
   setTimeout(() => { toastMsg.value = '' }, 3000)
 }
 
-// ── onMounted ───────────────────────────────────────────────
-onMounted(() => {
+// ── onMounted ──
+onMounted(async () => {
+  await cargarDatos()
   setTimeout(() => {
     mounted.value = true
     animateCount(displayTotalClientes, clientes.value.length)
-    animateCount(displayActivos, clientes.value.filter(c => c.estado === 'Activo').length)
-    animateCount(displayOrdenes, ordenes.value.length)
+    animateCount(displayActivos,       clientes.value.filter(c => c.estado === 'Activo').length)
+    animateCount(displayOrdenes,       ordenes.value.length)
   }, 80)
 })
 </script>
