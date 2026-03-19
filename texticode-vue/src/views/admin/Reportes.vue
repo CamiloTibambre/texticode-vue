@@ -122,8 +122,10 @@
                   <Transition name="tip">
                     <div v-if="hoveredBar === idx" class="bar-tooltip">
                       <strong>{{ mes.nombre }}</strong>
+                      <span>📦 {{ mes.completadas + mes.pendientes }} pedidos totales</span>
                       <span>✅ {{ mes.completadas }} completados</span>
                       <span>🟠 {{ mes.pendientes }} pendientes</span>
+                      <span>📊 Tasa: {{ mes.completadas + mes.pendientes > 0 ? Math.round((mes.completadas / (mes.completadas + mes.pendientes)) * 100) : 0 }}%</span>
                     </div>
                   </Transition>
                 </div>
@@ -164,7 +166,7 @@
                   <div class="report-meta">
                     <span>Período: {{ r.periodo }}</span>
                     <span>Generado: {{ r.generado }}</span>
-                    <span>Tamaño: {{ r.tamano }}</span>
+                    <span v-if="r.subtitulo" class="meta-subtitulo">{{ r.subtitulo }}</span>
                   </div>
                 </div>
               </div>
@@ -209,12 +211,13 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
+import { getOrdenes, getUsuarios, getMateriales } from '../../services/api.js'
 
 // ── ANIMACIONES DE ENTRADA ──
 const animVisible = ref(false)
-onMounted(() => {
+onMounted(async () => {
+  await cargarDatos()
   setTimeout(() => animVisible.value = true, 50)
-  setTimeout(() => animateStats(), 200)
   setTimeout(() => animateBars(), 300)
 })
 
@@ -229,63 +232,105 @@ function mostrarToast(msg, type = 'success') {
 const statsDisplay = reactive({ total: 0, completados: 0, tasa: 0, pendientes: 0 })
 function animateCount(key, target, isDecimal = false) {
   let val = 0
-  const steps = 40
-  const step = target / steps
+  const steps = 40, step = target / steps
   let count = 0
-  const interval = setInterval(() => {
-    count++
-    val += step
-    if (count >= steps) {
-      statsDisplay[key] = isDecimal ? target : Math.round(target)
-      clearInterval(interval)
-    } else {
-      statsDisplay[key] = isDecimal ? parseFloat(val.toFixed(1)) : Math.round(val)
-    }
+  const iv = setInterval(() => {
+    count++; val += step
+    if (count >= steps) { statsDisplay[key] = isDecimal ? target : Math.round(target); clearInterval(iv) }
+    else statsDisplay[key] = isDecimal ? parseFloat(val.toFixed(1)) : Math.round(val)
   }, 25)
 }
-function animateStats() {
-  animateCount('total',       330)
-  animateCount('completados', 312)
-  animateCount('tasa',        94.5, true)
-  animateCount('pendientes',  18)
+function animateStats(total, completados, pendientes) {
+  const tasa = total > 0 ? parseFloat(((completados / total) * 100).toFixed(1)) : 0
+  animateCount('total',       total)
+  animateCount('completados', completados)
+  animateCount('tasa',        tasa, true)
+  animateCount('pendientes',  pendientes)
 }
 
 // ── DATOS ──
 const tipoFiltro = ref('')
 const hoveredBar = ref(null)
+const meses      = ref([])   // se llena desde la BD
 
-const meses = [
-  { nombre: 'Sep', completadas: 42, pendientes: 3 },
-  { nombre: 'Oct', completadas: 50, pendientes: 2 },
-  { nombre: 'Nov', completadas: 45, pendientes: 3 },
-  { nombre: 'Dic', completadas: 58, pendientes: 4 },
-  { nombre: 'Ene', completadas: 65, pendientes: 3 },
-  { nombre: 'Feb', completadas: 52, pendientes: 3 },
-]
+// ── CARGA DESDE LA BD ──
+async function cargarDatos() {
+  try {
+    const [dataOrdenes, dataUsuarios, dataMateriales] = await Promise.all([
+      getOrdenes(),
+      getUsuarios(),
+      getMateriales(),
+    ])
+
+    // ── Stats generales ──
+    const total      = dataOrdenes.length
+    const completados= dataOrdenes.filter(o => o.Estado === 'Completada').length
+    const pendientes = dataOrdenes.filter(o => o.Estado === 'En Proceso').length
+    animateStats(total, completados, pendientes)
+
+    // ── Gráfico de barras por mes (últimos 6 meses con datos) ──
+    const porMes = {}
+    dataOrdenes.forEach(o => {
+      const fecha = o.Fecha_Limite || o.Fecha
+      if (!fecha) return
+      const d   = new Date(fecha)
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+      const nom = d.toLocaleDateString('es-CO', { month: 'short' })
+        .replace('.','').replace(/^\w/, c => c.toUpperCase())
+      if (!porMes[key]) porMes[key] = { nombre: nom, completadas: 0, pendientes: 0 }
+      if (o.Estado === 'Completada') porMes[key].completadas++
+      else porMes[key].pendientes++
+    })
+    // Tomar los últimos 6 meses con datos
+    meses.value = Object.entries(porMes)
+      .sort(([a],[b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([, v]) => v)
+
+    // Si no hay datos suficientes, mostrar meses vacíos como placeholder
+    if (meses.value.length === 0) {
+      meses.value = ['Ene','Feb','Mar','Abr','May','Jun']
+        .map(n => ({ nombre: n, completadas: 0, pendientes: 0 }))
+    }
+
+    // ── Actualizar los reportes con datos reales ──
+    const clientes   = dataUsuarios.filter(u => (u.Nombre_Rol||u.Rol||'').toLowerCase() === 'cliente').length
+    const stockBajo  = dataMateriales.filter(m => m.Stock_Actual <= m.Stock_Minimo).length
+
+    reportesData[0].subtitulo = `${completados} órdenes completadas de ${total}`
+    reportesData[1].subtitulo = `${stockBajo} material(es) con stock bajo`
+    reportesData[2].subtitulo = `${clientes} cliente(s) registrado(s)`
+    reportesData[3].subtitulo = `${total} órdenes totales registradas`
+
+  } catch (e) {
+    console.error('Error cargando reportes:', e)
+  }
+}
 
 // ── BARRAS ANIMADAS ──
-const barHeights    = ref(meses.map(() => 0))
-const pendingHeights = ref(meses.map(() => 0))
+const barHeights     = ref([])
+const pendingHeights = ref([])
 
 function animateBars() {
-  meses.forEach((mes, i) => {
+  barHeights.value     = meses.value.map(() => 0)
+  pendingHeights.value = meses.value.map(() => 0)
+
+  meses.value.forEach((mes, i) => {
     const totalTarget   = (mes.completadas + mes.pendientes) * 2.8
     const pendingTarget = mes.pendientes * 2.8
     let val = 0
-    const steps = 35
-    const step = totalTarget / steps
+    const steps = 35, step = Math.max(totalTarget / steps, 0.1)
     let count = 0
     setTimeout(() => {
-      const interval = setInterval(() => {
-        count++
-        val += step
+      const iv = setInterval(() => {
+        count++; val += step
         if (count >= steps) {
           barHeights.value[i]     = totalTarget
           pendingHeights.value[i] = pendingTarget
-          clearInterval(interval)
+          clearInterval(iv)
         } else {
           barHeights.value[i]     = Math.min(val, totalTarget)
-          pendingHeights.value[i] = Math.min((val / totalTarget) * pendingTarget, pendingTarget)
+          pendingHeights.value[i] = Math.min((val/totalTarget)*pendingTarget, pendingTarget)
         }
       }, 18)
     }, i * 60)
@@ -295,35 +340,41 @@ function animateBars() {
 // ── REPORTES ──
 const reportesData = reactive([
   {
-    titulo: 'Reporte de Ventas Mensual', tipo: 'Ventas',
-    periodo: 'Febrero 2026', generado: '2026-02-28', tamano: '2.1 MB',
+    titulo: 'Reporte de Producción', tipo: 'Producción',
+    periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
+    generado: new Date().toISOString().split('T')[0],
+    subtitulo: 'Cargando...',
     downloading: false, exporting: false,
-    iconPath: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+    iconPath: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'
   },
   {
     titulo: 'Inventario Stock Bajo', tipo: 'Inventario',
-    periodo: 'Marzo 2026', generado: '2026-03-01', tamano: '856 KB',
+    periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
+    generado: new Date().toISOString().split('T')[0],
+    subtitulo: 'Cargando...',
     downloading: false, exporting: false,
     iconPath: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9'
   },
   {
     titulo: 'Análisis de Clientes', tipo: 'Clientes',
-    periodo: 'Q1 2026', generado: '2026-02-05', tamano: '1.2 MB',
+    periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
+    generado: new Date().toISOString().split('T')[0],
+    subtitulo: 'Cargando...',
     downloading: false, exporting: false,
     iconPath: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
   },
   {
-    titulo: 'Productividad Operadores', tipo: 'Producción',
-    periodo: 'Febrero 2026', generado: '2026-02-29', tamano: '1.3 MB',
+    titulo: 'Resumen de Órdenes', tipo: 'Ventas',
+    periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
+    generado: new Date().toISOString().split('T')[0],
+    subtitulo: 'Cargando...',
     downloading: false, exporting: false,
-    iconPath: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'
+    iconPath: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
   },
 ])
 
 const reportes = computed(() =>
-  tipoFiltro.value === ''
-    ? reportesData
-    : reportesData.filter(r => r.tipo === tipoFiltro.value)
+  tipoFiltro.value === '' ? reportesData : reportesData.filter(r => r.tipo === tipoFiltro.value)
 )
 
 // ── DESCARGAR CON SPINNER ──

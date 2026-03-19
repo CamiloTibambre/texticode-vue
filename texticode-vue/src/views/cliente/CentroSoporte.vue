@@ -202,11 +202,20 @@ const comprobanteFiltrados = computed(() => {
 </script>
 
 <style scoped>
-.main { flex: 1; padding: 32px; overflow-y: auto; }
+.main { flex: 1; padding: 32px; overflow-y: auto; min-width: 0; }
 h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 24px; }
 
 /* TABS */
-.tabs { display: flex; background: #ebebeb; border-radius: 12px; padding: 4px; margin-bottom: 20px; max-width: 860px; }
+.tabs {
+  display: flex;
+  background: #ebebeb;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
 .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; transition: background 0.15s; }
 .tab.active { background: white; color: #1a1a2e; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 
@@ -216,16 +225,29 @@ h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 24px; }
 .search-bar svg { width: 16px; height: 16px; fill: #aaa; }
 
 /* COMPROBANTE CARDS */
-.card { background: white; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; max-width: 860px; display: flex; align-items: center; gap: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-.card-left { display: flex; align-items: center; gap: 12px; min-width: 120px; }
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px 28px;
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: none;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+}
+.card-left { display: flex; align-items: center; gap: 12px; min-width: 160px; }
 .doc-icon { color: #4a90d9; }
 .doc-icon svg { width: 28px; height: 28px; }
 .doc-num { font-size: 16px; font-weight: 600; color: #1a1a2e; }
-.badge-available { background: #e6f9f0; color: #27ae60; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
-.card-info { display: flex; gap: 40px; flex: 1; }
+.badge-available { background: #e6f9f0; color: #27ae60; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.card-info { display: flex; gap: 0; flex: 1; justify-content: space-between; }
+.info-block { flex: 1; }
 .info-block label { font-size: 12px; color: #888; display: block; margin-bottom: 2px; }
 .info-block span { font-size: 14px; font-weight: 600; color: #1a1a2e; }
-.card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
 .btn-ver { display: flex; align-items: center; gap: 6px; border: 1px solid #ddd; background: white; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; color: #444; font-weight: 500; }
 .btn-ver:hover { background: #f5f5f5; }
 .btn-ver svg { width: 16px; height: 16px; }
@@ -234,8 +256,16 @@ h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 24px; }
 .btn-descargar svg { width: 16px; height: 16px; }
 
 /* CONTACTO */
-#tab-contacto { max-width: 860px; }
-.contacto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+#tab-contacto {
+  width: 100%;
+  max-width: none;
+}
+.contacto-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
 .info-card { background: white; border-radius: 14px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 
 .info-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }

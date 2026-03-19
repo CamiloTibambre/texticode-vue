@@ -107,42 +107,62 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import AppSidebar from '../../components/AppSidebar.vue'
+import { ref, computed, onMounted } from 'vue'
+import AppSidebar from '@/components/AppSidebar.vue'
+import { getOrdenesDeUsuario } from '../../services/api.js'
 
 const tabActivo    = ref('activas')
 const modalVisible = ref(false)
 const ordenActual  = ref(null)
-const reporte      = ref({ nuevas: 0, nota: '' })
+const historial    = ref([])
+const ordenes      = ref([])
 
-const estadoLabels = { 'proceso': 'En Proceso', 'pausado': 'Pausado', 'completado': 'Completado' }
+const reporte = ref({ nuevas: 0, nota: '' })
 
-const ordenesActivas = ref([
-  { id: 'Orden #001', nombre: 'Camisas Polo Azules x 50', progreso: 75, unidadesHechas: 37, unidadesTotales: 50, fechaLimite: '2024-03-15', estado: 'proceso' },
-  { id: 'Orden #002', nombre: 'Camisetas Estampadas x 30', progreso: 20, unidadesHechas: 6,  unidadesTotales: 30, fechaLimite: '2024-03-20', estado: 'proceso' },
-].map(o => ({ ...o, estadoLabel: estadoLabels[o.estado] || 'En Proceso' })))
+onMounted(async () => {
+  try {
+    const idUsuario = 1 // reemplazar con auth store
+    const data = await getOrdenesDeUsuario(idUsuario)
 
-const historial = ref([])
+    ordenes.value = data
+      .filter(t => t.Estado !== 'Cancelada')
+      .map(t => ({
+        id:             `OP-${String(t.Id_Orden).padStart(3,'0')}`,
+        idReal:         t.Id_Orden,
+        nombre:         t.Descripcion,
+        estado:         t.Estado === 'Completada' ? 'completado' : t.Estado === 'En Proceso' ? 'en-proceso' : 'pendiente',
+        prioridad:      t.Prioridad?.toLowerCase() || 'media',
+        unidadesHechas: t.Estado === 'Completada' ? t.Cantidad : Math.floor(t.Cantidad * 0.5),
+        unidadesTotales:t.Cantidad,
+        fechaLimite:    t.Fecha_Limite?.split('T')[0] || '—',
+        progreso:       t.Estado === 'Completada' ? 100 : 50,
+      }))
+  } catch (err) {
+    console.error('Error cargando avances:', err)
+  }
+})
 
 function abrirModal(o) {
-  ordenActual.value  = o
-  reporte.value      = { nuevas: 0, nota: '' }
+  ordenActual.value = o
+  reporte.value = { nuevas: 0, nota: '' }
   modalVisible.value = true
 }
-
 function cerrarModal() { modalVisible.value = false }
+
+function togglePausa(o) {
+  o.estado = o.estado === 'pausado' ? 'en-proceso' : 'pausado'
+}
 
 function enviarReporte() {
   if (!reporte.value.nuevas || reporte.value.nuevas <= 0) return
-  const o   = ordenesActivas.value.find(x => x.id === ordenActual.value.id)
-  if (!o) return
+  const o = ordenActual.value
   o.unidadesHechas = Math.min(o.unidadesHechas + reporte.value.nuevas, o.unidadesTotales)
   o.progreso = Math.round((o.unidadesHechas / o.unidadesTotales) * 100)
-  if (o.progreso >= 100) { o.estado = 'completado'; o.estadoLabel = 'Completado' }
+  if (o.unidadesHechas >= o.unidadesTotales) o.estado = 'completado'
 
   historial.value.unshift({
     id:       Date.now(),
-    orden:    o.id,
+    orden:    `${o.id} — ${o.nombre}`,
     nuevas:   reporte.value.nuevas,
     progreso: o.progreso,
     nota:     reporte.value.nota,
@@ -151,10 +171,8 @@ function enviarReporte() {
   cerrarModal()
 }
 
-function togglePausa(o) {
-  if (o.estado === 'pausado') { o.estado = 'proceso'; o.estadoLabel = 'En Proceso' }
-  else { o.estado = 'pausado'; o.estadoLabel = 'Pausado' }
-}
+const ordenesActivas  = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
+const ordenesHistorial = computed(() => ordenes.value.filter(o => o.estado === 'completado'))
 </script>
 
 <style scoped>
