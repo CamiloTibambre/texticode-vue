@@ -1,42 +1,59 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { loginUsuario } from '../services/api'
- 
+
 export const useAuthStore = defineStore('auth', () => {
-  const usuario = ref(null)
- 
-  // Rol normalizado: demo guarda { rol: 'operario' }, API real devuelve { Rol: 'Operario' }
+
+  const token   = ref(localStorage.getItem('jwt_token') || null)
+  const usuario = ref(JSON.parse(localStorage.getItem('usuario') || 'null'))
+
   const rol = computed(() => {
     if (!usuario.value) return null
-    if (usuario.value.rol) return usuario.value.rol
-    if (usuario.value.Rol) return usuario.value.Rol.toLowerCase()
-    return null
+    const r = usuario.value.Rol || usuario.value.rol || ''
+    return r.toLowerCase()
   })
- 
-  // ID real de BD — null si es demo
-  const idUsuario = computed(() => usuario.value?.Id_Usuario ?? null)
- 
+
+  const idUsuario    = computed(() => usuario.value?.Id_Usuario ?? null)
   const estaLogueado = computed(() => !!usuario.value)
- 
-  // Login demo (botones de acceso rápido — no toca la BD)
-  function login(datos) {
-    usuario.value = datos
-  }
- 
-  // Login real contra la BD
+
   async function loginConCredenciales(correo, contrasena) {
     const data = await loginUsuario({ correo, contrasena })
+
+    // El backend devuelve { mensaje, usuario } — token es opcional por ahora
+    const user = data.usuario
+
+    // Guardar token si existe, si no guardar un placeholder
+    token.value   = data.token || 'session_activa'
     usuario.value = {
-      ...data.usuario,
-      rol: data.usuario.Rol?.toLowerCase(),
+      ...user,
+      rol: (user.Rol || '').toLowerCase(),
     }
+
+    localStorage.setItem('jwt_token', token.value)
+    localStorage.setItem('usuario',   JSON.stringify(usuario.value))
+
     return usuario.value
   }
- 
+
   function logout() {
+    token.value   = null
     usuario.value = null
+    localStorage.removeItem('jwt_token')
+    localStorage.removeItem('usuario')
   }
- 
-  return { usuario, rol, idUsuario, estaLogueado, login, loginConCredenciales, logout }
+
+  function authHeader() {
+    return token.value ? { Authorization: `Bearer ${token.value}` } : {}
+  }
+
+  return {
+    token,
+    usuario,
+    rol,
+    idUsuario,
+    estaLogueado,
+    loginConCredenciales,
+    logout,
+    authHeader,
+  }
 })
- 

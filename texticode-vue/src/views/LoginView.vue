@@ -169,23 +169,6 @@
         </button>
       </div>
 
-      <div class="divider" :class="{ visible: cardVisible }">
-        <span>acceso rápido demo</span>
-      </div>
-
-      <div class="demo-access" :class="{ visible: cardVisible }">
-        <button v-for="d in demoRoles" :key="d.rol"
-          class="demo-btn" :class="[d.rol, { 'demo-loading': demoLoading === d.rol }]"
-          @click="loginDemo(d.rol)">
-          <span class="demo-btn-shine"></span>
-          <span class="demo-icon" v-html="d.icon"></span>
-          <span>{{ d.label }}</span>
-          <svg v-if="demoLoading === d.rol" class="spin" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
-          </svg>
-        </button>
-      </div>
-
       <p class="card-footer" :class="{ visible: cardVisible }">
         Texticode © 2026 · Sistema de gestión textil
       </p>
@@ -218,7 +201,6 @@ const focusEmail   = ref(false)
 const focusPass    = ref(false)
 const cardVisible  = ref(false)
 const shakeError   = ref(false)
-const demoLoading  = ref(null)
 const toastMsg     = ref('')
 const toastType    = ref('success')
 const fabricCanvas = ref(null)
@@ -228,14 +210,12 @@ const auth   = useAuthStore()
 
 let ctx, animFrame
 
-// ── Stats panel izquierdo ──
 const sideStats = [
   { val: '330', lbl: 'Pedidos',  pct: 82 },
   { val: '94%', lbl: 'Entrega',  pct: 94 },
   { val: '186', lbl: 'Clientes', pct: 65 },
 ]
 
-// ── Canvas tejido ──
 function initFabric() {
   const canvas = fabricCanvas.value
   if (!canvas) return
@@ -250,14 +230,10 @@ function drawFabric(t) {
   const W = fabricCanvas.value.width
   const H = fabricCanvas.value.height
   ctx.clearRect(0, 0, W, H)
-
   const spacing = 32
   const wave    = 3
-
-  // Hilos verticales ondulantes
   for (let x = 0; x < W + spacing; x += spacing) {
     ctx.beginPath()
-    // Alterna levemente entre dos tonos azul marino
     const alpha = x % (spacing * 2) === 0 ? 0.065 : 0.04
     ctx.strokeStyle = `rgba(45,106,159,${alpha})`
     ctx.lineWidth = 0.9
@@ -267,8 +243,6 @@ function drawFabric(t) {
     }
     ctx.stroke()
   }
-
-  // Hilos horizontales ondulantes
   for (let y = 0; y < H + spacing; y += spacing) {
     ctx.beginPath()
     const alpha = y % (spacing * 2) === 0 ? 0.045 : 0.025
@@ -280,8 +254,6 @@ function drawFabric(t) {
     }
     ctx.stroke()
   }
-
-  // Nodos de cruce sutiles
   for (let x = 0; x < W + spacing; x += spacing) {
     for (let y = 0; y < H + spacing; y += spacing) {
       const pulse = Math.sin(t * 0.65 + x * 0.04 + y * 0.04) * 0.5 + 0.5
@@ -291,70 +263,51 @@ function drawFabric(t) {
       ctx.fill()
     }
   }
-
   animFrame = requestAnimationFrame(() => drawFabric(t + 0.011))
 }
 
-// ── Shake ──
 function triggerShake() {
   shakeError.value = true
   setTimeout(() => shakeError.value = false, 500)
 }
 
-// ── Toast ──
 function showToast(msg, type = 'success') {
   toastMsg.value  = msg
   toastType.value = type
   setTimeout(() => toastMsg.value = '', 3000)
 }
 
-// ── Login ──
+// Rutas por rol — usa el valor exacto que devuelve el backend ("administrador", "operario", "cliente")
+function getRuta(usuario) {
+  const idRol = usuario?.Id_Rol
+  const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
+
+  if (idRol === 1 || rol === 'administrador' || rol === 'admin') return '/admin/usuarios'
+  if (idRol === 2 || rol === 'operario')                         return '/operario/cuenta'
+  if (idRol === 3 || rol === 'cliente')                          return '/cliente/cuenta'
+  return '/'
+}
+
 async function iniciarSesion() {
   error.value = ''
   if (!email.value || !password.value) {
     error.value = 'Por favor completa todos los campos.'
-    triggerShake(); return
+    triggerShake()
+    return
   }
   loading.value = true
-  await new Promise(r => setTimeout(r, 1200))
-  loading.value = false
-  error.value = 'Credenciales incorrectas. Usa los botones demo.'
-  triggerShake()
-}
-
-async function loginDemo(rol) {
-  if (demoLoading.value) return
-  demoLoading.value = rol
-  await new Promise(r => setTimeout(r, 750))
-  const usuarios = {
-    admin:    { nombre: 'Admin Texticode', rol: 'admin',    email: 'admin@texticode.com' },
-    operario: { nombre: 'Carlos Mendoza',  rol: 'operario', email: 'carlos@texticode.com' },
-    cliente:  { nombre: 'Maria Gonzalez',  rol: 'cliente',  email: 'maria@empresa.com' },
+  try {
+    const usuario = await auth.loginConCredenciales(email.value.trim(), password.value)
+    showToast(`Bienvenido, ${usuario.Nombre_Completo}`)
+    const ruta = getRuta(usuario)
+    setTimeout(() => router.push(ruta), 600)
+  } catch (e) {
+    error.value = e?.message || 'Credenciales incorrectas.'
+    triggerShake()
+  } finally {
+    loading.value = false
   }
-  auth.login(usuarios[rol])
-  showToast(`Bienvenido, ${usuarios[rol].nombre}`)
-  setTimeout(() => {
-    if (rol === 'admin')    router.push('/admin/usuarios')
-    if (rol === 'operario') router.push('/operario/cuenta')
-    if (rol === 'cliente')  router.push('/cliente/cuenta')
-  }, 600)
 }
-
-// ── Demo roles ──
-const demoRoles = [
-  {
-    rol: 'admin', label: 'Admin',
-    icon: `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>`
-  },
-  {
-    rol: 'operario', label: 'Operario',
-    icon: `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.655m5.546-4.228c.366-.733.57-1.554.57-2.424 0-3.314-2.686-6-6-6-1.39 0-2.668.473-3.681 1.258"/></svg>`
-  },
-  {
-    rol: 'cliente', label: 'Cliente',
-    icon: `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>`
-  },
-]
 
 onMounted(() => {
   setTimeout(() => cardVisible.value = true, 80)
@@ -724,55 +677,6 @@ h1.visible { opacity: 1; transform: none; }
   display: flex; align-items: center; justify-content: center;
   gap: 8px; position: relative;
 }
-
-/* ══════════════════════════════════════
-   DIVISOR
-══════════════════════════════════════ */
-.divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 20px 0 13px; opacity: 0; transition: opacity 0.4s ease 0.48s;
-}
-.divider.visible { opacity: 1; }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
-.divider span {
-  font-size: 10.5px; color: #9ca3af; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
-}
-
-/* ══════════════════════════════════════
-   DEMO BUTTONS
-══════════════════════════════════════ */
-.demo-access {
-  display: flex; gap: 8px;
-  opacity: 0; transform: translateY(6px);
-  transition: opacity 0.4s ease 0.54s, transform 0.4s ease 0.54s;
-}
-.demo-access.visible { opacity: 1; transform: none; }
-
-.demo-btn {
-  flex: 1; padding: 9px 6px; border: none; border-radius: 9px;
-  font-size: 12px; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  transition: all 0.18s; position: relative; overflow: hidden;
-}
-.demo-btn-shine {
-  position: absolute; inset: 0;
-  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
-  background-size: 200% 100%; opacity: 0; transition: opacity 0.2s;
-  animation: btnshim 2.5s ease infinite;
-}
-.demo-btn:hover .demo-btn-shine { opacity: 1; }
-.demo-btn:hover { transform: translateY(-2px); }
-.demo-btn:active { transform: translateY(0); }
-.demo-btn.demo-loading { opacity: 0.7; cursor: not-allowed; transform: none; }
-
-.demo-btn.admin    { background: #1f3a52; color: white; box-shadow: 0 2px 8px rgba(31,58,82,0.3); }
-.demo-btn.operario { background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
-.demo-btn.cliente  { background: #16a34a; color: white; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
-.demo-btn.admin:hover    { background: #274e6e; box-shadow: 0 6px 18px rgba(31,58,82,0.4); }
-.demo-btn.operario:hover { background: #1d4ed8; box-shadow: 0 6px 18px rgba(37,99,235,0.4); }
-.demo-btn.cliente:hover  { background: #15803d; box-shadow: 0 6px 18px rgba(22,163,74,0.4); }
-.demo-icon { display: flex; align-items: center; }
 
 /* ══════════════════════════════════════
    FOOTER
