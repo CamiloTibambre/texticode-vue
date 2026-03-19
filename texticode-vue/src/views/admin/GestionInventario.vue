@@ -226,7 +226,7 @@
               <label>Cliente</label>
               <select v-model="form.cliente">
                 <option disabled value="">Selecciona cliente</option>
-                <option>María González</option><option>Juan Pérez</option>
+                <option v-for="c in clientes" :key="c.id" :value="c.nombre">{{ c.nombre }}</option>
               </select>
             </div>
           </div>
@@ -274,12 +274,13 @@
 </template>
 
 <script setup>
-import { getMateriales, crearMaterial, actualizarMaterial, eliminarMaterial } from '../../services/api.js'
+import { getMateriales, crearMaterial, actualizarMaterial, eliminarMaterial, getUsuarios } from '../../services/api.js'
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 
 // ── Datos ────────────────────────────────────────────────────
 const materiales = ref([])
+const clientes = ref([])
 
 const busqueda        = ref('')
 const categoriaFiltro = ref('')
@@ -377,7 +378,7 @@ async function guardar() {
     if (editando.value) {
       // Actualizar en MySQL
       await actualizarMaterial(form.value.id, {
-        Nombre_Producto: form.value.nombre,
+        Nombre_Material: form.value.nombre,
         Categoria:       form.value.categoria,
         Stock_Actual:    form.value.stock,
         Unidad:          form.value.unidad,
@@ -388,7 +389,7 @@ async function guardar() {
     } else {
       // Crear en MySQL
       await crearMaterial({
-        Nombre_Producto: form.value.nombre,
+        Nombre_Material: form.value.nombre,
         Categoria:       form.value.categoria,
         Stock_Actual:    form.value.stock,
         Unidad:          form.value.unidad,
@@ -401,8 +402,8 @@ async function guardar() {
     // Recargar lista desde MySQL
     const data = await getMateriales()
     materiales.value = data.map(m => ({
-      id:        m.Id_Producto,
-      nombre:    m.Nombre_Producto,
+      id:        m.Id_Material,
+      nombre:    m.Nombre_Material,
       categoria: m.Categoria,
       stock:     m.Stock_Actual,
       unidad:    m.Unidad,
@@ -454,8 +455,8 @@ onMounted(async () => {
     const data = await getMateriales()
     // Mapear campos de la BD al formato que usa la vista
     materiales.value = data.map(m => ({
-      id:       m.Id_Producto,
-      nombre:   m.Nombre_Producto,
+      id:       m.Id_Material,
+      nombre:   m.Nombre_Material,
       categoria:m.Categoria,
       stock:    m.Stock_Actual,
       unidad:   m.Unidad,
@@ -468,6 +469,16 @@ onMounted(async () => {
     }))
   } catch (err) {
     console.error('Error cargando materiales:', err)
+  }
+
+  // Cargar clientes reales desde la BD
+  try {
+    const usuarios = await getUsuarios()
+    clientes.value = usuarios
+      .filter(u => (u.Rol || u.Nombre_Rol || "").toLowerCase() === "cliente" && u.Estado === "activo")
+      .map(u => ({ id: u.Id_Usuario, nombre: u.Nombre_Completo }))
+  } catch (err) {
+    console.error("Error cargando clientes:", err)
   }
 
   // Animaciones de entrada

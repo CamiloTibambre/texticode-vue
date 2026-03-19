@@ -9,10 +9,10 @@ router.get('/', async (req, res) => {
     const [rows] = await pool.query(`
       SELECT op.*, 
              u.Nombre_Completo AS Cliente,
-             m.Nombre_Producto AS Producto
+             m.Nombre_Material AS Producto
       FROM orden_produccion op
       INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
-      INNER JOIN material m ON op.Id_Producto = m.Id_Producto
+      INNER JOIN material m ON op.Id_Material = m.Id_Material
       ORDER BY op.Fecha_Limite ASC
     `)
     res.json(rows)
@@ -27,10 +27,10 @@ router.get('/:id', async (req, res) => {
     const [rows] = await pool.query(`
       SELECT op.*, 
              u.Nombre_Completo AS Cliente,
-             m.Nombre_Producto AS Producto
+             m.Nombre_Material AS Producto
       FROM orden_produccion op
       INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
-      INNER JOIN material m ON op.Id_Producto = m.Id_Producto
+      INNER JOIN material m ON op.Id_Material = m.Id_Material
       WHERE op.Id_Orden = ?
     `, [req.params.id])
 
@@ -49,10 +49,10 @@ router.get('/estado/:estado', async (req, res) => {
 
   try {
     const [rows] = await pool.query(`
-      SELECT op.*, u.Nombre_Completo AS Cliente, m.Nombre_Producto AS Producto
+      SELECT op.*, u.Nombre_Completo AS Cliente, m.Nombre_Material AS Producto
       FROM orden_produccion op
       INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
-      INNER JOIN material m ON op.Id_Producto = m.Id_Producto
+      INNER JOIN material m ON op.Id_Material = m.Id_Material
       WHERE op.Estado = ?
     `, [req.params.estado])
     res.json(rows)
