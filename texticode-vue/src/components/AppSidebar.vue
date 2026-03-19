@@ -140,11 +140,13 @@ const menuConfig = {
   }
 }
 
-const panelLabel = computed(() => menuConfig[props.rol]?.label     || '')
-const menuItems  = computed(() => menuConfig[props.rol]?.items     || [])
-const roleLabel  = computed(() => menuConfig[props.rol]?.roleLabel || '')
-const userName   = computed(() => menuConfig[props.rol]?.userName  || '')
-const userInitial = computed(() => userName.value?.charAt(0) || '?')
+const panelLabel  = computed(() => menuConfig[props.rol]?.label     || "")
+const menuItems   = computed(() => menuConfig[props.rol]?.items     || [])
+const roleLabel   = computed(() => menuConfig[props.rol]?.roleLabel || "")
+
+// Nombre real del usuario logueado desde el store
+const userName    = computed(() => auth.usuario?.Nombre_Completo || auth.usuario?.Nombre_Usuario || "")
+const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || "?")
 
 // Color del badge según rol
 const rolClass = computed(() => ({
