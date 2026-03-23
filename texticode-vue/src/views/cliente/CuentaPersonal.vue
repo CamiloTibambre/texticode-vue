@@ -45,68 +45,53 @@
           <button class="btn-edit" @click="abrirModal">Editar Perfil</button>
         </div>
  
-        <!-- TABS -->
-        <div class="tabs-bar">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            class="tab-btn"
-            :class="{ active: tabActivo === tab.id }"
-            @click="tabActivo = tab.id"
-          >
-            {{ tab.label }}
-            <span v-if="tab.id === 'pedidos' && pedidos.length" class="tab-badge">{{ pedidos.length }}</span>
-          </button>
-        </div>
- 
-        <!-- TAB: INFORMACIÓN -->
-        <div v-if="tabActivo === 'info'">
-          <div class="card">
-            <div class="card-header">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/>
-              </svg>
-              Información de Contacto
-            </div>
-            <div class="contact-grid">
-              <div class="contact-item">
-                <div class="contact-label">Email</div>
-                <div class="contact-value">{{ perfil.Correo || '—' }}</div>
-              </div>
-              <div class="contact-item">
-                <div class="contact-label">Teléfono</div>
-                <div class="contact-value">{{ perfil.Telefono || '—' }}</div>
-              </div>
-              <div class="contact-item">
-                <div class="contact-label">Usuario</div>
-                <div class="contact-value">{{ perfil.Nombre_Usuario || '—' }}</div>
-              </div>
-              <div class="contact-item">
-                <div class="contact-label">Dirección</div>
-                <div class="contact-value">{{ perfil.Direccion || '—' }}</div>
-              </div>
-            </div>
+        <div class="card">
+          <div class="card-header">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/>
+            </svg>
+            Información de Contacto
           </div>
- 
-          <!-- Resumen rápido de pedidos -->
-          <div class="card stats-row">
-            <div class="stat-box">
-              <div class="stat-number">{{ pedidos.length }}</div>
-              <div class="stat-label">Pedidos totales</div>
+          <div class="contact-grid">
+            <div class="contact-item">
+              <div class="contact-label">Email</div>
+              <div class="contact-value">{{ perfil.Correo || '—' }}</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-number">{{ pedidosEnProceso }}</div>
-              <div class="stat-label">En proceso</div>
+            <div class="contact-item">
+              <div class="contact-label">Teléfono</div>
+              <div class="contact-value">{{ perfil.Telefono || '—' }}</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-number">{{ pedidosCompletados }}</div>
-              <div class="stat-label">Completados</div>
+            <div class="contact-item">
+              <div class="contact-label">Usuario</div>
+              <div class="contact-value">{{ perfil.Nombre_Usuario || '—' }}</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Dirección</div>
+              <div class="contact-value">{{ perfil.Direccion || '—' }}</div>
             </div>
           </div>
         </div>
- 
-        <!-- TAB: MIS PEDIDOS -->
-        <div v-if="tabActivo === 'pedidos'">
+
+        <div class="card stats-row">
+          <div class="stat-box">
+            <div class="stat-number">{{ pedidos.length }}</div>
+            <div class="stat-label">Pedidos totales</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">{{ pedidosEnProceso }}</div>
+            <div class="stat-label">En proceso</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">{{ pedidosCompletados }}</div>
+            <div class="stat-label">Completados</div>
+          </div>
+        </div>
+
+        <section class="pedidos-section">
+          <div class="card-header pedidos-header">
+            <span>Mis pedidos</span>
+            <span class="pedido-total">{{ pedidos.length }}</span>
+          </div>
           <div v-if="cargandoPedidos" class="loading-inline">Cargando pedidos...</div>
  
           <div v-else-if="pedidos.length === 0" class="empty-card">
@@ -146,7 +131,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </section>
         </template><!-- fin v-else sesión real -->
       </template>
     </main>
@@ -204,7 +189,7 @@
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
-import { getUsuario, actualizarUsuario, getOrdenes } from '../../services/api'
+import { getUsuario, actualizarUsuario, getOrdenesDeCliente } from '../../services/api'
  
 const auth = useAuthStore()
  
@@ -216,16 +201,10 @@ const errorGuardar    = ref('')
 const guardando       = ref(false)
 const modalVisible    = ref(false)
 const toast           = ref({ visible: false, msg: '', type: 'success' })
-const tabActivo       = ref('info')
- 
+
 const perfil      = ref({})
 const pedidos     = ref([])
 const formEdicion = ref({})
- 
-const tabs = [
-  { id: 'info',    label: 'Información' },
-  { id: 'pedidos', label: 'Mis Pedidos' },
-]
  
 // ── COMPUTED ──────────────────────────────────────────────────
 const iniciales = computed(() =>
@@ -254,11 +233,11 @@ async function cargarDatos() {
     }
  
     perfil.value = await getUsuario(auth.idUsuario)
- 
+
     cargandoPedidos.value = true
     try {
-      const todasOrdenes = await getOrdenes()
-      pedidos.value = todasOrdenes.filter(o => o.Id_Cliente === auth.idUsuario)
+      const data = await getOrdenesDeCliente(auth.idUsuario)
+      pedidos.value = Array.isArray(data) ? data : []
     } catch {
       pedidos.value = []
     } finally {
@@ -368,15 +347,12 @@ function mostrarToast(msg, type = 'success') {
 .btn-edit { background: white; color: #1f3a52; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .btn-edit:hover { background: #f1f5f9; }
  
-/* TABS */
-.tabs-bar { display: flex; gap: 4px; background: #e5e7eb; border-radius: 10px; padding: 4px; margin-bottom: 18px; width: fit-content; }
-.tab-btn { background: none; border: none; border-radius: 7px; padding: 8px 20px; font-size: 13px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
-.tab-btn.active { background: white; color: #111827; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.tab-badge { background: #1f3a52; color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
- 
 /* CARDS */
 .card { background: white; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
 .card-header { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.pedidos-section { margin-top: 8px; }
+.pedidos-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.pedido-total { background: #1f3a52; color: white; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 4px 10px; }
  
 /* CONTACTO */
 .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
