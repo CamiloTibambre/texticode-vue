@@ -412,3 +412,4 @@ Tipo: UPDATE
 Descripción: Reemplaza la contraseña en texto plano por el hash bcrypt generado.
 Sentencia:
 UPDATE usuario SET Contrasena = ? WHERE Id_Usuario = ?
+
