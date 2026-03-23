@@ -209,51 +209,58 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
-import { getOrdenes, getUsuarios, getMateriales } from '../../services/api.js'
+import { getMateriales, getOrdenes, getUsuarios } from '../../services/api.js'
 
-// ── ANIMACIONES DE ENTRADA ──
 const animVisible = ref(false)
+const toast = ref({ visible: false, msg: '', type: 'success' })
+const tipoFiltro = ref('')
+const hoveredBar = ref(null)
+const meses = ref([])
+const barHeights = ref([])
+const pendingHeights = ref([])
+const ordenesData = ref([])
+const usuariosData = ref([])
+const materialesData = ref([])
+const statsDisplay = reactive({ total: 0, completados: 0, tasa: 0, pendientes: 0 })
+
 onMounted(async () => {
   await cargarDatos()
   setTimeout(() => animVisible.value = true, 50)
-  setTimeout(() => animateBars(), 300)
+  setTimeout(() => animateBars(), 250)
 })
 
-// ── TOAST ──
-const toast = ref({ visible: false, msg: '', type: 'success' })
 function mostrarToast(msg, type = 'success') {
   toast.value = { visible: true, msg, type }
-  setTimeout(() => toast.value.visible = false, 2800)
+  setTimeout(() => { toast.value.visible = false }, 2800)
 }
 
-// ── CONTADORES ANIMADOS ──
-const statsDisplay = reactive({ total: 0, completados: 0, tasa: 0, pendientes: 0 })
 function animateCount(key, target, isDecimal = false) {
   let val = 0
-  const steps = 40, step = target / steps
+  const steps = 36
+  const step = target / steps
   let count = 0
   const iv = setInterval(() => {
-    count++; val += step
-    if (count >= steps) { statsDisplay[key] = isDecimal ? target : Math.round(target); clearInterval(iv) }
-    else statsDisplay[key] = isDecimal ? parseFloat(val.toFixed(1)) : Math.round(val)
-  }, 25)
+    count += 1
+    val += step
+    if (count >= steps) {
+      statsDisplay[key] = isDecimal ? target : Math.round(target)
+      clearInterval(iv)
+    } else {
+      statsDisplay[key] = isDecimal ? parseFloat(val.toFixed(1)) : Math.round(val)
+    }
+  }, 22)
 }
+
 function animateStats(total, completados, pendientes) {
   const tasa = total > 0 ? parseFloat(((completados / total) * 100).toFixed(1)) : 0
-  animateCount('total',       total)
+  animateCount('total', total)
   animateCount('completados', completados)
-  animateCount('tasa',        tasa, true)
-  animateCount('pendientes',  pendientes)
+  animateCount('tasa', tasa, true)
+  animateCount('pendientes', pendientes)
 }
 
-// ── DATOS ──
-const tipoFiltro = ref('')
-const hoveredBar = ref(null)
-const meses      = ref([])   // se llena desde la BD
-
-// ── CARGA DESDE LA BD ──
 async function cargarDatos() {
   try {
     const [dataOrdenes, dataUsuarios, dataMateriales] = await Promise.all([
@@ -262,82 +269,88 @@ async function cargarDatos() {
       getMateriales(),
     ])
 
-    // ── Stats generales ──
-    const total      = dataOrdenes.length
-    const completados= dataOrdenes.filter(o => o.Estado === 'Completada').length
-    const pendientes = dataOrdenes.filter(o => o.Estado === 'En Proceso').length
+    ordenesData.value = Array.isArray(dataOrdenes) ? dataOrdenes : []
+    usuariosData.value = Array.isArray(dataUsuarios) ? dataUsuarios : []
+    materialesData.value = Array.isArray(dataMateriales) ? dataMateriales : []
+
+    const total = ordenesData.value.length
+    const completados = ordenesData.value.filter(o => o.Estado === 'Completada').length
+    const pendientes = ordenesData.value.filter(o => o.Estado === 'En Proceso').length
     animateStats(total, completados, pendientes)
 
-    // ── Gráfico de barras por mes (últimos 6 meses con datos) ──
     const porMes = {}
-    dataOrdenes.forEach(o => {
+    ordenesData.value.forEach((o) => {
       const fecha = o.Fecha_Limite || o.Fecha
       if (!fecha) return
-      const d   = new Date(fecha)
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
-      const nom = d.toLocaleDateString('es-CO', { month: 'short' })
-        .replace('.','').replace(/^\w/, c => c.toUpperCase())
-      if (!porMes[key]) porMes[key] = { nombre: nom, completadas: 0, pendientes: 0 }
-      if (o.Estado === 'Completada') porMes[key].completadas++
-      else porMes[key].pendientes++
-    })
-    // Tomar los últimos 6 meses con datos
-    meses.value = Object.entries(porMes)
-      .sort(([a],[b]) => a.localeCompare(b))
-      .slice(-6)
-      .map(([, v]) => v)
 
-    // Si no hay datos suficientes, mostrar meses vacíos como placeholder
+      const d = new Date(fecha)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const nombre = d.toLocaleDateString('es-CO', { month: 'short' }).replace('.', '').replace(/^\w/, c => c.toUpperCase())
+      if (!porMes[key]) porMes[key] = { nombre, completadas: 0, pendientes: 0 }
+
+      if (o.Estado === 'Completada') porMes[key].completadas += 1
+      else porMes[key].pendientes += 1
+    })
+
+    meses.value = Object.entries(porMes)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([, value]) => value)
+
     if (meses.value.length === 0) {
-      meses.value = ['Ene','Feb','Mar','Abr','May','Jun']
-        .map(n => ({ nombre: n, completadas: 0, pendientes: 0 }))
+      meses.value = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((nombre) => ({
+        nombre,
+        completadas: 0,
+        pendientes: 0,
+      }))
     }
 
-    // ── Actualizar los reportes con datos reales ──
-    const clientes   = dataUsuarios.filter(u => (u.Nombre_Rol||u.Rol||'').toLowerCase() === 'cliente').length
-    const stockBajo  = dataMateriales.filter(m => m.Stock_Actual <= m.Stock_Minimo).length
+    const clientes = usuariosData.value.filter(u => (u.Nombre_Rol || u.Rol || '').toLowerCase() === 'cliente').length
+    const stockBajo = materialesData.value.filter(m => Number(m.Stock_Actual) <= Number(m.Stock_Minimo)).length
 
     reportesData[0].subtitulo = `${completados} órdenes completadas de ${total}`
     reportesData[1].subtitulo = `${stockBajo} material(es) con stock bajo`
     reportesData[2].subtitulo = `${clientes} cliente(s) registrado(s)`
     reportesData[3].subtitulo = `${total} órdenes totales registradas`
-
-  } catch (e) {
-    console.error('Error cargando reportes:', e)
+  } catch (error) {
+    mostrarToast('No fue posible cargar los reportes.', 'danger')
   }
 }
 
-// ── BARRAS ANIMADAS ──
-const barHeights     = ref([])
-const pendingHeights = ref([])
-
 function animateBars() {
-  barHeights.value     = meses.value.map(() => 0)
+  barHeights.value = meses.value.map(() => 0)
   pendingHeights.value = meses.value.map(() => 0)
 
-  meses.value.forEach((mes, i) => {
-    const totalTarget   = (mes.completadas + mes.pendientes) * 2.8
-    const pendingTarget = mes.pendientes * 2.8
+  const totals = meses.value.map((mes) => mes.completadas + mes.pendientes)
+  const maxTotal = Math.max(...totals, 1)
+
+  meses.value.forEach((mes, index) => {
+    const totalMes = mes.completadas + mes.pendientes
+    const totalTarget = totalMes === 0 ? 18 : Math.max(42, (totalMes / maxTotal) * 170)
+    const pendingTarget = totalMes === 0 ? 0 : Math.max(8, totalTarget * (mes.pendientes / totalMes))
     let val = 0
-    const steps = 35, step = Math.max(totalTarget / steps, 0.1)
+    const steps = 30
+    const step = totalTarget / steps
     let count = 0
+
     setTimeout(() => {
       const iv = setInterval(() => {
-        count++; val += step
+        count += 1
+        val += step
         if (count >= steps) {
-          barHeights.value[i]     = totalTarget
-          pendingHeights.value[i] = pendingTarget
+          barHeights.value[index] = totalTarget
+          pendingHeights.value[index] = Math.min(pendingTarget, totalTarget)
           clearInterval(iv)
         } else {
-          barHeights.value[i]     = Math.min(val, totalTarget)
-          pendingHeights.value[i] = Math.min((val/totalTarget)*pendingTarget, pendingTarget)
+          const current = Math.min(val, totalTarget)
+          barHeights.value[index] = current
+          pendingHeights.value[index] = totalTarget === 0 ? 0 : Math.min((current / totalTarget) * pendingTarget, pendingTarget)
         }
       }, 18)
-    }, i * 60)
+    }, index * 55)
   })
 }
 
-// ── REPORTES ──
 const reportesData = reactive([
   {
     titulo: 'Reporte de Producción', tipo: 'Producción',
@@ -377,19 +390,91 @@ const reportes = computed(() =>
   tipoFiltro.value === '' ? reportesData : reportesData.filter(r => r.tipo === tipoFiltro.value)
 )
 
-// ── DESCARGAR CON SPINNER ──
 async function descargar(r) {
   r.downloading = true
-  await new Promise(res => setTimeout(res, 1600))
-  r.downloading = false
-  mostrarToast(`"${r.titulo}" descargado correctamente`, 'success')
+  try {
+    const blob = new Blob([crearReporteTexto(r)], { type: 'text/plain;charset=utf-8' })
+    descargarArchivo(blob, `${slugify(r.titulo)}.txt`)
+    mostrarToast(`"${r.titulo}" descargado correctamente`, 'success')
+  } finally {
+    r.downloading = false
+  }
 }
 
 async function exportarExcel(r) {
   r.exporting = true
-  await new Promise(res => setTimeout(res, 1800))
-  r.exporting = false
-  mostrarToast(`"${r.titulo}" exportado a Excel`, 'excel')
+  try {
+    const blob = new Blob([crearReporteCsv(r)], { type: 'text/csv;charset=utf-8' })
+    descargarArchivo(blob, `${slugify(r.titulo)}.csv`)
+    mostrarToast(`"${r.titulo}" exportado a Excel`, 'excel')
+  } finally {
+    r.exporting = false
+  }
+}
+
+function crearReporteTexto(reporte) {
+  const rows = obtenerFilasReporte(reporte)
+  return [
+    reporte.titulo,
+    `Período: ${reporte.periodo}`,
+    `Generado: ${reporte.generado}`,
+    '',
+    ...rows.map((row) => Object.entries(row).map(([k, v]) => `${k}: ${v}`).join(' | ')),
+  ].join('\n')
+}
+
+function crearReporteCsv(reporte) {
+  const rows = obtenerFilasReporte(reporte)
+  if (!rows.length) return 'sin_datos\n'
+  const headers = Object.keys(rows[0])
+  const lines = rows.map((row) => headers.map((key) => JSON.stringify(row[key] ?? '')).join(','))
+  return `${headers.join(',')}\n${lines.join('\n')}\n`
+}
+
+function obtenerFilasReporte(reporte) {
+  if (reporte.tipo === 'Producción' || reporte.tipo === 'Ventas') {
+    return ordenesData.value.map((o) => ({
+      orden: o.Id_Orden,
+      cliente: o.Cliente,
+      descripcion: o.Descripcion,
+      estado: o.Estado,
+      prioridad: o.Prioridad,
+      fecha_limite: o.Fecha_Limite,
+    }))
+  }
+
+  if (reporte.tipo === 'Inventario') {
+    return materialesData.value
+      .filter(m => Number(m.Stock_Actual) <= Number(m.Stock_Minimo))
+      .map((m) => ({
+        material: m.Nombre_Material,
+        stock_actual: m.Stock_Actual,
+        stock_minimo: m.Stock_Minimo,
+        categoria: m.Categoria || '',
+      }))
+  }
+
+  return usuariosData.value
+    .filter(u => (u.Nombre_Rol || u.Rol || '').toLowerCase() === 'cliente')
+    .map((u) => ({
+      cliente: u.Nombre_Completo || u.Nombre_Usuario,
+      correo: u.Correo,
+      telefono: u.Telefono,
+      estado: u.Estado,
+    }))
+}
+
+function descargarArchivo(blob, nombre) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = nombre
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+function slugify(value) {
+  return value.toLowerCase().replace(/\s+/g, '-')
 }
 </script>
 
