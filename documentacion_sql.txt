@@ -1,0 +1,737 @@
+DOCUMENTACIÓN DE db.js Y CATÁLOGO COMPLETO DE SENTENCIAS SQL
+Repositorio: /workspace/texticode-vue
+
+====================================================================
+1. ¿QUÉ HACE texticode-api/db.js?
+====================================================================
+Archivo: texticode-api/db.js
+Líneas relevantes: 1-25
+
+Resumen funcional:
+- Importa mysql2/promise para trabajar con MySQL usando promesas.
+- Importa dotenv y carga las variables de entorno con dotenv.config().
+- Crea un pool de conexiones con mysql.createPool usando DB_HOST, DB_PORT, DB_USER, DB_PASSWORD y DB_NAME.
+- Configura waitForConnections=true y connectionLimit=10 para reutilizar conexiones en lugar de abrir una nueva por cada petición.
+- Al iniciar la aplicación intenta obtener una conexión con pool.getConnection().
+- Si la conexión funciona, imprime un mensaje indicando la base de datos conectada y libera la conexión.
+- Si falla, registra el error y termina el proceso con process.exit(1).
+- Exporta el pool para que las rutas del backend puedan ejecutar consultas SQL con pool.query(...).
+
+En otras palabras, db.js es el punto central de acceso a la base de datos. No contiene consultas SQL de negocio, pero sí configura la conexión que usan todos los archivos de rutas y scripts.
+
+====================================================================
+2. ALCANCE DE ESTE INVENTARIO
+====================================================================
+Se listan todas las sentencias SQL encontradas en:
+- texticode-api/routes/*.js
+- texticode-api/encriptar-contrasenas.js
+- DB TEXTICODE/texticode (5).sql
+
+No se listan comentarios, código JavaScript sin SQL, ni dependencias dentro de node_modules.
+
+====================================================================
+3. SENTENCIAS SQL EN EL BACKEND (CONSULTAS EJECUTADAS DESDE JS)
+====================================================================
+
+--------------------------------------------------------------------
+3.1 Archivo: texticode-api/routes/auth.route.js
+--------------------------------------------------------------------
+
+[1] Líneas 27-35
+Tipo: SELECT
+Descripción: Busca un usuario para login por correo o nombre de usuario y trae su rol.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Contrasena, u.Estado, u.Id_Rol,
+       r.Nombre_Rol AS Rol
+FROM usuario u
+INNER JOIN rol r ON r.Id_Rol = u.Id_Rol
+WHERE u.Correo = ? OR u.Nombre_Usuario = ?
+LIMIT 1
+
+--------------------------------------------------------------------
+3.2 Archivo: texticode-api/routes/comprobantes.js
+--------------------------------------------------------------------
+
+[2] Líneas 9-18
+Tipo: SELECT
+Descripción: Lista todos los comprobantes junto con el nombre del usuario y datos de la orden relacionada.
+Sentencia:
+SELECT c.*,
+       u.Nombre_Completo AS Usuario,
+       op.Descripcion AS Orden_Descripcion,
+       op.Estado AS Orden_Estado
+FROM comprobantes c
+INNER JOIN usuario u ON c.Id_Usuario = u.Id_Usuario
+INNER JOIN orden_produccion op ON c.Id_Orden = op.Id_Orden
+ORDER BY c.Fecha_Limite DESC
+
+[3] Líneas 28-36
+Tipo: SELECT
+Descripción: Busca un comprobante específico por su ID y añade datos del usuario y la orden.
+Sentencia:
+SELECT c.*,
+       u.Nombre_Completo AS Usuario,
+       op.Descripcion AS Orden_Descripcion
+FROM comprobantes c
+INNER JOIN usuario u ON c.Id_Usuario = u.Id_Usuario
+INNER JOIN orden_produccion op ON c.Id_Orden = op.Id_Orden
+WHERE c.Id_Comprobante = ?
+
+[4] Líneas 52-55
+Tipo: INSERT
+Descripción: Crea un nuevo comprobante.
+Sentencia:
+INSERT INTO comprobantes (Id_Usuario, Id_Orden, Estado, Fecha_Limite)
+VALUES (?, ?, ?, ?)
+
+[5] Líneas 67-69
+Tipo: UPDATE
+Descripción: Actualiza el estado y la fecha límite de un comprobante existente.
+Sentencia:
+UPDATE comprobantes SET Estado=?, Fecha_Limite=? WHERE Id_Comprobante=?
+
+[6] Línea 81
+Tipo: DELETE
+Descripción: Elimina un comprobante por su ID.
+Sentencia:
+DELETE FROM comprobantes WHERE Id_Comprobante = ?
+
+--------------------------------------------------------------------
+3.3 Archivo: texticode-api/routes/materiales.js
+--------------------------------------------------------------------
+
+[7] Línea 9
+Tipo: SELECT
+Descripción: Lista todos los materiales ordenados por nombre.
+Sentencia:
+SELECT * FROM material ORDER BY Nombre_Material
+
+[8] Línea 19
+Tipo: SELECT
+Descripción: Busca un material por su ID.
+Sentencia:
+SELECT * FROM material WHERE Id_Material = ?
+
+[9] Líneas 30-31
+Tipo: SELECT
+Descripción: Lista materiales con stock actual menor o igual al stock mínimo.
+Sentencia:
+SELECT * FROM material WHERE Stock_Actual <= Stock_Minimo ORDER BY Stock_Actual ASC
+
+[10] Líneas 46-49
+Tipo: INSERT
+Descripción: Crea un nuevo material en inventario.
+Sentencia:
+INSERT INTO material (Nombre_Material, Categoria, Stock_Actual, Unidad, Stock_Minimo, Stock_Maximo)
+VALUES (?, ?, ?, ?, ?, ?)
+
+[11] Líneas 63-67
+Tipo: UPDATE
+Descripción: Actualiza todos los datos editables de un material.
+Sentencia:
+UPDATE material
+SET Nombre_Material=?, Categoria=?, Stock_Actual=?, Unidad=?, Stock_Minimo=?, Stock_Maximo=?
+WHERE Id_Material=?
+
+[12] Línea 79
+Tipo: DELETE
+Descripción: Elimina un material por su ID.
+Sentencia:
+DELETE FROM material WHERE Id_Material = ?
+
+--------------------------------------------------------------------
+3.4 Archivo: texticode-api/routes/orden_material.js
+--------------------------------------------------------------------
+
+[13] Líneas 9-14
+Tipo: SELECT
+Descripción: Lista los materiales asociados a una orden de producción.
+Sentencia:
+SELECT om.*, m.Nombre_Producto, m.Unidad
+FROM orden_material om
+INNER JOIN material m ON om.Id_Producto = m.Id_Producto
+WHERE om.Id_Orden = ?
+
+[14] Líneas 28-31
+Tipo: INSERT
+Descripción: Agrega un material a una orden.
+Sentencia:
+INSERT INTO orden_material (Id_Orden, Id_Producto, Cantidad_Usada)
+VALUES (?, ?, ?)
+
+[15] Líneas 45-48
+Tipo: UPDATE
+Descripción: Actualiza la cantidad usada de un material dentro de una orden.
+Sentencia:
+UPDATE orden_material SET Cantidad_Usada=?
+WHERE Id_Orden=? AND Id_Producto=?
+
+[16] Líneas 60-62
+Tipo: DELETE
+Descripción: Quita un material de una orden.
+Sentencia:
+DELETE FROM orden_material WHERE Id_Orden=? AND Id_Producto=?
+
+--------------------------------------------------------------------
+3.5 Archivo: texticode-api/routes/ordenes.js
+--------------------------------------------------------------------
+
+[17] Líneas 9-17
+Tipo: SELECT
+Descripción: Lista todas las órdenes con nombre del cliente y del material.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo AS Cliente,
+       m.Nombre_Material  AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+ORDER BY op.Fecha_Limite ASC
+
+[18] Líneas 27-36
+Tipo: SELECT
+Descripción: Lista las órdenes asignadas a un operario concreto.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Id_Operario = ?
+ORDER BY op.Fecha_Limite ASC
+
+[19] Líneas 46-55
+Tipo: SELECT
+Descripción: Lista las órdenes pertenecientes a un cliente concreto.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Id_Cliente = ?
+ORDER BY op.Fecha_Limite ASC
+
+[20] Líneas 65-73
+Tipo: SELECT
+Descripción: Busca una orden por su ID.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Id_Orden = ?
+
+[21] Líneas 87-95
+Tipo: SELECT
+Descripción: Filtra órdenes por estado.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Estado = ?
+
+[22] Líneas 114-129
+Tipo: INSERT
+Descripción: Crea una nueva orden de producción.
+Sentencia:
+INSERT INTO orden_produccion
+  (Id_Cliente, Id_Material, Id_Operario, Producto, Descripcion,
+   Cantidad, Prioridad, Fecha_Limite, Estado)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+[23] Líneas 145-157
+Tipo: UPDATE
+Descripción: Actualiza todos los datos principales de una orden, incluidas unidades y avance.
+Sentencia:
+UPDATE orden_produccion
+SET Id_Cliente=?, Id_Material=?, Id_Operario=?, Producto=?, Descripcion=?,
+    Cantidad=?, Prioridad=?, Fecha_Limite=?, Estado=?,
+    Unidades=?, Unidades_Realizadas=?
+WHERE Id_Orden=?
+
+[24] Líneas 169-171
+Tipo: DELETE
+Descripción: Elimina una orden por su ID.
+Sentencia:
+DELETE FROM orden_produccion WHERE Id_Orden = ?
+
+--------------------------------------------------------------------
+3.6 Archivo: texticode-api/routes/roles.js
+--------------------------------------------------------------------
+
+[25] Línea 9
+Tipo: SELECT
+Descripción: Lista todos los roles.
+Sentencia:
+SELECT * FROM rol ORDER BY Id_Rol
+
+[26] Línea 19
+Tipo: SELECT
+Descripción: Busca un rol por ID.
+Sentencia:
+SELECT * FROM rol WHERE Id_Rol = ?
+
+[27] Línea 33
+Tipo: INSERT
+Descripción: Crea un rol nuevo.
+Sentencia:
+INSERT INTO rol (Nombre_Rol) VALUES (?)
+
+[28] Línea 46
+Tipo: UPDATE
+Descripción: Cambia el nombre de un rol existente.
+Sentencia:
+UPDATE rol SET Nombre_Rol=? WHERE Id_Rol=?
+
+[29] Línea 57
+Tipo: DELETE
+Descripción: Elimina un rol por su ID.
+Sentencia:
+DELETE FROM rol WHERE Id_Rol = ?
+
+--------------------------------------------------------------------
+3.7 Archivo: texticode-api/routes/usuario_orden.js
+--------------------------------------------------------------------
+
+[30] Líneas 9-14
+Tipo: SELECT
+Descripción: Lista los usuarios asignados a una orden.
+Sentencia:
+SELECT uo.*, u.Nombre_Completo, u.Correo
+FROM usuario_orden uo
+INNER JOIN usuario u ON uo.Id_Usuario = u.Id_Usuario
+WHERE uo.Id_Orden = ?
+
+[31] Líneas 24-29
+Tipo: SELECT
+Descripción: Lista las órdenes asignadas a un usuario.
+Sentencia:
+SELECT uo.*, op.Descripcion, op.Estado, op.Fecha_Limite, op.Prioridad
+FROM usuario_orden uo
+INNER JOIN orden_produccion op ON uo.Id_Orden = op.Id_Orden
+WHERE uo.Id_Usuario = ?
+
+[32] Líneas 43-45
+Tipo: INSERT
+Descripción: Asigna un usuario a una orden.
+Sentencia:
+INSERT INTO usuario_orden (Id_Usuario, Id_Orden, Funcion) VALUES (?, ?, ?)
+
+[33] Líneas 58-60
+Tipo: DELETE
+Descripción: Elimina la asignación entre un usuario y una orden.
+Sentencia:
+DELETE FROM usuario_orden WHERE Id_Usuario=? AND Id_Orden=?
+
+--------------------------------------------------------------------
+3.8 Archivo: texticode-api/routes/usuarios.js
+--------------------------------------------------------------------
+
+[34] Líneas 10-16
+Tipo: SELECT
+Descripción: Lista todos los usuarios con su rol.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Telefono, u.Estado, u.Fecha_Registro,
+       r.Nombre_Rol AS Rol, r.Id_Rol
+FROM usuario u
+INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+
+[35] Líneas 26-33
+Tipo: SELECT
+Descripción: Busca un usuario por su ID con información del rol.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Telefono, u.Estado, u.Fecha_Registro,
+       r.Nombre_Rol AS Rol, r.Id_Rol
+FROM usuario u
+INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+WHERE u.Id_Usuario = ?
+
+[36] Líneas 49-55
+Tipo: SELECT
+Descripción: Consulta de autenticación que acepta correo o nombre de usuario y exige estado activo.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Contrasena, u.Estado, r.Nombre_Rol AS Rol
+FROM usuario u
+INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+WHERE (u.Correo = ? OR u.Nombre_Usuario = ?) AND u.Estado = 'activo'
+
+[37] Líneas 91-94
+Tipo: INSERT
+Descripción: Crea un usuario nuevo guardando rol, datos personales, estado y contraseña.
+Sentencia:
+INSERT INTO usuario (Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+
+[38] Líneas 111-115
+Tipo: UPDATE
+Descripción: Actualiza un usuario incluyendo la contraseña cuando se envía una nueva.
+Sentencia:
+UPDATE usuario
+SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?, Contrasena=?
+WHERE Id_Usuario=?
+
+[39] Líneas 118-122
+Tipo: UPDATE
+Descripción: Actualiza un usuario sin tocar la contraseña.
+Sentencia:
+UPDATE usuario
+SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?
+WHERE Id_Usuario=?
+
+[40] Líneas 134-136
+Tipo: UPDATE
+Descripción: Marca un usuario como inactivo (soft delete).
+Sentencia:
+UPDATE usuario SET Estado = 'inactivo' WHERE Id_Usuario = ?
+
+[41] Línea 148
+Tipo: DELETE
+Descripción: Elimina un usuario por su ID.
+Sentencia:
+DELETE FROM usuario WHERE Id_Usuario = ?
+
+--------------------------------------------------------------------
+3.9 Archivo: texticode-api/encriptar-contrasenas.js
+--------------------------------------------------------------------
+
+[42] Líneas 13-15
+Tipo: SELECT
+Descripción: Obtiene todos los usuarios y sus contraseñas para detectar cuáles deben cifrarse.
+Sentencia:
+SELECT Id_Usuario, Nombre_Usuario, Contrasena FROM usuario
+
+[43] Líneas 30-32
+Tipo: UPDATE
+Descripción: Reemplaza la contraseña en texto plano por el hash bcrypt generado.
+Sentencia:
+UPDATE usuario SET Contrasena = ? WHERE Id_Usuario = ?
+
+====================================================================
+4. SENTENCIAS SQL EN EL DUMP DE BASE DE DATOS
+Archivo: DB TEXTICODE/texticode (5).sql
+====================================================================
+
+[44] Línea 10
+Tipo: SET
+Descripción: Configura el modo SQL de la sesión.
+Sentencia:
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+
+[45] Línea 11
+Tipo: START TRANSACTION
+Descripción: Inicia una transacción para ejecutar el dump de forma agrupada.
+Sentencia:
+START TRANSACTION;
+
+[46] Línea 12
+Tipo: SET
+Descripción: Configura la zona horaria de la sesión SQL.
+Sentencia:
+SET time_zone = "+00:00";
+
+[47] Línea 30-36
+Tipo: CREATE TABLE
+Descripción: Crea la tabla comprobantes.
+Sentencia:
+CREATE TABLE `comprobantes` (
+  `Id_Comprobante` int(11) NOT NULL COMMENT 'Identificador único del comprobante.',
+  `Id_Usuario` int(11) NOT NULL COMMENT 'Persona que crea el comprobante',
+  `Id_Orden` int(11) NOT NULL COMMENT 'Numero de orden',
+  `Estado` enum('Entregado','Pendiente') NOT NULL DEFAULT 'Pendiente' COMMENT 'Estado del comprobante',
+  `Fecha_Limite` date DEFAULT current_timestamp() COMMENT 'Fecha de generación del comprobante. No debe ser pasada.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla que gestiona los comprobantes generados en el sistema.';
+
+[48] Línea 44-53
+Tipo: CREATE TABLE
+Descripción: Crea la tabla material.
+Sentencia:
+CREATE TABLE `material` (
+  `Id_Material` int(11) NOT NULL COMMENT 'Identificador único del producto',
+  `Nombre_Material` varchar(100) NOT NULL COMMENT 'Nombre del producto',
+  `Categoria` varchar(80) NOT NULL COMMENT 'Categoría del producto',
+  `Stock_Actual` int(11) NOT NULL DEFAULT 0 COMMENT 'Cantidad actual disponible en inventario',
+  `Unidad` varchar(30) NOT NULL COMMENT 'Unidad de medida del producto (metros, unidades, etc.)',
+  `Stock_Minimo` int(11) NOT NULL DEFAULT 0 COMMENT 'No puede ser menor a 0',
+  `Stock_Maximo` int(11) NOT NULL DEFAULT 0 COMMENT 'Cantidad máxima permitida en inventario',
+  `Fecha` datetime DEFAULT current_timestamp() COMMENT 'Fecha de generación del comprobante. Debe ser actual.' CHECK (`Stock_Minimo` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla que almacena los productos registrados en el sistema';
+
+[49] Línea 59-65
+Tipo: INSERT
+Descripción: Inserta datos iniciales de materiales.
+Sentencia:
+INSERT INTO `material` (`Id_Material`, `Nombre_Material`, `Categoria`, `Stock_Actual`, `Unidad`, `Stock_Minimo`, `Stock_Maximo`, `Fecha`) VALUES
+(1, 'agujas', 'Accesorios', 3, 'unidades', 5, 70, '2026-03-12 06:27:31'),
+(2, 'tela roja', 'Telas', 50, 'metros', 8, 90, '2026-03-12 06:28:06'),
+(3, 'Algodon', 'Accesorios', 32, 'metros', 15, 100, '2026-03-12 06:30:23'),
+(4, 'Botones', 'Accesorios', 2122, '658', 113, 1, '2026-03-12 09:33:15'),
+(5, 'tela negra', 'Telas', 19, 'metros', 20, 50, '2026-03-18 15:05:49'),
+(6, 'hilo rojo', 'Hilos', 31, 'metros', 30, 1000, '2026-03-18 16:27:45');
+
+[50] Línea 73-77
+Tipo: CREATE TABLE
+Descripción: Crea la tabla puente orden_material.
+Sentencia:
+CREATE TABLE `orden_material` (
+  `Id_Orden` int(11) NOT NULL COMMENT 'Id de la Orden',
+  `Id_Producto` int(11) NOT NULL COMMENT 'Id del producto',
+  `Cantidad_Usada` int(11) NOT NULL COMMENT 'Cantidad usada en la orden'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla puente';
+
+[51] Línea 85-98
+Tipo: CREATE TABLE
+Descripción: Crea la tabla orden_produccion.
+Sentencia:
+CREATE TABLE `orden_produccion` (
+  `Id_Orden` int(11) NOT NULL COMMENT 'Identificador único de la orden de producción',
+  `Id_Cliente` int(11) NOT NULL COMMENT 'Cliente que solicita la orden',
+  `Id_Material` int(11) NOT NULL COMMENT 'Producto a fabricar',
+  `Producto` varchar(100) DEFAULT NULL COMMENT 'Producto de la orden',
+  `Cantidad` int(11) NOT NULL COMMENT 'Cantidad a producir',
+  `Prioridad` enum('Baja','Media','Alta') NOT NULL DEFAULT 'Media' COMMENT 'Nivel de prioridad',
+  `Fecha_Limite` date NOT NULL COMMENT 'La fecha no puede ser anterior al dia vigente',
+  `Descripcion` varchar(150) NOT NULL COMMENT 'Descripcion del producto',
+  `Estado` enum('En Proceso','Completada','Pausado') NOT NULL DEFAULT 'En Proceso' COMMENT 'Estado de la orden',
+  `Unidades_Realizadas` int(225) DEFAULT NULL COMMENT 'Unidades realizadas por el operario',
+  `Id_Operario` int(11) DEFAULT NULL COMMENT 'Operario asignado a la orden',
+  `Unidades` int(225) DEFAULT NULL COMMENT 'Unidades a realizar por el operario'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla que almacena las órdenes de producción';
+
+[52] Línea 104-109
+Tipo: INSERT
+Descripción: Inserta órdenes de producción iniciales.
+Sentencia:
+INSERT INTO `orden_produccion` (`Id_Orden`, `Id_Cliente`, `Id_Material`, `Producto`, `Cantidad`, `Prioridad`, `Fecha_Limite`, `Descripcion`, `Estado`, `Unidades_Realizadas`, `Id_Operario`, `Unidades`) VALUES
+(4, 14, 5, 'Pantalones de lino', 500, 'Baja', '2026-04-04', 'Pantalones de vestir tipo lino', 'En Proceso', NULL, NULL, NULL),
+(5, 24, 2, 'Camisas de vestir', 300, 'Alta', '2026-03-26', 'Camisas para la boda con Manuela', 'En Proceso', NULL, NULL, NULL),
+(6, 24, 6, 'xDE', 100, 'Baja', '2026-03-20', 'la grasa ', 'En Proceso', 13, 23, 100),
+(7, 24, 4, 'Chaquetas hornets', 100, 'Media', '2026-03-27', 'Chaquetas para vender en el centro', 'En Proceso', 83, 23, 100),
+(8, 24, 4, 'Botoones', 254, 'Baja', '2026-04-11', 'Botones 4 huecos', 'En Proceso', NULL, 23, NULL);
+
+[53] Línea 117-120
+Tipo: CREATE TABLE
+Descripción: Crea la tabla de roles.
+Sentencia:
+CREATE TABLE `rol` (
+  `Id_Rol` int(11) NOT NULL,
+  `Nombre_Rol` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+[54] Línea 126-129
+Tipo: INSERT
+Descripción: Inserta los roles base del sistema.
+Sentencia:
+INSERT INTO `rol` (`Id_Rol`, `Nombre_Rol`) VALUES
+(1, 'administrador'),
+(3, 'cliente'),
+(2, 'operario');
+
+[55] Línea 137-147
+Tipo: CREATE TABLE
+Descripción: Crea la tabla usuario.
+Sentencia:
+CREATE TABLE `usuario` (
+  `Id_Usuario` int(11) NOT NULL COMMENT 'Identificador único del usuario',
+  `Id_Rol` int(11) NOT NULL COMMENT 'Rol asignado al usuario (clave foránea)',
+  `Nombre_Completo` varchar(100) NOT NULL COMMENT 'Nombre completo del usuario',
+  `Nombre_Usuario` varchar(50) NOT NULL COMMENT 'Nombre de usuario para iniciar sesión',
+  `Correo` varchar(120) NOT NULL COMMENT 'Correo electrónico del usuario',
+  `Telefono` varchar(20) DEFAULT NULL COMMENT 'Número de teléfono del usuario',
+  `Estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo' COMMENT 'Usuarios dispobibles',
+  `Contrasena` varchar(255) NOT NULL COMMENT 'Contraseña del usuario (almacenada encriptada)',
+  `Fecha_Registro` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tabla que almacena los usuarios del sistema y su rol asociado';
+
+[56] Línea 153-162
+Tipo: INSERT
+Descripción: Inserta usuarios iniciales con rol, estado y contraseña.
+Sentencia:
+INSERT INTO `usuario` (`Id_Usuario`, `Id_Rol`, `Nombre_Completo`, `Nombre_Usuario`, `Correo`, `Telefono`, `Estado`, `Contrasena`, `Fecha_Registro`) VALUES
+(8, 1, 'Andres Lancheros', 'Andres Lancheros ', 'AndresLancheros@gmail.com', '+57 311 265 8375', 'inactivo', '$2b$10$gV/bqXxthVbxkOTrEszygeQCok4h6paooXmYcCzz3DIVWC1MAgbL.', '2026-03-18 09:29:13'),
+(9, 1, 'Camilo Tibambre', 'Camilo T.', 'CamiloTibambre@gmail.com', '+57 320 359 0156', 'activo', '$2b$10$eiteNcL4VsJkMrWY89Ia/ebmdA.bawQikAkcwHuZHo9EYWHnRSOnG', '2026-03-18 09:34:55'),
+(14, 3, 'Daniel Camargo', 'Daniel Camargo', 'DanielCamargo@gmail.com', '+57 311 258 8848', 'activo', '$2b$10$tpZAouXrzdbgctcudM9P1e9roR3wjeXSAgfeM8dUz5KlV9Y3Yc0vm', '2026-03-18 16:25:16'),
+(15, 1, 'Julian Pulido', 'Julian Pulido', 'JulianPulido@gmail.com', '+57 300 000 0000', 'activo', '$2b$10$o9O5y73vV7cGmIL9nVXIAunA4uk7fPOR/3gSV0eCLscWokqotyBjm', '2026-03-18 21:36:32'),
+(18, 1, 'kevin', 'kevin', 'kevin@gmail.com', '+57 300 000 0000', 'activo', '$2b$10$Xs4jsRXB3tkyKxdszn2jiOaRrpRgh4c8Z2Tu/w7enmtoxd/ysm/vK', '2026-03-18 21:54:45'),
+(21, 1, 'Andres Lancheros', 'Lancheros', 'lancheros@texticode.com', '+573112658375', 'activo', '$2b$10$jnp/I3GhG93f/8gUBrKfV.h7rMyEWrNUm197FhOaP.YWen/uMSgjm', '2026-03-18 22:03:53'),
+(22, 1, 'Cristiano Ronaldo', 'CristianoR7', 'admin@texticode.com', '+573105226978', 'activo', '$2b$10$b7wEHwC9Pn88OECq96OIBOyQPmY0/XdGt.Se030J0SiX4QgeHcafu', '2026-03-18 22:53:27'),
+(23, 2, 'Lionel Messi', 'Messi10', 'operario@texticode.com', '+573145571434', 'activo', '$2b$10$2nIj4WCvQQrO7SUQY9fg/uZShnCi8FvoyT6afEhs0y.Mrp0FQ/C6a', '2026-03-18 22:54:22'),
+(24, 3, 'Stiven Mesa', 'Blessd', 'cliente@texticode.com', '+57 3226408792', 'activo', '$2b$10$2iW.smufA319YCLch8NplO.wkXmzK7UXKZkr9pUQRGGNNtzmePGXG', '2026-03-18 22:55:34');
+
+[57] Línea 170-174
+Tipo: CREATE TABLE
+Descripción: Crea la tabla usuario_orden.
+Sentencia:
+CREATE TABLE `usuario_orden` (
+  `Id_Usuario` int(11) NOT NULL COMMENT 'Id del Usuario',
+  `Id_Orden` int(11) NOT NULL COMMENT 'Id de la Orden',
+  `Funcion` varchar(50) DEFAULT NULL COMMENT 'Funcionalidad de la orden'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+[58] Línea 183-186
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria e índices a comprobantes.
+Sentencia:
+ALTER TABLE `comprobantes`
+  ADD PRIMARY KEY (`Id_Comprobante`),
+  ADD KEY `Id_Usuario` (`Id_Usuario`),
+  ADD KEY `Id_Orden` (`Id_Orden`);
+
+[59] Línea 191-193
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria y clave única a material.
+Sentencia:
+ALTER TABLE `material`
+  ADD PRIMARY KEY (`Id_Material`),
+  ADD UNIQUE KEY `Nombre_Producto` (`Nombre_Material`);
+
+[60] Línea 198-200
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria compuesta e índice a orden_material.
+Sentencia:
+ALTER TABLE `orden_material`
+  ADD PRIMARY KEY (`Id_Orden`,`Id_Producto`),
+  ADD KEY `Id_Producto` (`Id_Producto`);
+
+[61] Línea 205-209
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria e índices a orden_produccion.
+Sentencia:
+ALTER TABLE `orden_produccion`
+  ADD PRIMARY KEY (`Id_Orden`),
+  ADD KEY `Id_Cliente` (`Id_Cliente`),
+  ADD KEY `Id_Producto` (`Id_Material`),
+  ADD KEY `orden_produccion_ibfk_3` (`Id_Operario`);
+
+[62] Línea 214-216
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria y restricción de unicidad a rol.
+Sentencia:
+ALTER TABLE `rol`
+  ADD PRIMARY KEY (`Id_Rol`),
+  ADD UNIQUE KEY `Nombre_Rol` (`Nombre_Rol`);
+
+[63] Línea 221-225
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria, claves únicas e índice a usuario.
+Sentencia:
+ALTER TABLE `usuario`
+  ADD PRIMARY KEY (`Id_Usuario`),
+  ADD UNIQUE KEY `Nombre_Usuario` (`Nombre_Usuario`),
+  ADD UNIQUE KEY `Correo` (`Correo`),
+  ADD KEY `Id_Rol` (`Id_Rol`);
+
+[64] Línea 230-232
+Tipo: ALTER TABLE
+Descripción: Agrega clave primaria compuesta e índice a usuario_orden.
+Sentencia:
+ALTER TABLE `usuario_orden`
+  ADD PRIMARY KEY (`Id_Usuario`,`Id_Orden`),
+  ADD KEY `Id_Orden` (`Id_Orden`);
+
+[65] Línea 241-242
+Tipo: ALTER TABLE / MODIFY
+Descripción: Convierte Id_Comprobante en AUTO_INCREMENT.
+Sentencia:
+ALTER TABLE `comprobantes`
+  MODIFY `Id_Comprobante` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del comprobante.';
+
+[66] Línea 247-248
+Tipo: ALTER TABLE / MODIFY
+Descripción: Convierte Id_Material en AUTO_INCREMENT y fija el siguiente valor.
+Sentencia:
+ALTER TABLE `material`
+  MODIFY `Id_Material` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del producto', AUTO_INCREMENT=7;
+
+[67] Línea 253-254
+Tipo: ALTER TABLE / MODIFY
+Descripción: Convierte Id_Orden en AUTO_INCREMENT y fija el siguiente valor.
+Sentencia:
+ALTER TABLE `orden_produccion`
+  MODIFY `Id_Orden` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la orden de producción', AUTO_INCREMENT=9;
+
+[68] Línea 259-260
+Tipo: ALTER TABLE / MODIFY
+Descripción: Convierte Id_Rol en AUTO_INCREMENT.
+Sentencia:
+ALTER TABLE `rol`
+  MODIFY `Id_Rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+[69] Línea 265-266
+Tipo: ALTER TABLE / MODIFY
+Descripción: Convierte Id_Usuario en AUTO_INCREMENT y fija el siguiente valor.
+Sentencia:
+ALTER TABLE `usuario`
+  MODIFY `Id_Usuario` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del usuario', AUTO_INCREMENT=25;
+
+[70] Línea 275-277
+Tipo: ALTER TABLE / ADD CONSTRAINT
+Descripción: Agrega llaves foráneas a comprobantes.
+Sentencia:
+ALTER TABLE `comprobantes`
+  ADD CONSTRAINT `comprobantes_ibfk_1` FOREIGN KEY (`Id_Usuario`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `comprobantes_ibfk_2` FOREIGN KEY (`Id_Orden`) REFERENCES `orden_produccion` (`Id_Orden`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+[71] Línea 282-284
+Tipo: ALTER TABLE / ADD CONSTRAINT
+Descripción: Agrega llaves foráneas a orden_material.
+Sentencia:
+ALTER TABLE `orden_material`
+  ADD CONSTRAINT `orden_material_ibfk_1` FOREIGN KEY (`Id_Orden`) REFERENCES `orden_produccion` (`Id_Orden`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `orden_material_ibfk_2` FOREIGN KEY (`Id_Producto`) REFERENCES `material` (`Id_Material`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+[72] Línea 289-292
+Tipo: ALTER TABLE / ADD CONSTRAINT
+Descripción: Agrega llaves foráneas a orden_produccion.
+Sentencia:
+ALTER TABLE `orden_produccion`
+  ADD CONSTRAINT `orden_produccion_ibfk_1` FOREIGN KEY (`Id_Cliente`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `orden_produccion_ibfk_2` FOREIGN KEY (`Id_Material`) REFERENCES `material` (`Id_Material`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `orden_produccion_ibfk_3` FOREIGN KEY (`Id_Operario`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+[73] Línea 297-298
+Tipo: ALTER TABLE / ADD CONSTRAINT
+Descripción: Agrega la llave foránea entre usuario e id de rol.
+Sentencia:
+ALTER TABLE `usuario`
+  ADD CONSTRAINT `usuario_ibfk_1` FOREIGN KEY (`Id_Rol`) REFERENCES `rol` (`Id_Rol`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+[74] Línea 303-305
+Tipo: ALTER TABLE / ADD CONSTRAINT
+Descripción: Agrega llaves foráneas a usuario_orden.
+Sentencia:
+ALTER TABLE `usuario_orden`
+  ADD CONSTRAINT `usuario_orden_ibfk_1` FOREIGN KEY (`Id_Usuario`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `usuario_orden_ibfk_2` FOREIGN KEY (`Id_Orden`) REFERENCES `orden_produccion` (`Id_Orden`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+[75] Línea 306
+Tipo: COMMIT
+Descripción: Confirma la transacción del dump.
+Sentencia:
+COMMIT;
+
+====================================================================
+5. OBSERVACIONES IMPORTANTES
+====================================================================
+- El frontend Vue no ejecuta SQL directamente; consume endpoints HTTP del backend.
+- Las sentencias SQL del negocio están concentradas principalmente en texticode-api/routes.
+- El archivo auth.route.js contiene una consulta SQL adicional de login, pero parece ser una variante distinta del login principal implementado en routes/usuarios.js.
+- En orden_material.js hay una posible inconsistencia de nombres: la consulta usa m.Nombre_Producto y m.Id_Producto, mientras el dump de la tabla material define Id_Material y Nombre_Material. Esto no cambia el inventario de SQL, pero sí puede causar errores en ejecución.
+
+====================================================================
+6. RESUMEN RÁPIDO
+====================================================================
+- db.js configura y valida la conexión a MySQL.
+- Se encontraron sentencias SQL de tipo SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, SET, START TRANSACTION y COMMIT.
+- Total de bloques/sentencias documentadas en este archivo: 75.
