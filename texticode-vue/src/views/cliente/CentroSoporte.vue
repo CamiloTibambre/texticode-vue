@@ -1,295 +1,327 @@
 <template>
-  <div style="display:flex; min-height:100vh; background:#f5f6fa;">
+  <div class="layout">
     <AppSidebar rol="cliente" />
 
     <main class="main">
-      <h1>Centro de Soporte</h1>
+      <div class="page-head">
+        <div>
+          <h1>Centro de Soporte</h1>
+          <p>Consulta comprobantes reales, contáctanos y resuelve dudas desde una sola vista.</p>
+        </div>
+        <button class="help-btn" @click="abrirContactoRapido">Ayuda rápida</button>
+      </div>
 
-      <!-- TABS -->
       <div class="tabs">
-        <div class="tab" :class="{ active: tab === 'comprobantes' }" @click="tab = 'comprobantes'">Comprobantes</div>
-        <div class="tab" :class="{ active: tab === 'contacto' }" @click="tab = 'contacto'">Contacto</div>
+        <button class="tab" :class="{ active: tab === 'comprobantes' }" @click="tab = 'comprobantes'">Comprobantes</button>
+        <button class="tab" :class="{ active: tab === 'contacto' }" @click="tab = 'contacto'">Contacto</button>
       </div>
 
-      <!-- TAB COMPROBANTES -->
-      <div v-if="tab === 'comprobantes'" id="tab-comprobantes">
-        <div class="search-bar">
-          <svg viewBox="0 0 24 24">
-            <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#aaa" stroke-width="2" fill="none"/>
-          </svg>
-          <input v-model="busqueda" type="text" placeholder="Buscar comprobantes...">
+      <section v-if="tab === 'comprobantes'">
+        <div class="toolbar">
+          <div class="search-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input v-model="busqueda" type="text" placeholder="Buscar por orden, estado o descripción">
+          </div>
+          <span class="results-pill">{{ comprobantesFiltrados.length }} resultado{{ comprobantesFiltrados.length === 1 ? '' : 's' }}</span>
         </div>
 
-        <div v-for="c in comprobanteFiltrados" :key="c.id" class="card">
-          <div class="card-left">
-            <div class="doc-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#4a90d9" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
-              </svg>
-            </div>
-            <span class="doc-num">{{ c.numero }}</span>
-            <span class="badge-available">Disponible</span>
-          </div>
-          <div class="card-info">
-            <div class="info-block"><label>Tipo:</label><span>{{ c.tipo }}</span></div>
-            <div class="info-block"><label>Fecha entrega:</label><span>{{ c.fecha }}</span></div>
-            <div class="info-block"><label>Tamaño:</label><span>{{ c.tamano }}</span></div>
-            <div class="info-block"><label>Cliente:</label><span>{{ c.cliente }}</span></div>
-          </div>
-          <div class="card-actions">
-            <button class="btn-ver">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              Ver
-            </button>
-            <button class="btn-descargar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Descargar
-            </button>
-          </div>
+        <div v-if="cargando" class="state-card">Cargando comprobantes...</div>
+        <div v-else-if="comprobantesFiltrados.length === 0" class="state-card">
+          No hay comprobantes disponibles para tu cuenta.
         </div>
-      </div>
 
-      <!-- TAB CONTACTO -->
-      <div v-if="tab === 'contacto'" id="tab-contacto">
-        <div class="contacto-grid">
+        <div v-else class="comprobantes-list">
+          <article v-for="c in comprobantesFiltrados" :key="c.id" class="card comprobante-card">
+            <div class="card-main">
+              <div class="doc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="8" y1="13" x2="16" y2="13"/>
+                  <line x1="8" y1="17" x2="16" y2="17"/>
+                </svg>
+              </div>
 
-          <!-- Tarjeta: Información de Contacto -->
-          <div class="info-card">
-            <div class="info-card-header">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.45 2 2 0 0 1 3.54 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              <span>Información de Contacto</span>
-            </div>
+              <div class="doc-content">
+                <div class="doc-top">
+                  <div>
+                    <div class="doc-num">Comprobante #{{ c.id }}</div>
+                    <div class="doc-title">{{ c.descripcion }}</div>
+                  </div>
+                  <span class="badge" :class="estadoBadge(c.estado)">{{ c.estado }}</span>
+                </div>
 
-            <!-- Teléfono -->
-            <div class="info-row">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.45 2 2 0 0 1 3.54 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              <div>
-                <div class="info-label">Teléfono</div>
-                <a href="tel:" class="info-value">+57 (4) 444-5555</a>
+                <div class="doc-meta">
+                  <div><label>Orden</label><span>#{{ c.idOrden }}</span></div>
+                  <div><label>Entrega</label><span>{{ c.fecha }}</span></div>
+                  <div><label>Cliente</label><span>{{ c.cliente }}</span></div>
+                </div>
               </div>
             </div>
 
-            <!-- WhatsApp -->
-            <div class="info-row">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-              </svg>
-              <div>
-                <div class="info-label">WhatsApp</div>
-                <a href="https://wa.me/" class="info-value">+57 300 123 4567</a>
-              </div>
+            <div class="card-actions">
+              <button class="btn-secondary" @click="verComprobante(c)">Ver</button>
+              <button class="btn-primary" @click="descargarComprobante(c)">Descargar</button>
             </div>
-
-            <!-- Email -->
-            <div class="info-row">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
-              </svg>
-              <div>
-                <div class="info-label">Email</div>
-                <a href="mailto:soporte@texticode.com" class="info-value">soporte@texticode.com</a>
-              </div>
-            </div>
-
-            <!-- Dirección -->
-            <div class="info-row">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
-                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-              <div>
-                <div class="info-label">Dirección</div>
-                <span class="info-value">Carrera 70 #45-30, Bogotá, Colombia</span>
-              </div>
-            </div>
-
-            <!-- Horarios -->
-            <div class="info-row">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <div>
-                <div class="info-label">Horarios de Atención</div>
-                <div class="info-value">Lunes a Viernes: 8:00 AM - 6:00 PM</div>
-                <div class="info-value">Sábados: 8:00 AM - 12:00 PM</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tarjeta: Preguntas Frecuentes -->
-          <div class="info-card">
-            <div class="info-card-header">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-              <span>Preguntas Frecuentes</span>
-            </div>
-
-            <div v-for="faq in faqs" :key="faq.id" class="faq-row">
-              <div class="faq-bar" :style="{ background: faq.color }"></div>
-              <div>
-                <div class="faq-question">{{ faq.pregunta }}</div>
-                <div class="faq-answer">{{ faq.respuesta }}</div>
-              </div>
-            </div>
-          </div>
-
+          </article>
         </div>
-      </div>
+      </section>
+
+      <section v-else class="contact-grid">
+        <article class="info-card card">
+          <div class="section-title">Canales de atención</div>
+          <div class="contact-list">
+            <a class="contact-link" href="tel:+5744445555">
+              <strong>Teléfono</strong>
+              <span>+57 (4) 444-5555</span>
+            </a>
+            <a class="contact-link" href="https://wa.me/573001234567" target="_blank" rel="noreferrer">
+              <strong>WhatsApp</strong>
+              <span>+57 300 123 4567</span>
+            </a>
+            <a class="contact-link" href="mailto:soporte@texticode.com">
+              <strong>Email</strong>
+              <span>soporte@texticode.com</span>
+            </a>
+            <div class="contact-link static">
+              <strong>Horario</strong>
+              <span>Lunes a viernes · 8:00 AM - 6:00 PM</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="info-card card">
+          <div class="section-title">Preguntas frecuentes</div>
+          <div class="faq-list">
+            <div v-for="faq in faqs" :key="faq.id" class="faq-item">
+              <div class="faq-question">{{ faq.pregunta }}</div>
+              <div class="faq-answer">{{ faq.respuesta }}</div>
+            </div>
+          </div>
+        </article>
+      </section>
     </main>
 
-    <button class="help-btn">?</button>
+    <Transition name="fade">
+      <div v-if="previewDoc" class="modal-overlay" @click.self="previewDoc = null">
+        <div class="modal-card">
+          <div class="modal-head">
+            <h3>Comprobante #{{ previewDoc.id }}</h3>
+            <button class="close-btn" @click="previewDoc = null">×</button>
+          </div>
+          <div class="modal-body">
+            <p><strong>Orden:</strong> #{{ previewDoc.idOrden }}</p>
+            <p><strong>Estado:</strong> {{ previewDoc.estado }}</p>
+            <p><strong>Descripción:</strong> {{ previewDoc.descripcion }}</p>
+            <p><strong>Fecha de entrega:</strong> {{ previewDoc.fecha }}</p>
+            <p><strong>Cliente:</strong> {{ previewDoc.cliente }}</p>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-secondary" @click="previewDoc = null">Cerrar</button>
+            <button class="btn-primary" @click="descargarComprobante(previewDoc)">Descargar</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
-    <!-- TOAST -->
-    <div class="toast" :class="{ show: toastVisible }">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
-      ¡Mensaje enviado con éxito! Te responderemos pronto.
-    </div>
+    <Transition name="fade">
+      <div v-if="toastVisible" class="toast">
+        {{ toastMsg }}
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
+import { useAuthStore } from '../../stores/auth'
+import { getComprobantes, getOrdenesDeCliente } from '../../services/api'
 
-const tab          = ref('comprobantes')
-const busqueda     = ref('')
+const auth = useAuthStore()
+
+const tab = ref('comprobantes')
+const busqueda = ref('')
+const cargando = ref(true)
+const previewDoc = ref(null)
 const toastVisible = ref(false)
+const toastMsg = ref('')
+const comprobantes = ref([])
 
-const comprobantes = ref([
-  { id: 1, numero: '001', tipo: 'Comprobante', fecha: '19/01/2024', tamano: '245 KB', cliente: 'María González' },
-  { id: 2, numero: '002', tipo: 'Factura',     fecha: '16/01/2024', tamano: '189 KB', cliente: 'María González' },
-  { id: 3, numero: '003', tipo: 'Guía',        fecha: '04/01/2024', tamano: '156 KB', cliente: 'María González' },
-])
+const faqs = [
+  { id: 1, pregunta: '¿Cómo puedo rastrear mi pedido?', respuesta: 'Ve a tu cuenta personal o a la sección de pedidos para revisar el estado actualizado.' },
+  { id: 2, pregunta: '¿Dónde descargo mis comprobantes?', respuesta: 'En esta misma vista puedes abrirlos y descargarlos cuando ya estén registrados.' },
+  { id: 3, pregunta: '¿Qué hago si necesito un cambio?', respuesta: 'Contáctanos por WhatsApp o correo y menciona tu número de orden para ayudarte más rápido.' },
+  { id: 4, pregunta: '¿Qué pasa si veo retrasos?', respuesta: 'Nuestro equipo valida el estado de producción y te comparte la nueva fecha estimada.' },
+]
 
-const faqs = ref([
-  { id: 1, color: '#4a90d9', pregunta: '¿Cómo puedo rastrear mi pedido?',    respuesta: 'Puedes rastrear tu pedido en la sección "Pedidos y Entregas" donde encontrarás el estado actualizado y la información de seguimiento.' },
-  { id: 2, color: '#27ae60', pregunta: '¿Dónde descargo mis comprobantes?',   respuesta: 'Los comprobantes están disponibles en la pestaña "Comprobantes" de esta sección una vez que tu pedido haya sido entregado.' },
-  { id: 3, color: '#9b59b6', pregunta: '¿Cómo modifico un pedido?',           respuesta: 'Para modificar un pedido, crea un ticket de soporte en la categoría "Pedidos" con los detalles del cambio requerido.' },
-  { id: 4, color: '#f39c12', pregunta: '¿Qué hacer si hay retrasos?',         respuesta: 'Si tu pedido presenta retrasos, te notificaremos automáticamente. También puedes contactarnos para obtener información detallada.' },
-])
+const comprobantesFiltrados = computed(() => {
+  const q = busqueda.value.trim().toLowerCase()
+  if (!q) return comprobantes.value
 
-const comprobanteFiltrados = computed(() => {
-  if (!busqueda.value) return comprobantes.value
-  const q = busqueda.value.toLowerCase()
-  return comprobantes.value.filter(c =>
-    c.numero.includes(q) ||
-    c.tipo.toLowerCase().includes(q) ||
-    c.cliente.toLowerCase().includes(q)
+  return comprobantes.value.filter((c) =>
+    String(c.id).includes(q) ||
+    String(c.idOrden).includes(q) ||
+    c.estado.toLowerCase().includes(q) ||
+    c.descripcion.toLowerCase().includes(q),
   )
 })
+
+onMounted(cargarDatos)
+
+async function cargarDatos() {
+  cargando.value = true
+
+  try {
+    if (!auth.idUsuario) {
+      comprobantes.value = []
+      return
+    }
+
+    const [dataComprobantes, dataOrdenes] = await Promise.all([
+      getComprobantes(),
+      getOrdenesDeCliente(auth.idUsuario),
+    ])
+
+    const ordenesMap = new Map((Array.isArray(dataOrdenes) ? dataOrdenes : []).map((o) => [o.Id_Orden, o]))
+    comprobantes.value = (Array.isArray(dataComprobantes) ? dataComprobantes : [])
+      .filter((c) => c.Id_Usuario === auth.idUsuario || ordenesMap.has(c.Id_Orden))
+      .map((c) => ({
+        id: c.Id_Comprobante,
+        idOrden: c.Id_Orden,
+        estado: c.Estado || c.Orden_Estado || 'Pendiente',
+        fecha: formatFecha(c.Fecha_Limite),
+        descripcion: ordenesMap.get(c.Id_Orden)?.Descripcion || c.Orden_Descripcion || 'Sin descripción',
+        cliente: auth.usuario?.Nombre_Completo || c.Usuario || 'Cliente',
+      }))
+  } catch {
+    comprobantes.value = []
+    mostrarToast('No fue posible cargar los comprobantes.')
+  } finally {
+    cargando.value = false
+  }
+}
+
+function formatFecha(fecha) {
+  if (!fecha) return 'Pendiente'
+  return new Date(fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function estadoBadge(estado) {
+  return {
+    Entregado: 'badge-ok',
+    Completada: 'badge-ok',
+    Pendiente: 'badge-warn',
+    'En Proceso': 'badge-info',
+  }[estado] || 'badge-info'
+}
+
+function verComprobante(item) {
+  previewDoc.value = item
+}
+
+function descargarComprobante(item) {
+  const contenido = [
+    `Comprobante #${item.id}`,
+    `Orden: #${item.idOrden}`,
+    `Estado: ${item.estado}`,
+    `Descripción: ${item.descripcion}`,
+    `Fecha de entrega: ${item.fecha}`,
+    `Cliente: ${item.cliente}`,
+  ].join('\n')
+
+  const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `comprobante-${item.id}.txt`
+  link.click()
+  URL.revokeObjectURL(url)
+  mostrarToast(`Comprobante #${item.id} descargado correctamente.`)
+}
+
+function abrirContactoRapido() {
+  tab.value = 'contacto'
+  mostrarToast('Te llevamos a los canales de atención.')
+}
+
+function mostrarToast(msg) {
+  toastMsg.value = msg
+  toastVisible.value = true
+  setTimeout(() => { toastVisible.value = false }, 2600)
+}
 </script>
 
 <style scoped>
-.main { flex: 1; padding: 32px; overflow-y: auto; min-width: 0; }
-h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 24px; }
+.layout { display: flex; min-height: 100vh; background: #f5f7fb; }
+.main { flex: 1; padding: 30px; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+h1 { font-size: 28px; color: #0f172a; margin-bottom: 6px; }
+.page-head p { color: #64748b; }
 
-/* TABS */
-.tabs {
-  display: flex;
-  background: #ebebeb;
-  border-radius: 12px;
-  padding: 4px;
-  margin-bottom: 20px;
-  width: 100%;
-  max-width: none;
-  box-sizing: border-box;
+.tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+.tab { border: none; background: #e2e8f0; color: #475569; border-radius: 999px; padding: 10px 18px; font-weight: 700; cursor: pointer; }
+.tab.active { background: #1f3a52; color: white; }
+
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.search-bar { display: flex; align-items: center; gap: 10px; background: white; border: 1px solid #dbe2ea; border-radius: 12px; padding: 12px 14px; flex: 1; max-width: 460px; }
+.search-bar svg { width: 18px; height: 18px; color: #94a3b8; }
+.search-bar input { border: none; outline: none; width: 100%; font-size: 14px; background: transparent; }
+.results-pill { background: #e0f2fe; color: #0f766e; padding: 8px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+
+.state-card, .card { background: white; border: 1px solid #e2e8f0; border-radius: 18px; }
+.state-card { padding: 26px; color: #64748b; text-align: center; }
+.comprobantes-list { display: grid; gap: 14px; }
+.comprobante-card { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.card-main { display: flex; align-items: flex-start; gap: 16px; flex: 1; min-width: 0; }
+.doc-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #eff6ff; color: #2563eb; flex-shrink: 0; }
+.doc-icon svg { width: 22px; height: 22px; }
+.doc-content { flex: 1; min-width: 0; }
+.doc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.doc-num { font-size: 12px; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: .06em; }
+.doc-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-top: 4px; }
+.doc-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.doc-meta label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+.doc-meta span { color: #334155; font-weight: 600; font-size: 13px; }
+.card-actions { display: flex; align-items: center; gap: 10px; }
+
+.badge { font-size: 11px; font-weight: 800; border-radius: 999px; padding: 5px 10px; white-space: nowrap; }
+.badge-ok { background: #dcfce7; color: #166534; }
+.badge-info { background: #dbeafe; color: #1d4ed8; }
+.badge-warn { background: #fef3c7; color: #a16207; }
+
+.btn-primary, .btn-secondary, .help-btn { border-radius: 10px; padding: 10px 16px; font-weight: 700; cursor: pointer; border: none; }
+.btn-primary { background: #1f3a52; color: white; }
+.btn-secondary { background: white; color: #334155; border: 1px solid #cbd5e1; }
+.help-btn { background: #0f172a; color: white; }
+
+.contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.info-card { padding: 22px; }
+.section-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
+.contact-list, .faq-list { display: grid; gap: 12px; }
+.contact-link { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 14px; text-decoration: none; background: #f8fafc; color: #0f172a; border: 1px solid #e2e8f0; }
+.contact-link span { color: #475569; }
+.contact-link.static { cursor: default; }
+.faq-item { padding: 14px 16px; border-radius: 14px; background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #e2e8f0; }
+.faq-question { font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+.faq-answer { color: #475569; line-height: 1.5; font-size: 14px; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 120; }
+.modal-card { width: 100%; max-width: 520px; background: white; border-radius: 20px; padding: 22px; box-shadow: 0 24px 70px rgba(15, 23, 42, .24); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.modal-body { display: grid; gap: 10px; color: #334155; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.close-btn { border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+
+.toast { position: fixed; right: 24px; bottom: 24px; background: #0f766e; color: white; padding: 12px 18px; border-radius: 12px; z-index: 130; box-shadow: 0 16px 40px rgba(15, 118, 110, .25); }
+.fade-enter-active, .fade-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(8px); }
+
+@media (max-width: 960px) {
+  .page-head, .toolbar, .comprobante-card { flex-direction: column; align-items: stretch; }
+  .contact-grid, .doc-meta { grid-template-columns: 1fr; }
+  .card-actions { justify-content: flex-end; }
 }
-.tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; transition: background 0.15s; }
-.tab.active { background: white; color: #1a1a2e; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-
-/* SEARCH */
-.search-bar { display: flex; align-items: center; background: #f0f2f5; border-radius: 10px; padding: 10px 16px; gap: 8px; max-width: 320px; margin-bottom: 24px; }
-.search-bar input { border: none; background: transparent; outline: none; font-size: 14px; color: #555; width: 100%; }
-.search-bar svg { width: 16px; height: 16px; fill: #aaa; }
-
-/* COMPROBANTE CARDS */
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px 28px;
-  margin-bottom: 16px;
-  width: 100%;
-  max-width: none;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  box-sizing: border-box;
-}
-.card-left { display: flex; align-items: center; gap: 12px; min-width: 160px; }
-.doc-icon { color: #4a90d9; }
-.doc-icon svg { width: 28px; height: 28px; }
-.doc-num { font-size: 16px; font-weight: 600; color: #1a1a2e; }
-.badge-available { background: #e6f9f0; color: #27ae60; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-.card-info { display: flex; gap: 0; flex: 1; justify-content: space-between; }
-.info-block { flex: 1; }
-.info-block label { font-size: 12px; color: #888; display: block; margin-bottom: 2px; }
-.info-block span { font-size: 14px; font-weight: 600; color: #1a1a2e; }
-.card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
-.btn-ver { display: flex; align-items: center; gap: 6px; border: 1px solid #ddd; background: white; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; color: #444; font-weight: 500; }
-.btn-ver:hover { background: #f5f5f5; }
-.btn-ver svg { width: 16px; height: 16px; }
-.btn-descargar { display: flex; align-items: center; gap: 6px; background: #1a3a4a; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; cursor: pointer; font-weight: 600; }
-.btn-descargar:hover { background: #224d62; }
-.btn-descargar svg { width: 16px; height: 16px; }
-
-/* CONTACTO */
-#tab-contacto {
-  width: 100%;
-  max-width: none;
-}
-.contacto-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  width: 100%;
-}
-.info-card { background: white; border-radius: 14px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-
-.info-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
-.info-card-header span { font-size: 16px; font-weight: 600; color: #1a1a2e; }
-
-.info-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
-.info-row:last-child { margin-bottom: 0; }
-.info-row svg { margin-top: 2px; flex-shrink: 0; }
-.info-label { font-size: 12px; color: #888; margin-bottom: 2px; }
-.info-value { font-size: 15px; font-weight: 700; color: #1a1a2e; text-decoration: none; display: block; }
-a.info-value:hover { text-decoration: underline; }
-
-/* FAQ */
-.faq-row { display: flex; gap: 14px; margin-bottom: 20px; }
-.faq-row:last-child { margin-bottom: 0; }
-.faq-bar { width: 4px; min-width: 4px; border-radius: 4px; }
-.faq-question { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 5px; }
-.faq-answer { font-size: 13px; color: #666; line-height: 1.5; }
-
-/* HELP BTN */
-.help-btn { position: fixed; bottom: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; background: #1a3a4a; color: white; border: none; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-
-/* TOAST */
-.toast { display: none; position: fixed; top: 24px; right: 24px; background: #27ae60; color: white; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); align-items: center; gap: 10px; z-index: 999; animation: slidein 0.3s ease; }
-.toast.show { display: flex; }
-@keyframes slidein { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

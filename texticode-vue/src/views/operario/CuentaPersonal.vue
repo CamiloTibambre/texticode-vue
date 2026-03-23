@@ -34,8 +34,7 @@
         <template v-else>
         <div class="profile-banner">
           <div class="profile-avatar-wrap">
-            <div v-if="!fotoUrl" class="avatar-initials">{{ iniciales }}</div>
-            <img v-else :src="fotoUrl" class="avatar-img" alt="Foto perfil">
+            <div class="avatar-initials">{{ iniciales }}</div>
           </div>
           <div class="profile-info">
             <div class="profile-name">{{ perfil.Nombre_Completo }}</div>
@@ -94,9 +93,18 @@
           <div v-else class="activity-list">
             <div v-for="o in ordenes.slice(0, 5)" :key="o.Id_Orden" class="activity-item">
               <div class="activity-dot" :class="dotClass(o.Estado)"></div>
-              <div>
-                <div class="activity-name">Orden #{{ o.Id_Orden }} — {{ o.Descripcion }}</div>
-                <div class="activity-sub">Estado: {{ o.Estado }} · Cantidad: {{ o.Cantidad }}</div>
+              <div class="activity-body">
+                <div class="activity-head">
+                  <div class="activity-name">Orden #{{ o.Id_Orden }} — {{ o.Descripcion }}</div>
+                  <span class="activity-badge" :class="badgeClass(o.Estado)">{{ o.Estado }}</span>
+                </div>
+                <div class="activity-sub">Cliente: {{ o.Cliente || 'Sin cliente' }} · Cantidad: {{ o.Cantidad }}</div>
+                <div class="activity-progress">
+                  <div class="activity-progress-bar">
+                    <div class="activity-progress-fill" :class="badgeClass(o.Estado)" :style="{ width: progresoEstado(o.Estado) + '%' }"></div>
+                  </div>
+                  <span>{{ progresoEstado(o.Estado) }}%</span>
+                </div>
                 <div class="activity-time">Fecha límite: {{ formatFecha(o.Fecha_Limite) }}</div>
               </div>
             </div>
@@ -116,19 +124,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
-        </div>
- 
-        <!-- Foto -->
-        <div class="modal-foto-wrap">
-          <div class="modal-avatar">
-            <span v-if="!fotoPreview">{{ iniciales }}</span>
-            <img v-else :src="fotoPreview" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
-          </div>
-          <div class="modal-foto-btns">
-            <input type="file" ref="inputFoto" accept="image/*" style="display:none" @change="previsualizarFoto">
-            <button class="btn-subir-foto" @click="$refs.inputFoto.click()">Subir Foto</button>
-            <button class="btn-remover-foto" @click="removerFoto">Remover</button>
-          </div>
         </div>
  
         <div class="modal-body">
@@ -172,7 +167,7 @@
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
-import { getUsuario, actualizarUsuario, getOrdenesDeUsuario } from '../../services/api'
+import { getUsuario, actualizarUsuario, getOrdenesDeOperario } from '../../services/api'
  
 const auth = useAuthStore()
  
@@ -183,9 +178,6 @@ const error           = ref('')
 const errorGuardar    = ref('')
 const guardando       = ref(false)
 const modalVisible    = ref(false)
-const fotoUrl         = ref(null)
-const fotoPreview     = ref(null)
-const inputFoto       = ref(null)
 const toast           = ref({ visible: false, msg: '', type: 'success' })
  
 const perfil     = ref({})
@@ -225,10 +217,10 @@ async function cargarDatos() {
  
     // Login real — cargamos desde la BD
     perfil.value = await getUsuario(auth.idUsuario)
- 
+
     cargandoOrdenes.value = true
     try {
-      const data = await getOrdenesDeUsuario(auth.idUsuario)
+      const data = await getOrdenesDeOperario(auth.idUsuario)
       ordenes.value = Array.isArray(data) ? data : []
     } catch {
       ordenes.value = []
@@ -255,14 +247,32 @@ function dotClass(estado) {
   return {
     'Completada':  'dot-green',
     'En Proceso':  'dot-blue',
+    'Pausado':     'dot-yellow',
     'Cancelada':   'dot-red',
   }[estado] || 'dot-yellow'
+}
+
+function badgeClass(estado) {
+  return {
+    'Completada': 'badge-completada',
+    'En Proceso': 'badge-proceso',
+    'Pausado': 'badge-pausado',
+    'Cancelada': 'badge-cancelada',
+  }[estado] || 'badge-pausado'
+}
+
+function progresoEstado(estado) {
+  return {
+    'Completada': 100,
+    'En Proceso': 58,
+    'Pausado': 28,
+    'Cancelada': 10,
+  }[estado] ?? 0
 }
  
 // ── MODAL ─────────────────────────────────────────────────────
 function abrirModal() {
   formEdicion.value = { ...perfil.value }
-  fotoPreview.value = fotoUrl.value
   errorGuardar.value = ''
   modalVisible.value = true
 }
@@ -270,19 +280,6 @@ function abrirModal() {
 function cerrarModal() {
   modalVisible.value = false
   errorGuardar.value = ''
-}
- 
-function previsualizarFoto(e) {
-  const file = e.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = (ev) => { fotoPreview.value = ev.target.result }
-  reader.readAsDataURL(file)
-}
- 
-function removerFoto() {
-  fotoPreview.value = null
-  if (inputFoto.value) inputFoto.value.value = ''
 }
  
 async function guardarCambios() {
@@ -303,9 +300,8 @@ async function guardarCambios() {
     }
  
     await actualizarUsuario(auth.idUsuario, payload)
- 
+
     perfil.value = { ...perfil.value, ...payload }
-    fotoUrl.value = fotoPreview.value
     if (auth.usuario) auth.usuario.Nombre_Completo = formEdicion.value.Nombre_Completo
  
     cerrarModal()
@@ -345,7 +341,6 @@ function mostrarToast(msg, type = 'success') {
 .profile-banner { background: #1f3a52; border-radius: 14px; padding: 26px 28px; display: flex; align-items: center; gap: 20px; margin-bottom: 18px; }
 .profile-avatar-wrap { flex-shrink: 0; }
 .avatar-initials { width: 64px; height: 64px; border-radius: 50%; background: #2d5f8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; }
-.avatar-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
 .profile-info { flex: 1; }
 .profile-name { font-size: 18px; font-weight: 600; color: white; }
 .profile-role { font-size: 13px; color: #93c5fd; margin: 2px 0 8px; }
@@ -373,7 +368,9 @@ function mostrarToast(msg, type = 'success') {
  
 /* ACTIVIDAD */
 .activity-list { display: flex; flex-direction: column; gap: 16px; }
-.activity-item { display: flex; gap: 14px; align-items: flex-start; }
+.activity-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border: 1px solid #eef2f7; border-radius: 14px; background: linear-gradient(180deg, #ffffff, #f8fbff); }
+.activity-body { flex: 1; min-width: 0; }
+.activity-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .activity-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
 .dot-green  { background: #22c55e; }
 .dot-blue   { background: #3b82f6; }
@@ -381,7 +378,19 @@ function mostrarToast(msg, type = 'success') {
 .dot-red    { background: #ef4444; }
 .activity-name { font-size: 13px; font-weight: 600; color: #111827; }
 .activity-sub  { font-size: 12px; color: #6b7280; margin-top: 2px; }
-.activity-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.activity-time { font-size: 11px; color: #9ca3af; margin-top: 8px; }
+.activity-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.badge-completada { background: #dcfce7; color: #166534; }
+.badge-proceso { background: #dbeafe; color: #1d4ed8; }
+.badge-pausado { background: #fef3c7; color: #a16207; }
+.badge-cancelada { background: #fee2e2; color: #b91c1c; }
+.activity-progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; color: #475569; }
+.activity-progress-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.activity-progress-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+.activity-progress-fill.badge-completada { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.activity-progress-fill.badge-proceso { background: linear-gradient(90deg, #60a5fa, #2563eb); }
+.activity-progress-fill.badge-pausado { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.activity-progress-fill.badge-cancelada { background: linear-gradient(90deg, #fca5a5, #ef4444); }
  
 /* MODAL */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
@@ -390,12 +399,6 @@ function mostrarToast(msg, type = 'success') {
 .modal-title { font-size: 17px; font-weight: 600; color: #111827; }
 .modal-close { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; }
 .modal-close:hover { background: #f3f4f6; }
- 
-.modal-foto-wrap { display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #f3f4f6; }
-.modal-avatar { width: 64px; height: 64px; border-radius: 50%; background: #1f3a52; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; overflow: hidden; flex-shrink: 0; }
-.modal-foto-btns { display: flex; gap: 8px; }
-.btn-subir-foto  { background: #1f3a52; color: white; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12px; cursor: pointer; }
-.btn-remover-foto { background: white; color: #6b7280; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 14px; font-size: 12px; cursor: pointer; }
  
 .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
