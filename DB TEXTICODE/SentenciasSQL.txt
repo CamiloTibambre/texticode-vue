@@ -1,0 +1,415 @@
+====================================================================
+1. ¿QUÉ HACE texticode-api/db.js?
+====================================================================
+Archivo: texticode-api/db.js
+Líneas relevantes: 1-25
+
+Resumen funcional:
+- Importa mysql2/promise para trabajar con MySQL usando promesas.
+- Importa dotenv y carga las variables de entorno con dotenv.config().
+- Crea un pool de conexiones con mysql.createPool usando DB_HOST, DB_PORT, DB_USER, DB_PASSWORD y DB_NAME.
+- Configura waitForConnections=true y connectionLimit=10 para reutilizar conexiones en lugar de abrir una nueva por cada petición.
+- Al iniciar la aplicación intenta obtener una conexión con pool.getConnection().
+- Si la conexión funciona, imprime un mensaje indicando la base de datos conectada y libera la conexión.
+- Si falla, registra el error y termina el proceso con process.exit(1).
+- Exporta el pool para que las rutas del backend puedan ejecutar consultas SQL con pool.query(...).
+
+En otras palabras, db.js es el punto central de acceso a la base de datos. No contiene consultas SQL de negocio, pero sí configura la conexión que usan todos los archivos de rutas y scripts.
+
+====================================================================
+2. ALCANCE DE ESTE INVENTARIO
+====================================================================
+Se listan todas las sentencias SQL encontradas en:
+- texticode-api/routes/*.js
+- texticode-api/encriptar-contrasenas.js
+
+
+====================================================================
+3. SENTENCIAS SQL EN EL BACKEND (CONSULTAS EJECUTADAS DESDE JS)
+====================================================================
+
+--------------------------------------------------------------------
+3.1 Archivo: texticode-api/routes/auth.route.js
+--------------------------------------------------------------------
+
+[1] Líneas 27-35
+Tipo: SELECT
+Descripción: Busca un usuario para login por correo o nombre de usuario y trae su rol.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Contrasena, u.Estado, u.Id_Rol,
+       r.Nombre_Rol AS Rol
+FROM usuario u
+INNER JOIN rol r ON r.Id_Rol = u.Id_Rol
+WHERE u.Correo = ? OR u.Nombre_Usuario = ?
+LIMIT 1
+
+--------------------------------------------------------------------
+3.2 Archivo: texticode-api/routes/comprobantes.js
+--------------------------------------------------------------------
+
+[2] Líneas 9-18
+Tipo: SELECT
+Descripción: Lista todos los comprobantes junto con el nombre del usuario y datos de la orden relacionada.
+Sentencia:
+SELECT c.*,
+       u.Nombre_Completo AS Usuario,
+       op.Descripcion AS Orden_Descripcion,
+       op.Estado AS Orden_Estado
+FROM comprobantes c
+INNER JOIN usuario u ON c.Id_Usuario = u.Id_Usuario
+INNER JOIN orden_produccion op ON c.Id_Orden = op.Id_Orden
+ORDER BY c.Fecha_Limite DESC
+
+[3] Líneas 28-36
+Tipo: SELECT
+Descripción: Busca un comprobante específico por su ID y añade datos del usuario y la orden.
+Sentencia:
+SELECT c.*,
+       u.Nombre_Completo AS Usuario,
+       op.Descripcion AS Orden_Descripcion
+FROM comprobantes c
+INNER JOIN usuario u ON c.Id_Usuario = u.Id_Usuario
+INNER JOIN orden_produccion op ON c.Id_Orden = op.Id_Orden
+WHERE c.Id_Comprobante = ?
+
+[4] Líneas 52-55
+Tipo: INSERT
+Descripción: Crea un nuevo comprobante.
+Sentencia:
+INSERT INTO comprobantes (Id_Usuario, Id_Orden, Estado, Fecha_Limite)
+VALUES (?, ?, ?, ?)
+
+[5] Líneas 67-69
+Tipo: UPDATE
+Descripción: Actualiza el estado y la fecha límite de un comprobante existente.
+Sentencia:
+UPDATE comprobantes SET Estado=?, Fecha_Limite=? WHERE Id_Comprobante=?
+
+[6] Línea 81
+Tipo: DELETE
+Descripción: Elimina un comprobante por su ID.
+Sentencia:
+DELETE FROM comprobantes WHERE Id_Comprobante = ?
+
+--------------------------------------------------------------------
+3.3 Archivo: texticode-api/routes/materiales.js
+--------------------------------------------------------------------
+
+[7] Línea 9
+Tipo: SELECT
+Descripción: Lista todos los materiales ordenados por nombre.
+Sentencia:
+SELECT * FROM material ORDER BY Nombre_Material
+
+[8] Línea 19
+Tipo: SELECT
+Descripción: Busca un material por su ID.
+Sentencia:
+SELECT * FROM material WHERE Id_Material = ?
+
+[9] Líneas 30-31
+Tipo: SELECT
+Descripción: Lista materiales con stock actual menor o igual al stock mínimo.
+Sentencia:
+SELECT * FROM material WHERE Stock_Actual <= Stock_Minimo ORDER BY Stock_Actual ASC
+
+[10] Líneas 46-49
+Tipo: INSERT
+Descripción: Crea un nuevo material en inventario.
+Sentencia:
+INSERT INTO material (Nombre_Material, Categoria, Stock_Actual, Unidad, Stock_Minimo, Stock_Maximo)
+VALUES (?, ?, ?, ?, ?, ?)
+
+[11] Líneas 63-67
+Tipo: UPDATE
+Descripción: Actualiza todos los datos editables de un material.
+Sentencia:
+UPDATE material
+SET Nombre_Material=?, Categoria=?, Stock_Actual=?, Unidad=?, Stock_Minimo=?, Stock_Maximo=?
+WHERE Id_Material=?
+
+[12] Línea 79
+Tipo: DELETE
+Descripción: Elimina un material por su ID.
+Sentencia:
+DELETE FROM material WHERE Id_Material = ?
+
+--------------------------------------------------------------------
+3.4 Archivo: texticode-api/routes/orden_material.js
+--------------------------------------------------------------------
+
+[13] Líneas 9-14
+Tipo: SELECT
+Descripción: Lista los materiales asociados a una orden de producción.
+Sentencia:
+SELECT om.*, m.Nombre_Producto, m.Unidad
+FROM orden_material om
+INNER JOIN material m ON om.Id_Producto = m.Id_Producto
+WHERE om.Id_Orden = ?
+
+[14] Líneas 28-31
+Tipo: INSERT
+Descripción: Agrega un material a una orden.
+Sentencia:
+INSERT INTO orden_material (Id_Orden, Id_Producto, Cantidad_Usada)
+VALUES (?, ?, ?)
+
+[15] Líneas 45-48
+Tipo: UPDATE
+Descripción: Actualiza la cantidad usada de un material dentro de una orden.
+Sentencia:
+UPDATE orden_material SET Cantidad_Usada=?
+WHERE Id_Orden=? AND Id_Producto=?
+
+[16] Líneas 60-62
+Tipo: DELETE
+Descripción: Quita un material de una orden.
+Sentencia:
+DELETE FROM orden_material WHERE Id_Orden=? AND Id_Producto=?
+
+--------------------------------------------------------------------
+3.5 Archivo: texticode-api/routes/ordenes.js
+--------------------------------------------------------------------
+
+[17] Líneas 9-17
+Tipo: SELECT
+Descripción: Lista todas las órdenes con nombre del cliente y del material.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo AS Cliente,
+       m.Nombre_Material  AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+ORDER BY op.Fecha_Limite ASC
+
+[18] Líneas 27-36
+Tipo: SELECT
+Descripción: Lista las órdenes asignadas a un operario concreto.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Id_Operario = ?
+ORDER BY op.Fecha_Limite ASC
+
+[19] Líneas 46-55
+Tipo: SELECT
+Descripción: Lista las órdenes pertenecientes a un cliente concreto.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Id_Cliente = ?
+ORDER BY op.Fecha_Limite ASC
+
+[20] Líneas 65-73
+Tipo: SELECT
+Descripción: Busca una orden por su ID.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Id_Orden = ?
+
+[21] Líneas 87-95
+Tipo: SELECT
+Descripción: Filtra órdenes por estado.
+Sentencia:
+SELECT op.*,
+       u.Nombre_Completo  AS Cliente,
+       m.Nombre_Material   AS NombreMaterial
+FROM orden_produccion op
+INNER JOIN usuario u ON op.Id_Cliente = u.Id_Usuario
+INNER JOIN material m ON op.Id_Material = m.Id_Material
+WHERE op.Estado = ?
+
+[22] Líneas 114-129
+Tipo: INSERT
+Descripción: Crea una nueva orden de producción.
+Sentencia:
+INSERT INTO orden_produccion
+  (Id_Cliente, Id_Material, Id_Operario, Producto, Descripcion,
+   Cantidad, Prioridad, Fecha_Limite, Estado)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+[23] Líneas 145-157
+Tipo: UPDATE
+Descripción: Actualiza todos los datos principales de una orden, incluidas unidades y avance.
+Sentencia:
+UPDATE orden_produccion
+SET Id_Cliente=?, Id_Material=?, Id_Operario=?, Producto=?, Descripcion=?,
+    Cantidad=?, Prioridad=?, Fecha_Limite=?, Estado=?,
+    Unidades=?, Unidades_Realizadas=?
+WHERE Id_Orden=?
+
+[24] Líneas 169-171
+Tipo: DELETE
+Descripción: Elimina una orden por su ID.
+Sentencia:
+DELETE FROM orden_produccion WHERE Id_Orden = ?
+
+--------------------------------------------------------------------
+3.6 Archivo: texticode-api/routes/roles.js
+--------------------------------------------------------------------
+
+[25] Línea 9
+Tipo: SELECT
+Descripción: Lista todos los roles.
+Sentencia:
+SELECT * FROM rol ORDER BY Id_Rol
+
+[26] Línea 19
+Tipo: SELECT
+Descripción: Busca un rol por ID.
+Sentencia:
+SELECT * FROM rol WHERE Id_Rol = ?
+
+[27] Línea 33
+Tipo: INSERT
+Descripción: Crea un rol nuevo.
+Sentencia:
+INSERT INTO rol (Nombre_Rol) VALUES (?)
+
+[28] Línea 46
+Tipo: UPDATE
+Descripción: Cambia el nombre de un rol existente.
+Sentencia:
+UPDATE rol SET Nombre_Rol=? WHERE Id_Rol=?
+
+[29] Línea 57
+Tipo: DELETE
+Descripción: Elimina un rol por su ID.
+Sentencia:
+DELETE FROM rol WHERE Id_Rol = ?
+
+--------------------------------------------------------------------
+3.7 Archivo: texticode-api/routes/usuario_orden.js
+--------------------------------------------------------------------
+
+[30] Líneas 9-14
+Tipo: SELECT
+Descripción: Lista los usuarios asignados a una orden.
+Sentencia:
+SELECT uo.*, u.Nombre_Completo, u.Correo
+FROM usuario_orden uo
+INNER JOIN usuario u ON uo.Id_Usuario = u.Id_Usuario
+WHERE uo.Id_Orden = ?
+
+[31] Líneas 24-29
+Tipo: SELECT
+Descripción: Lista las órdenes asignadas a un usuario.
+Sentencia:
+SELECT uo.*, op.Descripcion, op.Estado, op.Fecha_Limite, op.Prioridad
+FROM usuario_orden uo
+INNER JOIN orden_produccion op ON uo.Id_Orden = op.Id_Orden
+WHERE uo.Id_Usuario = ?
+
+[32] Líneas 43-45
+Tipo: INSERT
+Descripción: Asigna un usuario a una orden.
+Sentencia:
+INSERT INTO usuario_orden (Id_Usuario, Id_Orden, Funcion) VALUES (?, ?, ?)
+
+[33] Líneas 58-60
+Tipo: DELETE
+Descripción: Elimina la asignación entre un usuario y una orden.
+Sentencia:
+DELETE FROM usuario_orden WHERE Id_Usuario=? AND Id_Orden=?
+
+--------------------------------------------------------------------
+3.8 Archivo: texticode-api/routes/usuarios.js
+--------------------------------------------------------------------
+
+[34] Líneas 10-16
+Tipo: SELECT
+Descripción: Lista todos los usuarios con su rol.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Telefono, u.Estado, u.Fecha_Registro,
+       r.Nombre_Rol AS Rol, r.Id_Rol
+FROM usuario u
+INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+
+[35] Líneas 26-33
+Tipo: SELECT
+Descripción: Busca un usuario por su ID con información del rol.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Telefono, u.Estado, u.Fecha_Registro,
+       r.Nombre_Rol AS Rol, r.Id_Rol
+FROM usuario u
+INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+WHERE u.Id_Usuario = ?
+
+[36] Líneas 49-55
+Tipo: SELECT
+Descripción: Consulta de autenticación que acepta correo o nombre de usuario y exige estado activo.
+Sentencia:
+SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
+       u.Correo, u.Contrasena, u.Estado, r.Nombre_Rol AS Rol
+FROM usuario u
+INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+WHERE (u.Correo = ? OR u.Nombre_Usuario = ?) AND u.Estado = 'activo'
+
+[37] Líneas 91-94
+Tipo: INSERT
+Descripción: Crea un usuario nuevo guardando rol, datos personales, estado y contraseña.
+Sentencia:
+INSERT INTO usuario (Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+
+[38] Líneas 111-115
+Tipo: UPDATE
+Descripción: Actualiza un usuario incluyendo la contraseña cuando se envía una nueva.
+Sentencia:
+UPDATE usuario
+SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?, Contrasena=?
+WHERE Id_Usuario=?
+
+[39] Líneas 118-122
+Tipo: UPDATE
+Descripción: Actualiza un usuario sin tocar la contraseña.
+Sentencia:
+UPDATE usuario
+SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?
+WHERE Id_Usuario=?
+
+[40] Líneas 134-136
+Tipo: UPDATE
+Descripción: Marca un usuario como inactivo (soft delete).
+Sentencia:
+UPDATE usuario SET Estado = 'inactivo' WHERE Id_Usuario = ?
+
+[41] Línea 148
+Tipo: DELETE
+Descripción: Elimina un usuario por su ID.
+Sentencia:
+DELETE FROM usuario WHERE Id_Usuario = ?
+
+--------------------------------------------------------------------
+3.9 Archivo: texticode-api/encriptar-contrasenas.js
+--------------------------------------------------------------------
+
+[42] Líneas 13-15
+Tipo: SELECT
+Descripción: Obtiene todos los usuarios y sus contraseñas para detectar cuáles deben cifrarse.
+Sentencia:
+SELECT Id_Usuario, Nombre_Usuario, Contrasena FROM usuario
+
+[43] Líneas 30-32
+Tipo: UPDATE
+Descripción: Reemplaza la contraseña en texto plano por el hash bcrypt generado.
+Sentencia:
+UPDATE usuario SET Contrasena = ? WHERE Id_Usuario = ?
+

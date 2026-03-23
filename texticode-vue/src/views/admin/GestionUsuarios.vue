@@ -42,26 +42,7 @@
       <!-- TÍTULO -->
       <div class="title" :class="{ visible: animVisible }">Gestión de Usuarios</div>
 
-      <section class="hero-strip surface-panel interactive-lift" :class="{ visible: animVisible }">
-        <div>
-          <div class="hero-kicker">
-            <span class="live-dot"></span>
-            Centro de control de accesos
-          </div>
-          <h2>Administra altas, cambios y filtros sin salir de la vista.</h2>
-          <p>La idea es que el panel responda a cada interacción: búsqueda, estados, altas y edición en tiempo real.</p>
-        </div>
-        <div class="hero-metrics">
-          <div class="hero-pill glass-chip">
-            <span class="pill-label">Visible</span>
-            <strong>{{ usuariosFiltrados.length }}</strong>
-          </div>
-          <div class="hero-pill glass-chip">
-            <span class="pill-label">Filtro</span>
-            <strong>{{ filtroRol || 'Todos' }}</strong>
-          </div>
-        </div>
-      </section>
+    
 
       <!-- TOP BAR -->
       <div class="top-bar surface-panel" :class="{ visible: animVisible }">
