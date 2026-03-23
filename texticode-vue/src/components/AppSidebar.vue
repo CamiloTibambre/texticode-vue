@@ -1,5 +1,6 @@
 <template>
-  <aside class="sidebar" :class="{ 'sidebar-visible': animVisible }">
+  <aside class="sidebar-shell">
+    <div class="sidebar" :class="{ 'sidebar-visible': animVisible }">
 
     <div class="sidebar-top">
       <!-- Logo con anillo giratorio -->
@@ -72,6 +73,7 @@
       </div>
     </Transition>
 
+    </div>
   </aside>
 </template>
 
@@ -178,17 +180,25 @@ function cerrarSesion() {
 
 <style scoped>
 /* ── SIDEBAR BASE ── */
+.sidebar-shell {
+  width: 260px;
+  min-width: 260px;
+  flex-shrink: 0;
+}
+
 .sidebar {
   width: 260px; min-width: 260px;
   background: rgba(249, 250, 251, 0.78);
   border-right: 1px solid rgba(255,255,255,0.7);
   padding: 22px 16px;
   display: flex; flex-direction: column; justify-content: space-between;
-  position: sticky; top: 0; height: 100vh;
+  position: fixed; top: 0; left: 0; height: 100vh;
   opacity: 0; transform: translateX(-12px);
   transition: opacity 0.4s ease, transform 0.4s ease;
   backdrop-filter: blur(16px);
   box-shadow: 18px 0 50px rgba(15, 23, 42, 0.06);
+  overflow-y: auto;
+  z-index: 40;
 }
 .sidebar.sidebar-visible { opacity: 1; transform: none; }
 
@@ -257,6 +267,14 @@ function cerrarSesion() {
   background: linear-gradient(135deg, #1f3a52, #244b6a);
   color: white; font-weight: 500;
   box-shadow: 0 16px 32px rgba(31, 58, 82, 0.28);
+}
+
+@media (max-width: 900px) {
+  .sidebar-shell,
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+  }
 }
 .menu-item.active .menu-icon { opacity: 1; }
 .menu-icon { display: flex; align-items: center; flex-shrink: 0; opacity: 0.7; transition: opacity 0.15s; }
