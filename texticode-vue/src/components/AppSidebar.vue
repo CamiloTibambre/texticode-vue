@@ -147,12 +147,15 @@ const menuConfig = {
   }
 }
 
+const MENU_ITEM_HEIGHT = 42
+const MENU_GAP = 4
+
 const panelLabel  = computed(() => menuConfig[props.rol]?.label     || "")
 const menuItems   = computed(() => menuConfig[props.rol]?.items     || [])
 const roleLabel   = computed(() => menuConfig[props.rol]?.roleLabel || "")
 const activeIndex = computed(() => Math.max(0, menuItems.value.findIndex(item => item.to === route.path)))
 const railStyle   = computed(() => ({
-  transform: `translateY(${activeIndex.value * 50}px)`,
+  transform: `translateY(${activeIndex.value * (MENU_ITEM_HEIGHT + MENU_GAP)}px)`,
   opacity: animVisible.value ? 1 : 0,
 }))
 
@@ -251,6 +254,7 @@ function cerrarSesion() {
 .menu-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 8px;
+  min-height: 42px;
   font-size: 14px; color: #374151;
   text-decoration: none; cursor: pointer;
   transition: background 0.18s, color 0.18s, transform 0.18s, box-shadow 0.18s;
