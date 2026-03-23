@@ -6,27 +6,7 @@
       <div class="main-content">
         <h1 :class="{ 'fade-in': mounted }">Gestión de Inventario</h1>
 
-        <section class="hero-banner surface-panel interactive-lift" :class="{ 'hero-visible': mounted }">
-          <div>
-            <div class="hero-kicker">
-              <span class="live-dot"></span>
-              Inventario conectado
-            </div>
-            <h2>Haz que cada movimiento del stock se sienta inmediato.</h2>
-            <p>Este panel ahora prioriza lectura rápida, feedback visual y percepción de control sobre alertas, filtros y niveles.</p>
-          </div>
-          <div class="hero-actions">
-            <div class="hero-chip glass-chip">
-              <span>Alertas activas</span>
-              <strong>{{ alertas.length }}</strong>
-            </div>
-            <div class="hero-chip glass-chip">
-              <span>Categoría</span>
-              <strong>{{ categoriaFiltro || 'Todas' }}</strong>
-            </div>
-          </div>
-        </section>
-
+      
         <!-- TOP BAR -->
         <div class="top-bar surface-panel" :class="{ 'topbar-visible': mounted }">
           <div class="search-wrapper">
