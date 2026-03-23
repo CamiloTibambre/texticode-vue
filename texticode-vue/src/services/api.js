@@ -34,6 +34,8 @@ export const eliminarMaterial    = (id)       => request(`/materiales/${id}`, { 
 export const getOrdenes         = ()         => request('/ordenes')
 export const getOrden           = (id)       => request(`/ordenes/${id}`)
 export const getOrdenesByEstado = (estado)   => request(`/ordenes/estado/${encodeURIComponent(estado)}`)
+export const getOrdenesDeOperario = (id)     => request(`/ordenes/operario/${id}`)
+export const getOrdenesDeCliente  = (id)     => request(`/ordenes/cliente/${id}`)
 export const crearOrden         = (body)     => request('/ordenes', { method: 'POST', body: JSON.stringify(body) })
 export const actualizarOrden    = (id, body) => request(`/ordenes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
 export const eliminarOrden      = (id)       => request(`/ordenes/${id}`, { method: 'DELETE' })
@@ -61,4 +63,3 @@ export const getUsuariosDeOrden   = (idOrden)            => request(`/usuario-or
 export const getOrdenesDeUsuario  = (idUsuario)          => request(`/usuario-orden/usuario/${idUsuario}`)
 export const asignarUsuarioOrden  = (body)               => request('/usuario-orden', { method: 'POST', body: JSON.stringify(body) })
 export const desasignarUsuarioOrden=(idUsuario, idOrden) => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })
-
