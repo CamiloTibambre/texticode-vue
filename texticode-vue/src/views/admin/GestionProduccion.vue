@@ -4,7 +4,7 @@
  
     <main class="main">
       <!-- HEADER -->
-      <div class="top-bar" :class="{ visible: mounted }">
+      <div class="top-bar surface-panel" :class="{ visible: mounted }">
         <div class="top-left">
           <h1 class="page-title">Gestión de Producción</h1>
           <p class="page-sub">{{ ordenes.length }} órdenes registradas</p>
@@ -21,7 +21,7 @@
       <div class="stats-grid" :class="{ visible: mounted }">
         <div v-for="(s, i) in stats" :key="i" class="stat-card">
           <div class="stat-lbl">{{ s.label }}</div>
-          <div class="stat-num" :class="s.color">{{ s.valor }}</div>
+          <div class="stat-num" :class="s.color">{{ s.display }}</div>
         </div>
       </div>
  
@@ -254,7 +254,7 @@
 </template>
  
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import {
   getOrdenes, crearOrden, actualizarOrden, eliminarOrden,
@@ -279,12 +279,19 @@ const ordenes     = ref([])
 const clientes    = ref([])
 const materiales  = ref([])
 const operarios   = ref([])
- 
+const statsDisplay = ref({
+  total: 0,
+  proceso: 0,
+  completadas: 0,
+  pausadas: 0,
+})
+
 const busqueda        = ref('')
 const filtroEstado    = ref('')
 const filtroPrioridad = ref('')
 const sortKey         = ref('Id_Orden')
 const sortDir         = ref(1)
+const statTimers      = new Map()
  
 const formVacio = () => ({
   Id_Orden:     null,
@@ -313,11 +320,13 @@ async function cargarDatos() {
     clientes.value   = dataUsuarios.filter(u => (u.Rol || '').toLowerCase() === 'cliente')
     operarios.value  = dataUsuarios.filter(u => (u.Rol || '').toLowerCase() === 'operario')
     materiales.value = dataMateriales
+    animateStats()
   } catch (err) {
     errorMsg.value = err.message
     ordenes.value    = []
     clientes.value   = []
     materiales.value = []
+    animateStats()
   } finally {
     cargando.value = false
   }
@@ -330,11 +339,50 @@ onMounted(async () => {
  
 // ── COMPUTED ──────────────────────────────────────────────────
 const stats = computed(() => [
-  { label: 'Total Órdenes', valor: ordenes.value.length,                                        color: 'stat-orange' },
-  { label: 'En Proceso',    valor: ordenes.value.filter(o => o.Estado === 'En Proceso').length, color: 'stat-blue'   },
-  { label: 'Completadas',   valor: ordenes.value.filter(o => o.Estado === 'Completada').length, color: 'stat-green'  },
-  { label: 'Pausadas',      valor: ordenes.value.filter(o => o.Estado === 'Pausado').length,    color: 'stat-gray'   },
+  { label: 'Total Órdenes', display: statsDisplay.value.total,       color: 'stat-orange' },
+  { label: 'En Proceso',    display: statsDisplay.value.proceso,     color: 'stat-blue'   },
+  { label: 'Completadas',   display: statsDisplay.value.completadas, color: 'stat-green'  },
+  { label: 'Pausadas',      display: statsDisplay.value.pausadas,    color: 'stat-gray'   },
 ])
+
+function animateCount(key, target) {
+  clearInterval(statTimers.get(key))
+  const initial = statsDisplay.value[key] || 0
+  const steps = 28
+  const delta = target - initial
+  let currentStep = 0
+
+  if (delta === 0) {
+    statsDisplay.value[key] = target
+    return
+  }
+
+  const timer = setInterval(() => {
+    currentStep += 1
+    const progress = currentStep / steps
+    statsDisplay.value[key] = Math.round(initial + (delta * progress))
+
+    if (currentStep >= steps) {
+      statsDisplay.value[key] = target
+      clearInterval(timer)
+      statTimers.delete(key)
+    }
+  }, 18)
+
+  statTimers.set(key, timer)
+}
+
+function animateStats() {
+  animateCount('total', ordenes.value.length)
+  animateCount('proceso', ordenes.value.filter(o => o.Estado === 'En Proceso').length)
+  animateCount('completadas', ordenes.value.filter(o => o.Estado === 'Completada').length)
+  animateCount('pausadas', ordenes.value.filter(o => o.Estado === 'Pausado').length)
+}
+
+onBeforeUnmount(() => {
+  statTimers.forEach(timer => clearInterval(timer))
+  statTimers.clear()
+})
  
 const ordenesFiltradas = computed(() => {
   let lista = [...ordenes.value]
@@ -479,7 +527,7 @@ function showToast(msg, type = 'toast-success') {
 <style scoped>
 .layout { display: flex; min-height: 100vh; background: #f3f4f6; }
 .main   { flex: 1; padding: 28px 30px; overflow-y: auto; }
-.top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; opacity: 0; transform: translateY(-8px); transition: opacity 0.4s, transform 0.4s; }
+.top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; opacity: 0; transform: translateY(-8px); transition: opacity 0.4s, transform 0.4s; border-radius: 18px; padding: 22px 24px; }
 .top-bar.visible { opacity: 1; transform: none; }
 .page-title { font-size: 22px; font-weight: 700; color: #111827; }
 .page-sub   { font-size: 13px; color: #9ca3af; margin-top: 2px; }

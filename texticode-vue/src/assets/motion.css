@@ -63,6 +63,74 @@ a,
   backdrop-filter: blur(18px);
 }
 
+:where(
+  .card,
+  .stat-card,
+  .table-container,
+  .table-wrap,
+  .panel,
+  .info-card,
+  .pedido-card,
+  .order-card,
+  .task-card,
+  .surface-panel
+) {
+  transition:
+    transform var(--motion-base) var(--ease-emphasized),
+    box-shadow var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard),
+    background-color var(--motion-base) var(--ease-standard);
+  transform-origin: center;
+}
+
+:where(
+  .card,
+  .stat-card,
+  .table-container,
+  .table-wrap,
+  .panel,
+  .info-card,
+  .pedido-card,
+  .order-card,
+  .task-card,
+  .surface-panel
+):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.1);
+}
+
+:where(button, .btn, .btn-primary, .btn-secondary, .btn-nueva, .icon-btn, .action-btn) {
+  transition:
+    transform var(--motion-fast) var(--ease-emphasized),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    filter var(--motion-fast) var(--ease-standard);
+}
+
+:where(button, .btn, .btn-primary, .btn-secondary, .btn-nueva, .icon-btn, .action-btn):hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+:where(a, button, .menu-item, .tab-btn, .tab, .sortable, .th-sort, .btn-accion, .help-btn, .avatar) {
+  transition:
+    transform var(--motion-fast) var(--ease-emphasized),
+    color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+:where(tbody tr, .table-row, .report-row, .order-card, .pedido-card) {
+  transition:
+    transform var(--motion-fast) var(--ease-emphasized),
+    background-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+:where(tbody tr, .table-row, .report-row, .order-card, .pedido-card):hover {
+  transform: translateY(-1px);
+}
+
 .glass-chip {
   display: inline-flex;
   align-items: center;
