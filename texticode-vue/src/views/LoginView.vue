@@ -53,23 +53,18 @@
             :style="`background: hsl(${200 + n*10}, ${35+n*4}%, ${30+n*4}%); animation-delay:${n*0.1}s`"/>
         </div>
 
-        <!-- Stats -->
-        <div class="side-stats">
-          <div class="side-stat" v-for="(s, i) in sideStats" :key="i" :style="`animation-delay:${0.8+i*0.15}s`">
-            <div class="side-stat-bar-wrap">
-              <div class="side-stat-bar" :style="`--pct:${s.pct}%; animation-delay:${1.1+i*0.15}s`"/>
-            </div>
-            <span class="side-stat-num">{{ s.val }}</span>
-            <span class="side-stat-label">{{ s.lbl }}</span>
+        <div class="feature-stack">
+          <div class="feature-card">
+            <strong>Operación centralizada</strong>
+            <span>Producción, inventario y seguimiento conectados en una sola experiencia.</span>
           </div>
-          <div class="side-divider"></div>
-          <div class="side-extra">
-            <span class="side-version">v2026</span>
-            <span class="side-version-lbl">Versión</span>
-            <div class="side-online">
-              <span class="online-dot"></span>
-              En línea
-            </div>
+          <div class="feature-card">
+            <strong>Interfaz enfocada</strong>
+            <span>Accede más rápido a tu panel sin ruido visual ni métricas decorativas.</span>
+          </div>
+          <div class="feature-card online-feature">
+            <span class="online-dot"></span>
+            Acceso seguro disponible
           </div>
         </div>
 
@@ -209,12 +204,6 @@ const router = useRouter()
 const auth   = useAuthStore()
 
 let ctx, animFrame
-
-const sideStats = [
-  { val: '330', lbl: 'Pedidos',  pct: 82 },
-  { val: '94%', lbl: 'Entrega',  pct: 94 },
-  { val: '186', lbl: 'Clientes', pct: 65 },
-]
 
 function initFabric() {
   const canvas = fabricCanvas.value
@@ -417,53 +406,37 @@ onUnmounted(() => {
 }
 @keyframes threadIn { to { opacity: 1; transform: scaleY(1); } }
 
-/* Stats con barras */
-.side-stats {
-  display: flex; align-items: flex-end; gap: 18px;
+.feature-stack {
+  display: grid;
+  gap: 14px;
 }
-.side-stat {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  opacity: 0; transform: translateY(8px);
-  animation: statIn 0.4s ease forwards;
+.feature-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
-@keyframes statIn { to { opacity: 1; transform: none; } }
-
-.side-stat-bar-wrap {
-  width: 10px; height: 56px;
-  background: rgba(255,255,255,0.07);
-  border-radius: 99px; overflow: hidden;
-  display: flex; align-items: flex-end;
+.feature-card strong {
+  color: white;
+  font-size: 14px;
 }
-.side-stat-bar {
-  width: 100%; height: 0%;
-  background: linear-gradient(to top, #2d6a9f, #4a8fcc);
-  border-radius: 99px;
-  animation: barfill 1s cubic-bezier(0.22,1,0.36,1) forwards;
+.feature-card span {
+  color: rgba(255,255,255,0.6);
+  font-size: 12.5px;
+  line-height: 1.6;
 }
-@keyframes barfill { to { height: var(--pct, 70%); } }
-
-.side-stat-num {
-  font-size: 16px; font-weight: 700; color: white; letter-spacing: -0.03em;
+.online-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.side-stat-label {
-  font-size: 9.5px; color: rgba(255,255,255,0.35);
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
-}
-
-.side-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.1); margin: 0 4px; }
-
-.side-extra { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.side-version {
-  font-size: 18px; font-weight: 700; color: white; letter-spacing: -0.03em;
-}
-.side-version-lbl {
-  font-size: 9.5px; color: rgba(255,255,255,0.35);
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
-}
-.side-online {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; color: rgba(255,255,255,0.45);
-  font-weight: 600; letter-spacing: 0.04em;
+.online-feature span:last-child,
+.online-feature {
+  color: rgba(255,255,255,0.82);
+  font-weight: 600;
 }
 .online-dot {
   width: 6px; height: 6px; border-radius: 50%;
