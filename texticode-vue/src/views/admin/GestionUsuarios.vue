@@ -42,8 +42,29 @@
       <!-- TÍTULO -->
       <div class="title" :class="{ visible: animVisible }">Gestión de Usuarios</div>
 
+      <section class="hero-strip surface-panel interactive-lift" :class="{ visible: animVisible }">
+        <div>
+          <div class="hero-kicker">
+            <span class="live-dot"></span>
+            Centro de control de accesos
+          </div>
+          <h2>Administra altas, cambios y filtros sin salir de la vista.</h2>
+          <p>La idea es que el panel responda a cada interacción: búsqueda, estados, altas y edición en tiempo real.</p>
+        </div>
+        <div class="hero-metrics">
+          <div class="hero-pill glass-chip">
+            <span class="pill-label">Visible</span>
+            <strong>{{ usuariosFiltrados.length }}</strong>
+          </div>
+          <div class="hero-pill glass-chip">
+            <span class="pill-label">Filtro</span>
+            <strong>{{ filtroRol || 'Todos' }}</strong>
+          </div>
+        </div>
+      </section>
+
       <!-- TOP BAR -->
-      <div class="top-bar" :class="{ visible: animVisible }">
+      <div class="top-bar surface-panel" :class="{ visible: animVisible }">
         <div class="filters">
           <input
             v-model="busqueda"
@@ -75,11 +96,17 @@
       </div>
 
       <!-- STATS -->
-      <div class="stats" :class="{ visible: animVisible }">
+      <div v-if="cargando" class="stats stats-skeleton visible">
+        <div v-for="i in 4" :key="i" class="stat-card skeleton-card surface-panel">
+          <div class="data-skeleton skeleton-line skeleton-sm"></div>
+          <div class="data-skeleton skeleton-line skeleton-lg"></div>
+        </div>
+      </div>
+      <div v-else class="stats" :class="{ visible: animVisible }">
         <div
           v-for="(s, i) in statsCards"
           :key="i"
-          class="stat-card"
+          class="stat-card surface-panel interactive-lift"
           :style="{ transitionDelay: animVisible ? `${i * 70}ms` : '0ms' }"
         >
           <h3>{{ s.label }}</h3>
@@ -88,14 +115,23 @@
       </div>
 
       <!-- TABLA -->
-      <div class="table-box" :class="{ visible: animVisible }">
+      <div class="table-box surface-panel" :class="{ visible: animVisible }">
         <div class="table-header">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
           </svg>
           Lista de Usuarios ({{ usuariosFiltrados.length }})
         </div>
-        <table>
+        <div v-if="cargando" class="table-skeleton">
+          <div v-for="i in 6" :key="i" class="table-skeleton-row">
+            <span class="data-skeleton skeleton-avatar"></span>
+            <span class="data-skeleton skeleton-line skeleton-user"></span>
+            <span class="data-skeleton skeleton-line skeleton-tag"></span>
+            <span class="data-skeleton skeleton-line skeleton-phone"></span>
+            <span class="data-skeleton skeleton-line skeleton-date"></span>
+          </div>
+        </div>
+        <table v-else>
           <thead>
             <tr>
               <th class="th-sortable" @click="sortBy('nombre')">
@@ -244,8 +280,8 @@
 
           <div class="modal-buttons">
             <button class="btn-cancel" @click="cerrarModal">Cancelar</button>
-            <button class="btn-submit" @click="guardarUsuario" :disabled="tieneErrores && formTouched">
-              {{ editando ? 'Guardar Cambios' : 'Crear Usuario' }}
+            <button class="btn-submit" @click="guardarUsuario" :disabled="guardando || (tieneErrores && formTouched)">
+              {{ guardando ? 'Guardando...' : editando ? 'Guardar Cambios' : 'Crear Usuario' }}
             </button>
           </div>
         </div>
@@ -498,20 +534,72 @@ async function guardarUsuario() {
 .main { flex: 1; padding: 28px 30px; }
 
 /* ── ANIMACIONES DE ENTRADA ── */
-.title, .top-bar, .stats, .table-box {
+.title, .hero-strip, .top-bar, .stats, .table-box {
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 .title.visible     { opacity: 1; transform: none; transition-delay: 0ms; }
+.hero-strip.visible { opacity: 1; transform: none; transition-delay: 40ms; }
 .top-bar.visible   { opacity: 1; transform: none; transition-delay: 80ms; }
 .stats.visible     { opacity: 1; transform: none; transition-delay: 160ms; }
 .table-box.visible { opacity: 1; transform: none; transition-delay: 240ms; }
 
 .title { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
 
+.hero-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border-radius: 22px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+}
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.hero-strip h2 {
+  font-size: 24px;
+  line-height: 1.15;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+.hero-strip p {
+  color: #475569;
+  line-height: 1.55;
+  max-width: 700px;
+}
+.hero-metrics {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  justify-content: flex-end;
+}
+.hero-pill {
+  min-width: 132px;
+  justify-content: space-between;
+}
+.pill-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 /* ── TOP BAR ── */
-.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
+  padding: 14px; border-radius: 18px;
+}
 .filters { display: flex; gap: 12px; flex-wrap: wrap; }
 .search {
   padding: 9px 12px 9px 36px;
@@ -543,9 +631,13 @@ async function guardarUsuario() {
 .stat-card h3 { font-size: 14px; color: #6b7280; font-weight: 500; margin: 0; }
 .stat-card p { font-size: 26px; font-weight: 600; margin: 10px 0 0 0; }
 .green { color: #16a34a; } .blue { color: #2563eb; }
+.skeleton-card { min-height: 106px; pointer-events: none; }
+.skeleton-line { display: block; border-radius: 999px; }
+.skeleton-sm { width: 45%; height: 12px; margin-bottom: 16px; }
+.skeleton-lg { width: 70%; height: 30px; }
 
 /* ── TABLA ── */
-.table-box { background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+.table-box { border: 1px solid rgba(255,255,255,0.8); border-radius: 20px; overflow: hidden; }
 .table-header { padding: 16px 18px; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 table { width: 100%; border-collapse: collapse; }
 thead { background: #f9fafb; }
@@ -555,6 +647,21 @@ th { font-size: 12px; font-weight: 600; color: #6b7280; padding: 14px 18px; text
 .sort-icon { font-size: 11px; margin-left: 4px; opacity: 0.6; }
 td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; transition: background 0.2s; }
 tbody tr:hover td { background: #f9fafb; }
+.table-skeleton { padding: 18px; display: grid; gap: 12px; }
+.table-skeleton-row {
+  display: grid;
+  grid-template-columns: 34px 1.6fr 0.8fr 1fr 0.8fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 10px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.72);
+}
+.skeleton-avatar { width: 34px; height: 34px; border-radius: 999px; }
+.skeleton-user  { width: 72%; height: 16px; }
+.skeleton-tag   { width: 90px; height: 14px; }
+.skeleton-phone { width: 120px; height: 14px; }
+.skeleton-date  { width: 80px; height: 14px; }
 
 /* ── ROW ANIMACIONES ── */
 .row-flash td { background: #f0fdf4 !important; }
@@ -681,4 +788,11 @@ tbody tr:hover td { background: #f9fafb; }
 .toast-leave-active { transition: all 0.25s ease; }
 .toast-enter-from   { opacity: 0; transform: translateY(12px); }
 .toast-leave-to     { opacity: 0; transform: translateY(12px); }
+
+@media (max-width: 900px) {
+  .hero-strip { flex-direction: column; }
+  .hero-metrics { justify-content: flex-start; }
+  .table-skeleton-row { grid-template-columns: 28px 1fr; }
+  .skeleton-tag, .skeleton-phone, .skeleton-date { display: none; }
+}
 </style>
