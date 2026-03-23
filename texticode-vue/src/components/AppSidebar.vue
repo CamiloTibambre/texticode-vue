@@ -16,10 +16,15 @@
       <!-- Panel label con badge de rol -->
       <div class="panel-label" :class="{ visible: animVisible }">
         <span class="role-badge" :class="rolClass">{{ panelLabel }}</span>
+        <div class="sidebar-presence glass-chip">
+          <span class="live-dot"></span>
+          <span>Navegación activa</span>
+        </div>
       </div>
 
       <!-- Menú de navegación -->
       <nav class="menu">
+        <span class="menu-rail" :style="railStyle"></span>
         <RouterLink
           v-for="(item, i) in menuItems"
           :key="item.to"
@@ -143,6 +148,11 @@ const menuConfig = {
 const panelLabel  = computed(() => menuConfig[props.rol]?.label     || "")
 const menuItems   = computed(() => menuConfig[props.rol]?.items     || [])
 const roleLabel   = computed(() => menuConfig[props.rol]?.roleLabel || "")
+const activeIndex = computed(() => Math.max(0, menuItems.value.findIndex(item => item.to === route.path)))
+const railStyle   = computed(() => ({
+  transform: `translateY(${activeIndex.value * 50}px)`,
+  opacity: animVisible.value ? 1 : 0,
+}))
 
 // Nombre real del usuario logueado desde el store
 const userName    = computed(() => auth.usuario?.Nombre_Completo || auth.usuario?.Nombre_Usuario || "")
@@ -170,13 +180,15 @@ function cerrarSesion() {
 /* ── SIDEBAR BASE ── */
 .sidebar {
   width: 260px; min-width: 260px;
-  background: #f9fafb;
-  border-right: 1px solid #e5e7eb;
+  background: rgba(249, 250, 251, 0.78);
+  border-right: 1px solid rgba(255,255,255,0.7);
   padding: 22px 16px;
   display: flex; flex-direction: column; justify-content: space-between;
   position: sticky; top: 0; height: 100vh;
   opacity: 0; transform: translateX(-12px);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  backdrop-filter: blur(16px);
+  box-shadow: 18px 0 50px rgba(15, 23, 42, 0.06);
 }
 .sidebar.sidebar-visible { opacity: 1; transform: none; }
 
@@ -196,6 +208,12 @@ function cerrarSesion() {
   opacity: 0; transition: opacity 0.35s ease 80ms;
 }
 .panel-label.visible { opacity: 1; }
+.sidebar-presence {
+  margin: 12px auto 0;
+  width: fit-content;
+  color: #475569;
+  font-size: 12px;
+}
 
 .role-badge {
   display: inline-block;
@@ -208,23 +226,37 @@ function cerrarSesion() {
 .badge-cliente  { background: #fef9c3; color: #92400e; }
 
 /* ── MENÚ ── */
-.menu { display: flex; flex-direction: column; gap: 4px; }
+.menu { display: flex; flex-direction: column; gap: 4px; position: relative; }
+.menu-rail {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 4px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #38bdf8, #2563eb);
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.25);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
 .menu-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 8px;
   font-size: 14px; color: #374151;
   text-decoration: none; cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.15s;
+  transition: background 0.18s, color 0.18s, transform 0.18s, box-shadow 0.18s;
   position: relative;
   opacity: 0; transform: translateX(-10px);
 }
 .menu-item.visible { opacity: 1; transform: none; }
 .menu-item:hover:not(.active) {
-  background: #f3f4f6;
+  background: rgba(255,255,255,0.92);
   transform: translateX(3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 .menu-item.active {
-  background: #1f3a52; color: white; font-weight: 500;
+  background: linear-gradient(135deg, #1f3a52, #244b6a);
+  color: white; font-weight: 500;
+  box-shadow: 0 16px 32px rgba(31, 58, 82, 0.28);
 }
 .menu-item.active .menu-icon { opacity: 1; }
 .menu-icon { display: flex; align-items: center; flex-shrink: 0; opacity: 0.7; transition: opacity 0.15s; }
@@ -250,8 +282,9 @@ function cerrarSesion() {
 .user-info {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 8px;
-  background: white; border: 1px solid #e5e7eb;
+  background: rgba(255,255,255,0.92); border: 1px solid rgba(226,232,240,0.9);
   margin-bottom: 8px;
+  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.06);
 }
 .user-avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -269,11 +302,11 @@ function cerrarSesion() {
 .logout {
   display: flex; align-items: center; justify-content: center;
   width: 100%; gap: 8px; border: 1px solid #e5e7eb; padding: 10px;
-  border-radius: 8px; font-size: 14px; background: white;
-  cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+  border-radius: 8px; font-size: 14px; background: rgba(255,255,255,0.92);
+  cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
   color: #374151;
 }
-.logout:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.logout:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; transform: translateY(-1px); }
 
 /* ── CONFIRM LOGOUT ── */
 .logout-confirm {
