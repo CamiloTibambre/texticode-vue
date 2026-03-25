@@ -3,91 +3,239 @@
     <AppSidebar rol="operario" />
 
     <main class="main">
-      <div class="title">Reportar Avances</div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">Reportar Avances</div>
+          <div class="page-sub">Actualiza el progreso de tus órdenes asignadas</div>
+        </div>
+        
+      </div>
 
       <!-- TABS -->
       <div class="tabs-wrapper">
-        <button class="tab-btn" :class="{ active: tabActivo === 'activas' }" @click="tabActivo = 'activas'">Órdenes Activas</button>
-        <button class="tab-btn" :class="{ active: tabActivo === 'historial' }" @click="tabActivo = 'historial'">Historial</button>
+        <button class="tab-btn" :class="{ active: tabActivo === 'activas' }" @click="tabActivo = 'activas'">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+          </svg>
+          Órdenes Activas
+          <span class="tab-badge blue">{{ ordenesActivas.length }}</span>
+        </button>
+        <button class="tab-btn" :class="{ active: tabActivo === 'historial' }" @click="tabActivo = 'historial'">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Historial
+          <span v-if="historial.length" class="tab-badge green">{{ historial.length }}</span>
+        </button>
       </div>
 
-      <!-- ÓRDENES ACTIVAS -->
-      <div v-if="tabActivo === 'activas'" class="tab-content">
-        <div v-for="o in ordenesActivas" :key="o.id" class="order-card" :class="{ 'card-completada': o.estado === 'completado', 'card-pausada': o.estado === 'pausado' }">
-          <div class="card-top">
-            <div class="card-icon">
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </div>
-            <div class="card-info">
-              <div class="card-orden">{{ o.id }}</div>
-              <div class="card-nombre">{{ o.nombre }}</div>
-            </div>
-            <span class="badge-estado" :class="o.estado">{{ o.estadoLabel }}</span>
-          </div>
+      <!-- ── ÓRDENES ACTIVAS ── -->
+      <div v-show="tabActivo === 'activas'" class="tab-content">
 
-          <div class="card-progreso-row">
-            <span class="card-progreso-label">Progreso actual</span>
-            <span class="card-progreso-pct">{{ o.progreso }}%</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: o.progreso + '%' }"></div>
-          </div>
+        <div v-if="cargando" class="loading-wrap">
+          <div class="spinner"></div>
+          <p>Cargando órdenes...</p>
+        </div>
 
-          <div class="card-meta">
-            <div class="meta-item">
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
-              <div><span class="meta-label">Unidades</span><span class="meta-value">{{ o.unidadesHechas }} / {{ o.unidadesTotales }}</span></div>
-            </div>
-            <div class="meta-item">
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-              <div><span class="meta-label">Fecha Límite</span><span class="meta-value">{{ o.fechaLimite }}</span></div>
-            </div>
-          </div>
+        <div v-else-if="!auth.idUsuario" class="empty-wrap">
+          <p>Inicia sesión para ver tus órdenes.</p>
+        </div>
 
-          <div class="card-actions">
-            <button class="btn-reportar-progreso" :disabled="o.estado === 'completado'" @click="abrirModal(o)">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-              Reportar Progreso
-            </button>
-            <button class="btn-pausar" :disabled="o.estado === 'completado'" @click="togglePausa(o)">
-              {{ o.estado === 'pausado' ? '▶ Reanudar' : '⏸ Pausar' }}
-            </button>
+        <div v-else-if="ordenesActivas.length === 0" class="empty-wrap">
+          <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+          </svg>
+          <p>No tienes órdenes activas.</p>
+        </div>
+
+        <div v-else class="orders-grid">
+          <div
+            v-for="o in ordenesActivas"
+            :key="o.idReal"
+            class="order-card"
+            :class="{ 'card-pausada': o.estado === 'pausado' }"
+          >
+            <!-- Cabecera con color -->
+            <div class="oc-header" :class="o.estado">
+              <div class="oc-header-left">
+                <span class="oc-id">{{ o.id }}</span>
+                <span class="oc-badge" :class="o.estado">{{ estadoLabel(o.estado) }}</span>
+                <span class="oc-prio" :class="o.prioridad">{{ capitalize(o.prioridad) }}</span>
+              </div>
+              <div class="oc-actions">
+                <button
+                  class="btn-pausa"
+                  :class="{ 'btn-reanudar': o.estado === 'pausado' }"
+                  :disabled="o.estado === 'completado'"
+                  @click="togglePausa(o)"
+                  :title="o.estado === 'pausado' ? 'Reanudar' : 'Pausar'"
+                >
+                  <svg v-if="o.estado !== 'pausado'" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5"/>
+                  </svg>
+                  <svg v-else width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z"/>
+                  </svg>
+                  {{ o.estado === 'pausado' ? 'Reanudar' : 'Pausar' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="oc-body">
+              <div class="oc-nombre">{{ o.nombre }}</div>
+
+              <!-- Metadatos -->
+              <div class="oc-meta">
+                <div class="oc-meta-item">
+                  <span class="oc-meta-lbl">Prendas</span>
+                  <span class="oc-meta-val prendas">
+                    <strong>{{ o.unidadesHechas }}</strong>
+                    <span class="sep">/</span>
+                    <span class="tot">{{ o.unidadesTotales }}</span>
+                  </span>
+                </div>
+                <div class="oc-meta-item">
+                  <span class="oc-meta-lbl">Fecha Límite</span>
+                  <span class="oc-meta-val" :class="{ 'val-vencida': estaVencida(o.fechaLimite) }">{{ o.fechaLimite }}</span>
+                </div>
+              </div>
+
+              <!-- Barra progreso -->
+              <div class="oc-progress">
+                <div class="oc-progress-row">
+                  <span class="oc-progress-lbl">Progreso de fabricación</span>
+                  <span class="oc-progress-pct" :class="{ 'pct-verde': o.progreso >= 100, 'pct-naranja': o.estado === 'pausado' }">{{ o.progreso }}%</span>
+                </div>
+                <div class="oc-bar">
+                  <div
+                    class="oc-bar-fill"
+                    :class="{
+                      'fill-completado': o.progreso >= 100,
+                      'fill-pausado':    o.estado === 'pausado'
+                    }"
+                    :style="{ width: o.progreso + '%' }"
+                  ></div>
+                </div>
+                <div class="oc-bar-labels">
+                  <span>0</span>
+                  <span>{{ Math.round(o.unidadesTotales * 0.25) }}</span>
+                  <span>{{ Math.round(o.unidadesTotales * 0.5) }}</span>
+                  <span>{{ Math.round(o.unidadesTotales * 0.75) }}</span>
+                  <span>{{ o.unidadesTotales }}</span>
+                </div>
+              </div>
+
+              <!-- Botón reportar -->
+              <button
+                class="btn-reportar"
+                :disabled="o.estado === 'completado'"
+                @click="abrirModal(o)"
+              >
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                Reportar Progreso
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- HISTORIAL -->
-      <div v-if="tabActivo === 'historial'" class="tab-content">
-        <div v-if="historial.length === 0" class="historial-empty">No hay reportes en el historial aún.</div>
-        <div v-for="h in historial" :key="h.id" class="historial-card">
-          <div class="hist-header">
-            <div>
-              <div class="hist-orden">{{ h.orden }}</div>
-              <div class="hist-unidades">+{{ h.nuevas }} unidades nuevas</div>
+      <!-- ── HISTORIAL ── -->
+      <div v-show="tabActivo === 'historial'" class="tab-content">
+        <div v-if="historial.length === 0" class="empty-wrap">
+          <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p>No hay reportes en el historial aún.</p>
+          <span class="empty-hint">Los reportes que envíes aparecerán aquí.</span>
+        </div>
+
+        <div v-else class="historial-list">
+          <!-- Resumen rápido -->
+          <div class="hist-summary">
+            <div class="hist-sum-item">
+              <span class="hist-sum-num">{{ historial.length }}</span>
+              <span class="hist-sum-lbl">Reportes enviados</span>
             </div>
-            <div>
-              <div class="hist-pct">{{ h.progreso }}%</div>
+            <div class="hist-sum-item">
+              <span class="hist-sum-num">{{ totalUnidadesReportadas }}</span>
+              <span class="hist-sum-lbl">Prendas reportadas</span>
+            </div>
+            <div class="hist-sum-item">
+              <span class="hist-sum-num">{{ ordenesUnicas }}</span>
+              <span class="hist-sum-lbl">Órdenes trabajadas</span>
+            </div>
+          </div>
+
+          <div v-for="h in historialOrdenado" :key="h.id" class="hist-card">
+            <div class="hist-left">
+              <div class="hist-icon">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="hist-info">
+                <div class="hist-orden">{{ h.orden }}</div>
+                <div class="hist-nota" v-if="h.nota">{{ h.nota }}</div>
+              </div>
+            </div>
+            <div class="hist-right">
+              <div class="hist-unidades">
+                <span class="hist-uni-num">+{{ h.nuevas }}</span>
+                <span class="hist-uni-lbl">prendas</span>
+              </div>
+              <div class="hist-pct-wrap">
+                <div class="hist-pct-bar">
+                  <div class="hist-pct-fill" :style="{ width: h.progreso + '%' }"></div>
+                </div>
+                <span class="hist-pct-txt">{{ h.progreso }}%</span>
+              </div>
               <div class="hist-fecha">{{ h.fecha }}</div>
             </div>
           </div>
-          <div v-if="h.nota" class="desc-block"><span class="desc-label">Nota:</span><span class="desc-text">{{ h.nota }}</span></div>
         </div>
       </div>
     </main>
 
-    <!-- MODAL REPORTAR PROGRESO -->
-    <div v-if="modalVisible" class="modal-overlay visible" @click.self="cerrarModal">
+    <!-- ── MODAL REPORTAR PROGRESO ── -->
+    <div v-if="modalVisible" class="modal-overlay" @click.self="cerrarModal">
       <div class="modal">
         <div class="modal-header">
-          <div><div class="modal-title">Reportar Progreso</div><div class="modal-subtitle">{{ ordenActual?.id }} — {{ ordenActual?.nombre }}</div></div>
+          <div>
+            <div class="modal-title">Reportar Progreso</div>
+            <div class="modal-subtitle">{{ ordenActual?.id }} — {{ ordenActual?.nombre }}</div>
+          </div>
           <button class="modal-close" @click="cerrarModal">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
           </button>
         </div>
+
+        <!-- Info actual -->
+        <div class="modal-estado" v-if="ordenActual">
+          <div class="modal-estado-item">
+            <span class="modal-estado-lbl">Prendas hechas</span>
+            <span class="modal-estado-val">{{ ordenActual.unidadesHechas }} / {{ ordenActual.unidadesTotales }}</span>
+          </div>
+          <div class="modal-estado-item">
+            <span class="modal-estado-lbl">Progreso actual</span>
+            <span class="modal-estado-val">{{ ordenActual.progreso }}%</span>
+          </div>
+          <div class="modal-estado-item">
+            <span class="modal-estado-lbl">Quedan</span>
+            <span class="modal-estado-val orange">{{ ordenActual.unidadesTotales - ordenActual.unidadesHechas }}</span>
+          </div>
+        </div>
+
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label">Unidades completadas en esta sesión <span class="req">*</span></label>
             <input v-model.number="reporte.nuevas" type="number" min="1" class="form-input" placeholder="Ej: 10">
+            <span class="form-hint" v-if="ordenActual && reporte.nuevas > 0">
+              Total tras este reporte: {{ Math.min(ordenActual.unidadesHechas + reporte.nuevas, ordenActual.unidadesTotales) }} / {{ ordenActual.unidadesTotales }}
+            </span>
           </div>
           <div class="form-group">
             <label class="form-label">Nota <span class="opt">(opcional)</span></label>
@@ -96,13 +244,26 @@
         </div>
         <div class="modal-footer">
           <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
-          <button class="btn-enviar" @click="enviarReporte">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
+          <button class="btn-enviar" @click="enviarReporte" :disabled="!reporte.nuevas || reporte.nuevas <= 0">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+            </svg>
             Enviar Reporte
           </button>
         </div>
       </div>
     </div>
+
+    <!-- Toast -->
+    <Transition name="toast">
+      <div v-if="toastMsg" class="toast" :class="toastType">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+          <path v-if="toastType === 'toast-success'" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+          <path v-else stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+        </svg>
+        {{ toastMsg }}
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -110,22 +271,39 @@
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
-import { actualizarOrden } from '../../services/api.js'
 
 const auth = useAuthStore()
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+
 const tabActivo    = ref('activas')
 const modalVisible = ref(false)
 const ordenActual  = ref(null)
-const historial    = ref([])
-const ordenes      = ref([])
+const cargando     = ref(true)
+const toastMsg     = ref('')
+const toastType    = ref('toast-success')
+
+// El historial vive en esta referencia reactiva — no se pierde al cambiar de tab
+// porque usamos v-show (no v-if) en los tabs
+const historial = ref([])
+const ordenes   = ref([])
 
 const reporte = ref({ nuevas: 0, nota: '' })
 
+// ── Helpers ────────────────────────────────────────────────
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '' }
+
+function estaVencida(fechaStr) {
+  if (!fechaStr || fechaStr === '—') return false
+  return new Date(fechaStr) < new Date()
+}
+
+function estadoLabel(estado) {
+  return { 'en-proceso': 'En Proceso', 'completado': 'Completado', 'pausado': 'Pausado' }[estado] || estado
+}
+
+// ── Carga ──────────────────────────────────────────────────
 onMounted(async () => {
-  // ANTES tenías: const idUsuario = 1
-  // Ahora usa el store:
-  if (!auth.idUsuario) return
+  if (!auth.idUsuario) { cargando.value = false; return }
 
   try {
     const res  = await fetch(`${BASE}/ordenes/operario/${auth.idUsuario}`)
@@ -133,27 +311,49 @@ onMounted(async () => {
 
     ordenes.value = data
       .filter(t => t.Estado !== 'Cancelada')
-      .map(t => ({
-        id:              `OP-${String(t.Id_Orden).padStart(3,'0')}`,
-        idReal:          t.Id_Orden,
-        nombre:          t.Descripcion,
-        estado:          t.Estado === 'Completada' ? 'completado'
-                       : t.Estado === 'En Proceso' ? 'en-proceso'
-                       : 'pendiente',
-        prioridad:       t.Prioridad?.toLowerCase() || 'media',
-        unidadesHechas:  t.Unidades_Realizadas ?? 0,
-        unidadesTotales: t.Cantidad,
-        fechaLimite:     t.Fecha_Limite?.split('T')[0] || '—',
-        progreso:        t.Estado === 'Completada' ? 100
-                       : t.Unidades && t.Unidades_Realizadas
-                         ? Math.round((t.Unidades_Realizadas / t.Unidades) * 100)
-                         : 50,
-      }))
+      .map(t => {
+        const realizadas  = t.Unidades_Realizadas ?? 0
+        const unidades    = t.Unidades ?? t.Cantidad ?? 1   // denominador correcto
+        const cantidad    = t.Cantidad ?? 1
+        const estado      = t.Estado === 'Completada' ? 'completado'
+                          : t.Estado === 'En Proceso' ? 'en-proceso'
+                          : 'pausado'
+
+        let progreso = 0
+        if (estado === 'completado') {
+          progreso = 100
+        } else if (unidades > 0 && realizadas > 0) {
+          progreso = Math.min(100, Math.round((realizadas / unidades) * 100))
+        }
+
+        return {
+          id:              `OP-${String(t.Id_Orden).padStart(3,'0')}`,
+          idReal:          t.Id_Orden,
+          nombre:          t.Descripcion,
+          estado,
+          prioridad:       (t.Prioridad || 'Media').toLowerCase(),
+          unidadesHechas:  realizadas,
+          unidadesTotales: cantidad,
+          unidadesAsig:    unidades,
+          fechaLimite:     t.Fecha_Limite?.split('T')[0] || '—',
+          progreso,
+        }
+      })
   } catch (err) {
     console.error('Error cargando avances:', err)
+  } finally {
+    cargando.value = false
   }
 })
 
+// ── Computed ───────────────────────────────────────────────
+const ordenesActivas    = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
+const ordenesCompletadas = computed(() => ordenes.value.filter(o => o.estado === 'completado'))
+const historialOrdenado = computed(() => [...historial.value].reverse())
+const totalUnidadesReportadas = computed(() => historial.value.reduce((acc, h) => acc + h.nuevas, 0))
+const ordenesUnicas = computed(() => new Set(historial.value.map(h => h.ordenId)).size)
+
+// ── Modal ──────────────────────────────────────────────────
 function abrirModal(o) {
   ordenActual.value = o
   reporte.value = { nuevas: 0, nota: '' }
@@ -161,27 +361,25 @@ function abrirModal(o) {
 }
 function cerrarModal() { modalVisible.value = false }
 
+// ── Toggle pausa ───────────────────────────────────────────
 function togglePausa(o) {
   o.estado = o.estado === 'pausado' ? 'en-proceso' : 'pausado'
 }
 
+// ── Enviar reporte ─────────────────────────────────────────
 async function enviarReporte() {
   if (!reporte.value.nuevas || reporte.value.nuevas <= 0) return
 
   const o = ordenActual.value
-
   const nuevasHechas  = Math.min(o.unidadesHechas + reporte.value.nuevas, o.unidadesTotales)
-  const nuevoProgreso = Math.round((nuevasHechas / o.unidadesTotales) * 100)
+  const nuevoProgreso = Math.min(100, Math.round((nuevasHechas / o.unidadesAsig) * 100))
   const nuevoEstado   = nuevasHechas >= o.unidadesTotales ? 'Completada' : 'En Proceso'
 
   try {
-    // Primero traemos la orden completa
     const res  = await fetch(`${BASE}/ordenes/${o.idReal}`)
-    if (!res.ok) throw new Error(`GET orden falló: ${res.status} ${await res.text()}`)
+    if (!res.ok) throw new Error(`GET orden falló: ${res.status}`)
     const data = await res.json()
-    console.log('Orden traída:', data)
 
-    // Armamos el payload
     const payload = {
       Id_Cliente:          data.Id_Cliente,
       Id_Material:         data.Id_Material,
@@ -195,99 +393,269 @@ async function enviarReporte() {
       Unidades:            data.Unidades            ?? o.unidadesTotales,
       Unidades_Realizadas: nuevasHechas,
     }
-    console.log('Payload enviado:', payload)
 
     const putRes = await fetch(`${BASE}/ordenes/${o.idReal}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    const putData = await putRes.json()
-    console.log('Respuesta PUT:', putRes.status, putData)
-
-    if (!putRes.ok) throw new Error(`PUT falló: ${putRes.status} — ${JSON.stringify(putData)}`)
+    if (!putRes.ok) throw new Error(`PUT falló: ${putRes.status}`)
 
     // Actualizar estado local
     o.unidadesHechas = nuevasHechas
     o.progreso       = nuevoProgreso
     if (nuevoEstado === 'Completada') o.estado = 'completado'
 
-    historial.value.unshift({
+    // Agregar al historial — PERSISTE porque es el mismo array reactivo
+    historial.value.push({
       id:       Date.now(),
+      ordenId:  o.idReal,
       orden:    `${o.id} — ${o.nombre}`,
       nuevas:   reporte.value.nuevas,
       progreso: nuevoProgreso,
       nota:     reporte.value.nota,
-      fecha:    new Date().toLocaleDateString('es-CO'),
+      fecha:    new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }),
     })
 
+    showToast('Reporte enviado correctamente', 'toast-success')
     cerrarModal()
   } catch (err) {
-    console.error('Error completo:', err)
-    alert(`Error: ${err.message}`)
+    console.error('Error:', err)
+    showToast('Error al enviar el reporte', 'toast-error')
   }
 }
 
-const ordenesActivas  = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
-const ordenesHistorial = computed(() => ordenes.value.filter(o => o.estado === 'completado'))
+// ── Toast ──────────────────────────────────────────────────
+function showToast(msg, type = 'toast-success') {
+  toastMsg.value  = msg
+  toastType.value = type
+  setTimeout(() => { toastMsg.value = '' }, 3000)
+}
 </script>
 
 <style scoped>
 .main { flex: 1; padding: 28px 30px; overflow-y: auto; }
-.title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #111827; }
-.tabs-wrapper { display: flex; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 10px; padding: 4px; margin-bottom: 20px; gap: 4px; }
-.tab-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: #6b7280; cursor: pointer; }
-.tab-btn.active { background: white; color: #111827; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-.tab-content { display: flex; flex-direction: column; gap: 16px; }
-.order-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 20px 22px; }
-.order-card.card-pausada { opacity: 0.6; }
-.order-card.card-completada { border-color: #bbf7d0; background: #f0fdf4; }
-.card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-.card-icon { width: 46px; height: 46px; background: #f3f4f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.card-info { flex: 1; }
-.card-orden { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 2px; }
-.card-nombre { font-size: 13px; color: #6b7280; }
-.badge-estado { padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-.badge-estado.proceso    { background: #2563eb; color: white; }
-.badge-estado.pausado    { background: #fef3c7; color: #b45309; }
-.badge-estado.completado { background: #dcfce7; color: #15803d; }
-.card-progreso-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.card-progreso-label { font-size: 13px; color: #6b7280; }
-.card-progreso-pct { font-size: 14px; font-weight: 700; }
-.progress-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-bottom: 16px; }
-.progress-fill { height: 100%; background: #111827; border-radius: 999px; transition: width 0.4s ease; }
-.order-card.card-completada .progress-fill { background: #16a34a; }
-.card-meta { display: flex; gap: 40px; margin-bottom: 16px; }
-.meta-item { display: flex; align-items: flex-start; gap: 7px; }
-.meta-label { display: block; font-size: 11px; color: #9ca3af; margin-bottom: 2px; }
-.meta-value { display: block; font-size: 14px; font-weight: 700; }
-.card-actions { display: flex; gap: 10px; }
-.btn-reportar-progreso { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #1f3a52; color: white; border: none; padding: 11px 20px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
-.btn-reportar-progreso:disabled { background: #9ca3af; cursor: not-allowed; }
-.btn-pausar { display: inline-flex; align-items: center; gap: 7px; background: white; color: #374151; border: 1px solid #e5e7eb; padding: 10px 16px; border-radius: 9px; font-size: 14px; cursor: pointer; }
-.historial-empty { text-align: center; padding: 52px; background: white; border: 1px solid #e5e7eb; border-radius: 12px; color: #9ca3af; }
-.historial-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; }
-.hist-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.hist-orden { font-size: 14px; font-weight: 600; }
-.hist-unidades { font-size: 12px; color: #9ca3af; }
-.hist-pct { font-size: 13px; font-weight: 700; }
-.hist-fecha { font-size: 12px; color: #9ca3af; }
-.desc-block { background: #f9fafb; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 10px; }
-.desc-label { font-weight: 600; color: #374151; margin-right: 5px; }
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
-.modal-overlay.visible { display: flex; }
-.modal { background: white; border-radius: 14px; width: 100%; max-width: 500px; margin: 0 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
-.modal-header { display: flex; justify-content: space-between; padding: 22px 24px 18px; border-bottom: 1px solid #f1f5f9; }
-.modal-title { font-size: 17px; font-weight: 700; }
-.modal-subtitle { font-size: 13px; color: #6b7280; }
-.modal-close { background: none; border: none; color: #9ca3af; cursor: pointer; }
+
+/* ── HEADER ── */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap; }
+.page-title  { font-size: 22px; font-weight: 700; color: #111827; }
+.page-sub    { font-size: 13px; color: #9ca3af; margin-top: 3px; }
+
+.header-stats { display: flex; align-items: center; gap: 16px; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 18px; }
+.hstat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hstat-num   { font-size: 22px; font-weight: 700; }
+.hstat-num.blue   { color: #2563eb; }
+.hstat-num.green  { color: #16a34a; }
+.hstat-num.orange { color: #ea580c; }
+.hstat-lbl   { font-size: 11px; color: #9ca3af; font-weight: 500; white-space: nowrap; }
+.hstat-div   { width: 1px; height: 32px; background: #e5e7eb; }
+
+/* ── TABS ── */
+.tabs-wrapper { display: flex; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 5px; margin-bottom: 22px; gap: 4px; }
+.tab-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.18s; }
+.tab-btn:hover:not(.active) { background: #f3f4f6; color: #374151; }
+.tab-btn.active { background: #1f3a52; color: white; font-weight: 600; }
+.tab-badge { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+.tab-badge.blue  { background: #dbeafe; color: #1d4ed8; }
+.tab-badge.green { background: #dcfce7; color: #15803d; }
+.tab-btn.active .tab-badge { background: rgba(255,255,255,0.2); color: white; }
+
+.tab-content { }
+
+/* ── LOADING / EMPTY ── */
+.loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px; gap: 14px; color: #9ca3af; font-size: 14px; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; gap: 12px; color: #9ca3af; font-size: 14px; background: white; border: 1px solid #e5e7eb; border-radius: 14px; }
+.empty-hint { font-size: 12px; color: #d1d5db; }
+
+/* ── GRID ÓRDENES ── */
+.orders-grid { display: flex; flex-direction: column; gap: 16px; }
+
+.order-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.order-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.07); transform: translateY(-1px); }
+.order-card.card-pausada { border-color: #fde68a; background: #fffef7; opacity: 0.9; }
+
+/* Cabecera de la card */
+.oc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.oc-header.en-proceso { background: linear-gradient(90deg, #eff6ff, transparent); border-bottom-color: #dbeafe; }
+.oc-header.pausado    { background: linear-gradient(90deg, #fffbeb, transparent); border-bottom-color: #fde68a; }
+.oc-header.completado { background: linear-gradient(90deg, #f0fdf4, transparent); border-bottom-color: #bbf7d0; }
+
+.oc-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.oc-id   { font-size: 13px; font-weight: 700; color: #1f3a52; }
+
+.oc-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.oc-badge.en-proceso { background: #dbeafe; color: #1d4ed8; }
+.oc-badge.completado  { background: #dcfce7; color: #15803d; }
+.oc-badge.pausado     { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+.oc-prio { padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.oc-prio.alta  { background: #fee2e2; color: #991b1b; }
+.oc-prio.media { background: #fef3c7; color: #92400e; }
+.oc-prio.baja  { background: #f0fdf4; color: #166534; }
+
+/* Botón pausa */
+.btn-pausa {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px; border: 1px solid #e5e7eb;
+  background: white; font-size: 12px; font-weight: 600; color: #374151;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-pausa:hover:not(:disabled) { background: #fef3c7; border-color: #fde68a; color: #b45309; }
+.btn-reanudar { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+.btn-reanudar:hover:not(:disabled) { background: #dbeafe; }
+.btn-pausa:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Cuerpo */
+.oc-body    { padding: 16px 18px; }
+.oc-nombre  { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 14px; }
+
+.oc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 16px; }
+.oc-meta-item { display: flex; flex-direction: column; gap: 3px; }
+.oc-meta-lbl  { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; }
+.oc-meta-val  { font-size: 14px; font-weight: 600; color: #111827; }
+.oc-meta-val.prendas { display: flex; align-items: baseline; gap: 3px; }
+.oc-meta-val.prendas strong { font-size: 18px; color: #1f3a52; }
+.oc-meta-val.prendas .sep   { color: #9ca3af; }
+.oc-meta-val.prendas .tot   { font-size: 13px; color: #9ca3af; font-weight: 500; }
+.val-vencida { color: #dc2626 !important; }
+
+/* Barra de progreso */
+.oc-progress { margin-bottom: 18px; }
+.oc-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.oc-progress-lbl { font-size: 12px; color: #6b7280; font-weight: 500; }
+.oc-progress-pct { font-size: 14px; font-weight: 700; color: #374151; }
+.pct-verde   { color: #16a34a !important; }
+.pct-naranja { color: #f59e0b !important; }
+
+.oc-bar { width: 100%; height: 10px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
+.oc-bar-fill { height: 100%; background: #1f3a52; border-radius: 999px; transition: width 0.5s ease; }
+.oc-bar-fill.fill-completado { background: #16a34a; }
+.oc-bar-fill.fill-pausado    { background: #f59e0b; }
+
+.oc-bar-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: #d1d5db; }
+
+/* Botón reportar */
+.btn-reportar {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: #1f3a52; color: white; border: none; padding: 12px 20px;
+  border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-reportar:hover:not(:disabled) { background: #2d5580; transform: translateY(-1px); }
+.btn-reportar:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+
+/* ── HISTORIAL ── */
+.historial-list { display: flex; flex-direction: column; gap: 12px; }
+
+/* Resumen */
+.hist-summary {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 18px;
+}
+.hist-sum-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;
+}
+.hist-sum-num { font-size: 28px; font-weight: 700; color: #1f3a52; }
+.hist-sum-lbl { font-size: 12px; color: #9ca3af; text-align: center; }
+
+/* Cards de historial */
+.hist-card {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px;
+  transition: box-shadow 0.2s;
+}
+.hist-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+.hist-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0; }
+.hist-icon {
+  width: 38px; height: 38px; flex-shrink: 0;
+  background: #f0fdf4; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; color: #16a34a;
+}
+.hist-info  { flex: 1; min-width: 0; }
+.hist-orden { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-nota  { font-size: 12px; color: #6b7280; background: #f9fafb; border-radius: 6px; padding: 5px 8px; margin-top: 4px; border: 1px solid #f3f4f6; }
+
+.hist-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.hist-unidades { display: flex; align-items: baseline; gap: 4px; }
+.hist-uni-num  { font-size: 22px; font-weight: 700; color: #16a34a; }
+.hist-uni-lbl  { font-size: 12px; color: #9ca3af; }
+.hist-pct-wrap { display: flex; align-items: center; gap: 8px; }
+.hist-pct-bar  { width: 80px; height: 5px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+.hist-pct-fill { height: 100%; background: #1f3a52; border-radius: 999px; }
+.hist-pct-txt  { font-size: 12px; font-weight: 600; color: #374151; min-width: 34px; text-align: right; }
+.hist-fecha    { font-size: 11px; color: #9ca3af; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal { background: white; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 24px 14px; border-bottom: 1px solid #f1f5f9; }
+.modal-title    { font-size: 17px; font-weight: 700; color: #111827; }
+.modal-subtitle { font-size: 13px; color: #6b7280; margin-top: 2px; }
+.modal-close { background: none; border: none; color: #9ca3af; cursor: pointer; padding: 2px; border-radius: 6px; }
+.modal-close:hover { background: #f3f4f6; color: #374151; }
+
+/* Estado actual en modal */
+.modal-estado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #f3f4f6; border-bottom: 1px solid #f1f5f9; }
+.modal-estado-item { background: white; padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+.modal-estado-lbl { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; }
+.modal-estado-val { font-size: 16px; font-weight: 700; color: #111827; }
+.modal-estado-val.orange { color: #ea580c; }
+
 .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 13px; font-weight: 600; }
-.req { color: #dc2626; } .opt { color: #9ca3af; font-weight: 400; font-size: 12px; }
-.form-input { padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
-.form-textarea { padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; resize: vertical; font-family: inherit; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 22px; border-top: 1px solid #f1f5f9; }
+.form-group   { display: flex; flex-direction: column; gap: 6px; }
+.form-label   { font-size: 13px; font-weight: 600; color: #374151; }
+.req  { color: #dc2626; }
+.opt  { color: #9ca3af; font-weight: 400; font-size: 12px; }
+.form-input {
+  padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px;
+  font-size: 14px; outline: none; transition: border-color 0.2s;
+}
+.form-input:focus { border-color: #1f3a52; }
+.form-hint  { font-size: 12px; color: #6b7280; padding: 4px 8px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb; }
+.form-textarea { padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; resize: vertical; font-family: inherit; transition: border-color 0.2s; }
+.form-textarea:focus { border-color: #1f3a52; }
+
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px 20px; border-top: 1px solid #f1f5f9; }
 .btn-cancelar { padding: 10px 20px; border: 1px solid #e5e7eb; background: white; border-radius: 8px; font-size: 14px; cursor: pointer; }
-.btn-enviar { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1f3a52; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-enviar {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; background: #1f3a52; color: white;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-enviar:hover:not(:disabled) { background: #2d5580; }
+.btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 2000;
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; color: white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.toast-success { background: #166534; }
+.toast-error   { background: #991b1b; }
+
+.toast-enter-active, .toast-leave-active { transition: opacity 0.3s, transform 0.3s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
+
+@media (max-width: 900px) {
+  .main { padding: 20px 16px; }
+  .header-stats { display: none; }
+  .hist-summary { grid-template-columns: 1fr 1fr; }
+}
 </style>
