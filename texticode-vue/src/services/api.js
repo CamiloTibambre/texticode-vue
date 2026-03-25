@@ -63,3 +63,6 @@ export const getUsuariosDeOrden   = (idOrden)            => request(`/usuario-or
 export const getOrdenesDeUsuario  = (idUsuario)          => request(`/usuario-orden/usuario/${idUsuario}`)
 export const asignarUsuarioOrden  = (body)               => request('/usuario-orden', { method: 'POST', body: JSON.stringify(body) })
 export const desasignarUsuarioOrden=(idUsuario, idOrden) => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })
+
+// ── IA ───────────────────────────────────────────────────
+export const analizarConIA = (body) => request('/ia/analizar', { method: 'POST', body: JSON.stringify(body) })
