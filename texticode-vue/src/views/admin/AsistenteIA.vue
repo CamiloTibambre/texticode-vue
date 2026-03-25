@@ -165,7 +165,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
-import { getOrdenes, getMateriales, getUsuarios } from '../../services/api.js'
+import { getOrdenes, getMateriales, getUsuarios, chatIA } from '../../services/api.js'
 
 // ── ESTADO ──
 const mensajes = ref([])
@@ -390,26 +390,18 @@ async function enviar() {
         content: m.contenido
       }))
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: construirSistemaPrompt(),
-        messages: historial
-      })
+    const data = await chatIA({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: construirSistemaPrompt(),
+      messages: historial
     })
-
-    const data = await response.json()
 
     // Quitar typing indicator
     const idx = mensajes.value.findIndex(m => m.id === idTyping)
     if (idx !== -1) mensajes.value.splice(idx, 1)
 
-    const respuesta = data.content?.[0]?.text || 'No pude obtener una respuesta. Intenta de nuevo.'
+    const respuesta = data?.text || 'No pude obtener una respuesta. Intenta de nuevo.'
 
     mensajes.value.push({
       id: Date.now(),
@@ -427,7 +419,7 @@ async function enviar() {
     mensajes.value.push({
       id: Date.now(),
       rol: 'assistant',
-      contenido: '**Error de conexión.** No pude comunicarme con el asistente. Verifica tu conexión e intenta de nuevo.',
+      contenido: `**Error de IA.** ${err?.message || 'No pude comunicarme con Anthropic.'}`,
       hora: hora()
     })
     scrollAbajo()
