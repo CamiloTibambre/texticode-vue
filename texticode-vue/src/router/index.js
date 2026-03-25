@@ -10,6 +10,7 @@ const routes = [
   { path: '/admin/inventario', name: 'AdminInventario', component: () => import('../views/admin/GestionInventario.vue'), meta: { rol: 'admin' } },
   { path: '/admin/reportes',   name: 'AdminReportes',   component: () => import('../views/admin/Reportes.vue'),          meta: { rol: 'admin' } },
   { path: '/admin/produccion', name: 'AdminProduccion', component: () => import('../views/admin/GestionProduccion.vue'), meta: { rol: 'admin' } },
+  { path: '/admin/ia',         name: 'AdminIA',         component: () => import('../views/admin/AsistenteIA.vue'),      meta: { rol: 'admin' } },
 
   // OPERARIO
   { path: '/operario/cuenta',  name: 'OperarioCuenta',  component: () => import('../views/operario/CuentaPersonal.vue'),  meta: { rol: 'operario' } },
