@@ -8,7 +8,7 @@
           <p class="eyebrow">Texticode Neural OS</p>
           <h1>Centro de Inteligencia Artificial</h1>
           <p class="subtitle">
-            IA conectada al backend para análisis reales de órdenes, riesgos y recomendaciones por perfil.
+            IA conectada al backend que interpreta tu pregunta y responde con acciones específicas por rol.
           </p>
         </div>
         <div class="hero-badge">{{ etiquetaRol }}</div>
@@ -61,7 +61,13 @@
               <ul>
                 <li v-for="accion in respuesta.acciones" :key="accion">{{ accion }}</li>
               </ul>
-              <div class="confidence">Precisión estimada: {{ respuesta.confianza }}%</div>
+              <div class="meta-ia">
+                <span class="intent">Intent detectado: {{ respuesta.intent || 'general' }}</span>
+                <span class="confidence">Precisión estimada: {{ respuesta.confianza }}%</span>
+              </div>
+              <ul v-if="respuesta.evidencia?.length" class="evidence-list">
+                <li v-for="item in respuesta.evidencia" :key="item">{{ item }}</li>
+              </ul>
             </div>
           </Transition>
 
@@ -306,7 +312,10 @@ h1 { font-size: clamp(24px, 3vw, 34px); color: #0f172a; margin: 5px 0 8px; line-
 .response-box h3 { margin-bottom: 6px; color: #111827; }
 .response-box p { color: #334155; font-size: 14px; margin-bottom: 6px; }
 .response-box ul { padding-left: 18px; display: grid; gap: 4px; color: #0f172a; font-size: 14px; }
-.confidence { margin-top: 8px; font-size: 12px; color: #0284c7; font-weight: 700; }
+.meta-ia { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+.intent { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.confidence { font-size: 12px; color: #0284c7; font-weight: 700; align-self: center; }
+.evidence-list { margin-top: 8px; padding-left: 18px; color: #334155; font-size: 12px; display: grid; gap: 3px; }
 .alerts { display: grid; gap: 8px; }
 .alert { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; display: flex; justify-content: space-between; gap: 10px; align-items: center; background: #fff; }
 .alert h4 { font-size: 14px; color: #0f172a; }

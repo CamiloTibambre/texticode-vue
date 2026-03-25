@@ -45,17 +45,21 @@ router.post('/analizar', async (req, res) => {
 
     const resumen = construirResumen(ordenes)
     const prioridades = construirPrioridades(ordenes, rol)
+    const analisisConsulta = interpretarConsulta({ consulta, rol, resumen, prioridades, materialesBajos })
+
     const kpis = construirKpisPorRol({ rol, ...resumen })
-    const alertas = construirAlertasPorRol({ rol, ...resumen, materialesBajos })
+    const alertas = construirAlertasPorRol({ rol, ...resumen, materialesBajos, analisisConsulta })
     const automatizaciones = construirAutomatizacionesPorRol(rol)
-    const playbook = construirPlaybook({ rol, resumen, prioridades, materialesBajos })
+    const playbook = construirPlaybook({ rol, resumen, prioridades, materialesBajos, analisisConsulta })
 
     const respuesta = {
-      resumen: consulta
-        ? `Procesé tu consulta: "${consulta}" y prioricé ${prioridades.length} frentes críticos.`
-        : 'Analicé producción, riesgo y cumplimiento; ya tienes un plan accionable para ejecutar hoy.',
-      acciones: construirAccionesPorRol({ rol, resumen, prioridades, materialesBajos }),
-      confianza: Math.max(89, 97 - Math.min(7, resumen.atrasadas)),
+      resumen: analisisConsulta.resumen,
+      acciones: analisisConsulta.acciones.length
+        ? analisisConsulta.acciones
+        : construirAccionesPorRol({ rol, resumen, prioridades, materialesBajos }),
+      evidencia: analisisConsulta.evidencia,
+      confianza: analisisConsulta.confianza,
+      intent: analisisConsulta.intent,
     }
 
     res.json({
@@ -146,6 +150,115 @@ function construirPrioridades(ordenes, rol) {
     .slice(0, 5)
 }
 
+function detectarIntent(consulta = '') {
+  const q = consulta.toLowerCase()
+  if (!q) return 'general'
+
+  const intents = [
+    { key: 'retrasos', words: ['retraso', 'atraso', 'demora', 'tarde', 'fecha'] },
+    { key: 'inventario', words: ['inventario', 'stock', 'material', 'insumo', 'bajo'] },
+    { key: 'prioridad', words: ['prioridad', 'primero', 'ordenar', 'secuencia', 'qué hago'] },
+    { key: 'cumplimiento', words: ['cumplimiento', 'productividad', 'rendimiento', 'mejorar'] },
+    { key: 'cliente', words: ['cliente', 'pedido', 'entrega', 'eta', 'recibir'] },
+  ]
+
+  let best = { key: 'general', score: 0 }
+  for (const intent of intents) {
+    const score = intent.words.reduce((acc, word) => acc + (q.includes(word) ? 1 : 0), 0)
+    if (score > best.score) best = { key: intent.key, score }
+  }
+  return best.key
+}
+
+function interpretarConsulta({ consulta, rol, resumen, prioridades, materialesBajos }) {
+  const intent = detectarIntent(consulta)
+  const top = prioridades[0]
+
+  const base = {
+    intent,
+    confianza: 91,
+    evidencia: [
+      `${resumen.total} órdenes evaluadas`,
+      `${resumen.atrasadas} atrasadas`,
+      `${materialesBajos.length} materiales en riesgo`,
+    ],
+    acciones: [],
+    resumen: 'Analicé tu operación y preparé un plan accionable según tus datos actuales.',
+  }
+
+  if (intent === 'retrasos') {
+    return {
+      ...base,
+      confianza: 95,
+      resumen: `Detecté ${resumen.atrasadas} órdenes atrasadas y riesgo de ${resumen.riesgoPct}%. Debes atacar el cuello de botella hoy.`,
+      acciones: [
+        top ? `Atiende primero la Orden #${top.idOrden} por criticidad ${top.score}.` : 'No hay orden crítica principal identificada.',
+        `Bloquea nuevas tareas no urgentes hasta bajar atrasos a ${Math.max(0, resumen.atrasadas - 2)}.`,
+        'Revisa capacidad de turno y reasigna al módulo con más retraso.',
+      ],
+    }
+  }
+
+  if (intent === 'inventario') {
+    const mat = materialesBajos[0]
+    return {
+      ...base,
+      confianza: 94,
+      resumen: mat
+        ? `El material más crítico es ${mat.Nombre_Material}. Riesgo directo de detener producción si no se repone.`
+        : 'No se detectan materiales en riesgo crítico en este momento.',
+      acciones: mat
+        ? [
+            `Emitir compra inmediata de ${mat.Nombre_Material}.`,
+            'Ajustar secuencia para consumir materiales alternos primero.',
+            'Configurar alerta de reposición al 110% del mínimo.',
+          ]
+        : ['Mantener monitoreo diario de inventario.', 'Auditar materiales con consumo inestable.'],
+    }
+  }
+
+  if (intent === 'prioridad') {
+    return {
+      ...base,
+      confianza: 96,
+      resumen: 'Ordené automáticamente las tareas por impacto: prioridad, atraso y avance real.',
+      acciones: prioridades.slice(0, 3).map((p, i) => `${i + 1}. Orden #${p.idOrden} (${p.razon}).`),
+    }
+  }
+
+  if (intent === 'cumplimiento') {
+    return {
+      ...base,
+      confianza: 93,
+      resumen: `Tu cumplimiento actual es ${resumen.tasaCumplimiento}%. Hay margen para subirlo con secuencia y controles intermedios.`,
+      acciones: [
+        'Aplicar control de calidad al 50% y 100% de cada orden crítica.',
+        `Reducir pendientes de ${resumen.pendientes} a ${Math.max(0, resumen.pendientes - 2)} esta semana.`,
+        'Priorizar trabajos de alta complejidad al inicio del turno.',
+      ],
+    }
+  }
+
+  if (intent === 'cliente') {
+    return {
+      ...base,
+      confianza: 92,
+      resumen: `Hay ${resumen.enProceso} pedidos en curso con riesgo de entrega de ${resumen.riesgoPct}%.`,
+      acciones: [
+        top ? `Pedido sensible: Orden #${top.idOrden}.` : 'No hay pedido sensible detectado ahora.',
+        'Compartir ETA estimada con ventana realista en el portal.',
+        'Activar actualización automática al cambiar de estado.',
+      ],
+    }
+  }
+
+  if (rol === 'operario') {
+    base.resumen = 'Te devolví una guía de turno basada en tus órdenes activas.'
+  }
+
+  return base
+}
+
 function construirKpisPorRol({ rol, total, completadas, pendientes, enProceso, atrasadas, riesgoPct, tasaCumplimiento }) {
   if (rol === 'admin') {
     return [
@@ -168,8 +281,16 @@ function construirKpisPorRol({ rol, total, completadas, pendientes, enProceso, a
   ]
 }
 
-function construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, enProceso, riesgoPct }) {
+function construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, enProceso, riesgoPct, analisisConsulta }) {
   const alertas = []
+
+  if (analisisConsulta.intent === 'inventario' && materialesBajos.length > 0) {
+    alertas.push({
+      titulo: `Inventario crítico: ${materialesBajos[0].Nombre_Material}`,
+      detalle: 'La consulta detectó riesgo directo por materiales debajo del mínimo.',
+      nivel: 'alta',
+    })
+  }
 
   if (atrasadas > 0) {
     alertas.push({
@@ -192,7 +313,7 @@ function construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, e
     rol === 'cliente'
       ? {
           titulo: 'ETA en revisión dinámica',
-          detalle: `El riesgo de tu flujo actual es ${riesgoPct}%. Activa comunicación proactiva.`,
+          detalle: `El riesgo de tu flujo actual es ${riesgoPct}%.`,
           nivel: riesgoPct > 50 ? 'media' : 'baja',
         }
       : {
@@ -227,22 +348,24 @@ function construirAutomatizacionesPorRol(rol) {
   ]
 }
 
-function construirPlaybook({ rol, resumen, prioridades, materialesBajos }) {
+function construirPlaybook({ rol, resumen, prioridades, materialesBajos, analisisConsulta }) {
   const top = prioridades[0]
+  const basadoEnConsulta = analisisConsulta.intent !== 'general'
+
   return {
     inmediato: top
       ? `Priorizar Orden #${top.idOrden} (${top.titulo}) por score ${top.score}.`
       : 'No hay órdenes críticas en este momento.',
-    estaSemana:
-      resumen.atrasadas > 0
+    estaSemana: basadoEnConsulta
+      ? `Objetivo (${analisisConsulta.intent}): ejecutar 3 acciones y medir mejora en 7 días.`
+      : (resumen.atrasadas > 0
         ? `Objetivo: reducir atrasos de ${resumen.atrasadas} a ${Math.max(0, resumen.atrasadas - 2)}.`
-        : 'Objetivo: mantener cero atrasos y aumentar cumplimiento +5%.',
-    comunicacion:
-      rol === 'cliente'
-        ? 'Enviar actualización automática de ETA y estado al correo del cliente.'
-        : materialesBajos.length
-          ? `Notificar compras por riesgo en ${materialesBajos[0].Nombre_Material}.`
-          : 'Enviar resumen diario de cumplimiento al cierre del turno.',
+        : 'Objetivo: mantener cero atrasos y aumentar cumplimiento +5%.'),
+    comunicacion: rol === 'cliente'
+      ? 'Actualizar estado del pedido en portal con lenguaje claro para el cliente.'
+      : materialesBajos.length
+        ? `Notificar compras por riesgo en ${materialesBajos[0].Nombre_Material}.`
+        : 'Enviar resumen diario de cumplimiento al cierre del turno.',
   }
 }
 
