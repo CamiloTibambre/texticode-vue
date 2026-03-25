@@ -6,8 +6,9 @@
       <div class="main-content">
         <h1 :class="{ 'fade-in': mounted }">Gestión de Inventario</h1>
 
+      
         <!-- TOP BAR -->
-        <div class="top-bar" :class="{ 'topbar-visible': mounted }">
+        <div class="top-bar surface-panel" :class="{ 'topbar-visible': mounted }">
           <div class="search-wrapper">
             <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
@@ -36,7 +37,13 @@
         </div>
 
         <!-- CARDS con contadores animados -->
-        <div class="summary-cards">
+        <div v-if="cargandoVista" class="summary-cards">
+          <div v-for="i in 3" :key="i" class="card card-visible surface-panel skeleton-card">
+            <div class="data-skeleton skeleton-line skeleton-sm"></div>
+            <div class="data-skeleton skeleton-line skeleton-xl"></div>
+          </div>
+        </div>
+        <div v-else class="summary-cards">
           <div class="card" :class="{ 'card-visible': mounted }" style="transition-delay:0ms">
             <h3>Total Materiales</h3>
             <p class="number">{{ displayTotal }}</p>
@@ -77,7 +84,7 @@
         </Transition>
 
         <!-- TABLA -->
-        <div class="table-container" :class="{ 'section-visible': mounted }" style="transition-delay:250ms">
+        <div class="table-container surface-panel" :class="{ 'section-visible': mounted }" style="transition-delay:250ms">
           <div class="table-header-row">
             <h3>
               <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;display:inline;vertical-align:middle;margin-right:6px;">
@@ -88,7 +95,15 @@
             <span class="result-count">{{ materialesFiltrados.length }} resultado(s)</span>
           </div>
 
-          <table>
+          <div v-if="cargandoVista" class="table-skeleton">
+            <div v-for="i in 6" :key="i" class="table-skeleton-row">
+              <span class="data-skeleton skeleton-line skeleton-user"></span>
+              <span class="data-skeleton skeleton-line skeleton-tag"></span>
+              <span class="data-skeleton skeleton-line skeleton-stock"></span>
+              <span class="data-skeleton skeleton-line skeleton-date"></span>
+            </div>
+          </div>
+          <table v-else>
             <thead>
               <tr>
                 <th class="sortable" @click="doSort('nombre')">Material <span class="sort-icon">{{ sIcon('nombre') }}</span></th>
@@ -192,7 +207,17 @@
               </div>
               <div class="form-group">
                 <label>Unidad</label>
-                <input v-model="form.unidad" type="text" placeholder="metros, unidades...">
+                <select v-model="form.unidad" :class="{ 'input-error': errores.unidad }">
+                  <option disabled value="">Selecciona unidad</option>
+                  <option>Metros</option>
+                  <option>Centímetros</option>
+                  <option>Unidades</option>
+                  <option>Rollos</option>
+                  <option>Kilos</option>
+                  <option>Gramos</option>
+                  <option>Piezas</option>
+                </select>
+                <span v-if="errores.unidad" class="error-msg">{{ errores.unidad }}</span>
               </div>
             </div>
             <div class="form-row">
@@ -288,6 +313,7 @@ const modalVisible    = ref(false)
 const editando        = ref(false)
 const guardando       = ref(false)
 const mounted         = ref(false)
+const cargandoVista   = ref(true)
 const toastMsg        = ref('')
 const toastType       = ref('toast-success')
 const confirmItem     = ref(null)
@@ -359,8 +385,9 @@ const materialesFiltrados = computed(() => {
 const errores = computed(() => ({
   nombre:    !form.value.nombre.trim() ? 'El nombre es requerido' : '',
   categoria: !form.value.categoria     ? 'Selecciona una categoría' : '',
+  unidad:    !form.value.unidad        ? 'Selecciona una unidad' : '',
 }))
-const formValido = computed(() => !errores.value.nombre && !errores.value.categoria)
+const formValido = computed(() => !errores.value.nombre && !errores.value.categoria && !errores.value.unidad)
 
 // ── Acciones ─────────────────────────────────────────────────
 function abrirModal(m) {
@@ -479,6 +506,8 @@ onMounted(async () => {
       .map(u => ({ id: u.Id_Usuario, nombre: u.Nombre_Completo }))
   } catch (err) {
     console.error("Error cargando clientes:", err)
+  } finally {
+    cargandoVista.value = false
   }
 
   // Animaciones de entrada
@@ -504,11 +533,59 @@ h1 {
 }
 h1.fade-in { opacity: 1; transform: translateY(0); }
 
+.hero-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px;
+  border-radius: 22px;
+  margin-bottom: 18px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.hero-banner.hero-visible { opacity: 1; transform: translateY(0); }
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f766e;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.hero-banner h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  line-height: 1.15;
+  color: #0f172a;
+}
+.hero-banner p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+  max-width: 680px;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  justify-content: flex-end;
+}
+.hero-chip {
+  min-width: 138px;
+  justify-content: space-between;
+}
+
 /* ── TOP BAR ─────────────────────────────────────────────── */
 .top-bar {
   display: flex; gap: 12px; align-items: center; margin-bottom: 25px;
   opacity: 0; transform: translateY(8px);
   transition: opacity .4s ease .1s, transform .4s ease .1s;
+  padding: 14px; border-radius: 18px;
 }
 .top-bar.topbar-visible { opacity: 1; transform: translateY(0); }
 
@@ -554,6 +631,10 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 .number        { font-size: 26px; font-weight: 700; color: #111827; margin: 10px 0 0 0; }
 .number-danger  { color: #dc2626; }
 .number-primary { color: #1f3c4d; }
+.skeleton-card { min-height: 108px; pointer-events: none; }
+.skeleton-line { display: block; border-radius: 999px; }
+.skeleton-sm   { width: 46%; height: 12px; margin-bottom: 16px; }
+.skeleton-xl   { width: 72%; height: 30px; }
 
 /* ── ALERTAS ─────────────────────────────────────────────── */
 .alert-box {
@@ -577,7 +658,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 
 /* ── TABLE ───────────────────────────────────────────────── */
 .table-container {
-  background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb;
+  padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.82);
   opacity: 0; transform: translateY(12px);
   transition: opacity .45s ease, transform .45s ease;
 }
@@ -591,6 +672,19 @@ thead  { background: #f9fafb; }
 th     { padding: 11px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; user-select: none; }
 td     { padding: 12px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
 tbody tr:last-child td { border-bottom: none; }
+.table-skeleton { display: grid; gap: 12px; }
+.table-skeleton-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.8fr 0.6fr;
+  gap: 14px;
+  padding: 14px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.72);
+}
+.skeleton-user  { width: 72%; height: 16px; }
+.skeleton-tag   { width: 88px; height: 14px; }
+.skeleton-stock { width: 84px; height: 14px; }
+.skeleton-date  { width: 70px; height: 14px; }
 
 .sortable       { cursor: pointer; }
 .sortable:hover { color: #374151; }
@@ -716,4 +810,11 @@ tbody tr:last-child td { border-bottom: none; }
 
 .row-enter-active, .row-leave-active { transition: opacity .3s ease; }
 .row-enter-from, .row-leave-to       { opacity: 0; }
+
+@media (max-width: 900px) {
+  .hero-banner { flex-direction: column; }
+  .hero-actions { justify-content: flex-start; }
+  .table-skeleton-row { grid-template-columns: 1fr 0.8fr; }
+  .skeleton-stock, .skeleton-date { display: none; }
+}
 </style>
