@@ -111,12 +111,12 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Material <span class="req">*</span></label>
-                <select v-model="form.Id_Material" class="form-input" :class="{ 'input-error': tocado && !form.Id_Material }">
-                  <option value="">Selecciona un material</option>
-                  <option v-for="m in materiales" :key="m.Id_Material" :value="m.Id_Material">
-                    {{ m.Nombre_Material }}
-                  </option>
-                </select>
+              <select v-model="form.Id_Material" class="form-input">
+  <option value="">Selecciona un material</option>
+  <option v-for="m in materialesFiltrados" :key="m.Id_Material" :value="m.Id_Material">
+    {{ m.Nombre_Material }}
+  </option>
+</select>
                 <span v-if="tocado && !form.Id_Material" class="error-msg">El material es requerido</span>
               </div>
             </div>
@@ -254,7 +254,7 @@
 </template>
  
 <script setup>
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import {
   getOrdenes, crearOrden, actualizarOrden, eliminarOrden,
@@ -296,7 +296,7 @@ const statTimers      = new Map()
 const formVacio = () => ({
   Id_Orden:     null,
   Id_Cliente:   '',
-  Id_Material:  '',
+Id_Material: '',
   Id_Operario:  '',
   Producto:     '',
   Descripcion:  '',
@@ -344,6 +344,18 @@ const stats = computed(() => [
   { label: 'Completadas',   display: statsDisplay.value.completadas, color: 'stat-green'  },
   { label: 'Pausadas',      display: statsDisplay.value.pausadas,    color: 'stat-gray'   },
 ])
+const materialesFiltrados = computed(() => {
+  if (!form.value.Id_Cliente) return []
+
+  return materiales.value.filter(
+    m => m.Id_Cliente == form.value.Id_Cliente
+  )
+})
+
+watch(() => form.value.Id_Cliente, () => {
+  form.value.Id_Material = ''
+})
+
 
 function animateCount(key, target) {
   clearInterval(statTimers.get(key))
@@ -458,7 +470,7 @@ async function guardar() {
   tocado.value = true
  
   // Solo valida los campos realmente obligatorios en la BD
-  if (!form.value.Id_Cliente || !form.value.Id_Material || !form.value.Descripcion || !form.value.Fecha_Limite) {
+ if (!form.value.Id_Cliente || !form.value.Id_Material || !form.value.Descripcion || !form.value.Fecha_Limite) {
     errorGuardar.value = 'Completa todos los campos obligatorios.'
     return
   }
@@ -483,7 +495,7 @@ async function guardar() {
       await actualizarOrden(form.value.Id_Orden, payload)
       showToast('Orden actualizada correctamente', 'toast-success')
     } else {
-      await crearOrden(payload)
+     await crearOrden(payload)
       showToast('Orden creada correctamente', 'toast-success')
     }
     await cargarDatos()
