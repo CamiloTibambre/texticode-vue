@@ -207,7 +207,17 @@
               </div>
               <div class="form-group">
                 <label>Unidad</label>
-                <input v-model="form.unidad" type="text" placeholder="metros, unidades...">
+                <select v-model="form.unidad" :class="{ 'input-error': errores.unidad }">
+                  <option disabled value="">Selecciona unidad</option>
+                  <option>Metros</option>
+                  <option>Centímetros</option>
+                  <option>Unidades</option>
+                  <option>Rollos</option>
+                  <option>Kilos</option>
+                  <option>Gramos</option>
+                  <option>Piezas</option>
+                </select>
+                <span v-if="errores.unidad" class="error-msg">{{ errores.unidad }}</span>
               </div>
             </div>
             <div class="form-row">
@@ -375,8 +385,9 @@ const materialesFiltrados = computed(() => {
 const errores = computed(() => ({
   nombre:    !form.value.nombre.trim() ? 'El nombre es requerido' : '',
   categoria: !form.value.categoria     ? 'Selecciona una categoría' : '',
+  unidad:    !form.value.unidad        ? 'Selecciona una unidad' : '',
 }))
-const formValido = computed(() => !errores.value.nombre && !errores.value.categoria)
+const formValido = computed(() => !errores.value.nombre && !errores.value.categoria && !errores.value.unidad)
 
 // ── Acciones ─────────────────────────────────────────────────
 function abrirModal(m) {
