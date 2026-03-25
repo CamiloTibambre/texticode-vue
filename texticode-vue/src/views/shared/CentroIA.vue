@@ -86,6 +86,40 @@
         </article>
       </section>
 
+
+
+      <section class="panel execution">
+        <div class="panel-head">
+          <h2>Plan de ejecución IA</h2>
+          <span>Lo que sí puedes hacer hoy</span>
+        </div>
+
+        <div class="execution-grid">
+          <article class="mini-panel">
+            <h3>Top prioridades</h3>
+            <div v-if="prioridades.length === 0" class="empty">Sin prioridades críticas por ahora.</div>
+            <ul v-else class="priority-list">
+              <li v-for="item in prioridades" :key="item.idOrden">
+                <div>
+                  <strong>#{{ item.idOrden }} · {{ item.titulo }}</strong>
+                  <p>{{ item.razon }}</p>
+                </div>
+                <span class="score">{{ item.score }}</span>
+              </li>
+            </ul>
+          </article>
+
+          <article class="mini-panel">
+            <h3>Playbook recomendado</h3>
+            <ul class="playbook">
+              <li><strong>Ahora:</strong> {{ playbook.inmediato || '—' }}</li>
+              <li><strong>Esta semana:</strong> {{ playbook.estaSemana || '—' }}</li>
+              <li><strong>Comunicación:</strong> {{ playbook.comunicacion || '—' }}</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
       <section class="panel automation">
         <div class="panel-head">
           <h2>Automatizaciones recomendadas</h2>
@@ -122,6 +156,8 @@ const error = ref('')
 const kpis = ref([])
 const alertas = ref([])
 const automatizaciones = ref([])
+const prioridades = ref([])
+const playbook = ref({})
 
 const rolNormalizado = computed(() => {
   const rol = (auth.rol || '').toLowerCase()
@@ -183,6 +219,8 @@ async function ejecutarIA() {
     kpis.value = Array.isArray(data.kpis) ? data.kpis : []
     alertas.value = Array.isArray(data.alertas) ? data.alertas : []
     automatizaciones.value = Array.isArray(data.automatizaciones) ? data.automatizaciones : []
+    prioridades.value = Array.isArray(data.prioridades) ? data.prioridades : []
+    playbook.value = data.playbook || {}
     respuesta.value = data.respuesta || null
   } catch (e) {
     error.value = e.message || 'No se pudo conectar con el backend de IA.'
@@ -283,12 +321,25 @@ h1 { font-size: clamp(24px, 3vw, 34px); color: #0f172a; margin: 5px 0 8px; line-
 .auto-card p { color: #475569; font-size: 13px; min-height: 36px; }
 .error { color: #b91c1c; font-size: 13px; margin-top: 8px; }
 .toast { position: fixed; right: 24px; bottom: 22px; background: #0f172a; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; box-shadow: 0 14px 40px rgba(2,6,23,.35); }
+
+.execution { padding: 16px; }
+.execution-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 10px; }
+.mini-panel { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 12px; }
+.mini-panel h3 { font-size: 15px; color: #0f172a; margin-bottom: 8px; }
+.empty { color: #64748b; font-size: 13px; }
+.priority-list { list-style: none; display: grid; gap: 8px; }
+.priority-list li { display: flex; justify-content: space-between; gap: 10px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; }
+.priority-list p { font-size: 12px; color: #475569; margin-top: 2px; }
+.score { background: #dbeafe; color: #1d4ed8; border-radius: 999px; font-weight: 700; font-size: 12px; height: fit-content; padding: 5px 8px; }
+.playbook { list-style: none; display: grid; gap: 8px; font-size: 13px; color: #334155; }
+
 .fade-enter-active, .fade-leave-active { transition: opacity .2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 1200px) {
   .kpi-grid, .automation-grid { grid-template-columns: 1fr 1fr; }
   .workspace { grid-template-columns: 1fr; }
+  .execution-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {

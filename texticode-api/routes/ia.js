@@ -17,9 +17,21 @@ router.post('/analizar', async (req, res) => {
     const { whereSql, params } = construirFiltroPorRol(rol, idUsuario)
 
     const [ordenes] = await pool.query(
-      `SELECT Id_Orden, Estado, Prioridad, Fecha_Limite, Cantidad, Unidades_Realizadas
-       FROM orden_produccion
-       ${whereSql}`,
+      `SELECT
+        op.Id_Orden,
+        op.Estado,
+        op.Prioridad,
+        op.Fecha_Limite,
+        op.Cantidad,
+        op.Unidades_Realizadas,
+        op.Producto,
+        op.Descripcion,
+        c.Nombre_Completo AS Cliente,
+        m.Nombre_Material AS Material
+      FROM orden_produccion op
+      INNER JOIN usuario c ON c.Id_Usuario = op.Id_Cliente
+      INNER JOIN material m ON m.Id_Material = op.Id_Material
+      ${whereSql}`,
       params,
     )
 
@@ -27,36 +39,34 @@ router.post('/analizar', async (req, res) => {
       `SELECT Nombre_Material, Stock_Actual, Stock_Minimo
        FROM material
        WHERE Stock_Actual <= Stock_Minimo
-       ORDER BY Stock_Actual ASC
-       LIMIT 4`,
+       ORDER BY (Stock_Minimo - Stock_Actual) DESC
+       LIMIT 5`,
     )
 
-    const hoy = new Date()
-    const total = ordenes.length
-    const completadas = ordenes.filter((o) => normalizarEstado(o.Estado) === 'completada').length
-    const pendientes = ordenes.filter((o) => normalizarEstado(o.Estado) === 'pendiente').length
-    const enProceso = ordenes.filter((o) => normalizarEstado(o.Estado) === 'en-proceso').length
-    const atrasadas = ordenes.filter((o) => {
-      if (!o.Fecha_Limite) return false
-      return new Date(o.Fecha_Limite) < hoy && normalizarEstado(o.Estado) !== 'completada'
-    }).length
-
-    const riesgoPct = total ? Math.min(95, Math.round(((atrasadas + pendientes) / total) * 100)) : 0
-    const tasaCumplimiento = total ? Math.round((completadas / total) * 100) : 0
-
-    const kpis = construirKpisPorRol({ rol, total, completadas, pendientes, enProceso, atrasadas, riesgoPct, tasaCumplimiento })
-    const alertas = construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, enProceso, riesgoPct })
+    const resumen = construirResumen(ordenes)
+    const prioridades = construirPrioridades(ordenes, rol)
+    const kpis = construirKpisPorRol({ rol, ...resumen })
+    const alertas = construirAlertasPorRol({ rol, ...resumen, materialesBajos })
     const automatizaciones = construirAutomatizacionesPorRol(rol)
+    const playbook = construirPlaybook({ rol, resumen, prioridades, materialesBajos })
 
     const respuesta = {
       resumen: consulta
-        ? `Analicé tu consulta "${consulta}" con ${total} órdenes del sistema y encontré ${alertas.length} alertas clave.`
-        : `Analicé tus datos operativos y detecté focos de optimización inmediatos.`,
-      acciones: construirAccionesPorRol({ rol, atrasadas, materialesBajos, pendientes, enProceso }),
-      confianza: Math.max(87, 96 - Math.min(8, atrasadas)),
+        ? `Procesé tu consulta: "${consulta}" y prioricé ${prioridades.length} frentes críticos.`
+        : 'Analicé producción, riesgo y cumplimiento; ya tienes un plan accionable para ejecutar hoy.',
+      acciones: construirAccionesPorRol({ rol, resumen, prioridades, materialesBajos }),
+      confianza: Math.max(89, 97 - Math.min(7, resumen.atrasadas)),
     }
 
-    res.json({ kpis, alertas, automatizaciones, respuesta })
+    res.json({
+      kpis,
+      alertas,
+      automatizaciones,
+      prioridades,
+      playbook,
+      respuesta,
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
     res.status(500).json({ error: error.message || 'No fue posible ejecutar el análisis IA' })
   }
@@ -64,13 +74,11 @@ router.post('/analizar', async (req, res) => {
 
 function construirFiltroPorRol(rol, idUsuario) {
   if (rol === 'operario' && idUsuario) {
-    return { whereSql: 'WHERE Id_Operario = ?', params: [idUsuario] }
+    return { whereSql: 'WHERE op.Id_Operario = ?', params: [idUsuario] }
   }
-
   if (rol === 'cliente' && idUsuario) {
-    return { whereSql: 'WHERE Id_Cliente = ?', params: [idUsuario] }
+    return { whereSql: 'WHERE op.Id_Cliente = ?', params: [idUsuario] }
   }
-
   return { whereSql: '', params: [] }
 }
 
@@ -82,6 +90,62 @@ function normalizarEstado(estado = '') {
   return value || 'pendiente'
 }
 
+function prioridadScore(prioridad = '') {
+  const p = String(prioridad).toLowerCase()
+  if (p === 'alta') return 3
+  if (p === 'media') return 2
+  return 1
+}
+
+function construirResumen(ordenes) {
+  const hoy = new Date()
+  const total = ordenes.length
+  const completadas = ordenes.filter((o) => normalizarEstado(o.Estado) === 'completada').length
+  const pendientes = ordenes.filter((o) => normalizarEstado(o.Estado) === 'pendiente').length
+  const enProceso = ordenes.filter((o) => normalizarEstado(o.Estado) === 'en-proceso').length
+
+  const atrasadas = ordenes.filter((o) => {
+    if (!o.Fecha_Limite) return false
+    return new Date(o.Fecha_Limite) < hoy && normalizarEstado(o.Estado) !== 'completada'
+  }).length
+
+  const riesgoPct = total ? Math.min(95, Math.round(((atrasadas + pendientes) / total) * 100)) : 0
+  const tasaCumplimiento = total ? Math.round((completadas / total) * 100) : 0
+
+  return { total, completadas, pendientes, enProceso, atrasadas, riesgoPct, tasaCumplimiento }
+}
+
+function construirPrioridades(ordenes, rol) {
+  const hoy = new Date()
+
+  return ordenes
+    .filter((o) => normalizarEstado(o.Estado) !== 'completada')
+    .map((o) => {
+      const fecha = o.Fecha_Limite ? new Date(o.Fecha_Limite) : null
+      const diasVencidos = fecha ? Math.max(0, Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24))) : 0
+      const avance = o.Cantidad > 0
+        ? Math.min(100, Math.round(((Number(o.Unidades_Realizadas) || 0) / Number(o.Cantidad)) * 100))
+        : 0
+      const score = prioridadScore(o.Prioridad) * 20 + diasVencidos * 10 + (100 - avance) * 0.3
+
+      return {
+        idOrden: o.Id_Orden,
+        titulo: o.Producto || o.Descripcion || `Orden #${o.Id_Orden}`,
+        cliente: rol === 'operario' ? undefined : o.Cliente,
+        material: o.Material,
+        estado: o.Estado,
+        prioridad: o.Prioridad || 'Media',
+        avance,
+        score: Math.round(score),
+        razon: diasVencidos > 0
+          ? `Atraso de ${diasVencidos} día(s) + prioridad ${o.Prioridad || 'Media'}`
+          : `Prioridad ${o.Prioridad || 'Media'} con avance ${avance}%`,
+      }
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+}
+
 function construirKpisPorRol({ rol, total, completadas, pendientes, enProceso, atrasadas, riesgoPct, tasaCumplimiento }) {
   if (rol === 'admin') {
     return [
@@ -90,19 +154,17 @@ function construirKpisPorRol({ rol, total, completadas, pendientes, enProceso, a
       { label: 'Cumplimiento', value: `${tasaCumplimiento}%`, hint: `${pendientes} pendientes` },
     ]
   }
-
   if (rol === 'operario') {
     return [
-      { label: 'Mis órdenes', value: String(total), hint: `${enProceso} en proceso` },
-      { label: 'Atrasadas', value: String(atrasadas), hint: 'Priorización sugerida por IA' },
+      { label: 'Mis órdenes activas', value: String(enProceso + pendientes), hint: `${enProceso} en proceso` },
+      { label: 'Atrasadas', value: String(atrasadas), hint: 'Priorización automática aplicada' },
       { label: 'Cumplidas', value: `${tasaCumplimiento}%`, hint: `${completadas} completadas` },
     ]
   }
-
   return [
     { label: 'Tus pedidos', value: String(total), hint: `${enProceso} en producción` },
-    { label: 'Riesgo entrega', value: `${riesgoPct}%`, hint: `${atrasadas} con posible retraso` },
-    { label: 'Cumplimiento', value: `${tasaCumplimiento}%`, hint: 'Actualizado en tiempo real' },
+    { label: 'Riesgo entrega', value: `${riesgoPct}%`, hint: `${atrasadas} con potencial retraso` },
+    { label: 'Cumplimiento', value: `${tasaCumplimiento}%`, hint: 'Seguimiento automático' },
   ]
 }
 
@@ -112,7 +174,7 @@ function construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, e
   if (atrasadas > 0) {
     alertas.push({
       titulo: `${atrasadas} órdenes fuera de fecha`,
-      detalle: 'Se recomienda reasignar prioridad y confirmar capacidad de producción.',
+      detalle: 'Recomendado: reasignar capacidad y bloquear nuevas órdenes no críticas.',
       nivel: 'alta',
     })
   }
@@ -121,24 +183,24 @@ function construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, e
     const material = materialesBajos[0]
     alertas.push({
       titulo: `Stock crítico: ${material.Nombre_Material}`,
-      detalle: `Stock actual ${material.Stock_Actual}, mínimo ${material.Stock_Minimo}.`,
+      detalle: `Actual ${material.Stock_Actual} / Mínimo ${material.Stock_Minimo}.`,
       nivel: 'media',
     })
   }
 
-  if (rol === 'cliente') {
-    alertas.push({
-      titulo: 'Predicción de entrega actualizada',
-      detalle: `Riesgo actual ${riesgoPct}%. Te sugerimos activar alertas por WhatsApp.`,
-      nivel: riesgoPct > 50 ? 'media' : 'baja',
-    })
-  } else {
-    alertas.push({
-      titulo: 'Carga operativa detectada',
-      detalle: `${enProceso} órdenes en proceso y ${pendientes} pendientes requieren secuencia óptima.`,
-      nivel: enProceso > 5 ? 'media' : 'baja',
-    })
-  }
+  alertas.push(
+    rol === 'cliente'
+      ? {
+          titulo: 'ETA en revisión dinámica',
+          detalle: `El riesgo de tu flujo actual es ${riesgoPct}%. Activa comunicación proactiva.`,
+          nivel: riesgoPct > 50 ? 'media' : 'baja',
+        }
+      : {
+          titulo: 'Carga operativa concentrada',
+          detalle: `${enProceso} en proceso y ${pendientes} pendientes. Conviene secuenciar por score.`,
+          nivel: enProceso > 5 ? 'media' : 'baja',
+        },
+  )
 
   return alertas.slice(0, 3)
 }
@@ -146,50 +208,68 @@ function construirAlertasPorRol({ rol, atrasadas, materialesBajos, pendientes, e
 function construirAutomatizacionesPorRol(rol) {
   if (rol === 'admin') {
     return [
-      { nombre: 'Rebalanceador de producción', descripcion: 'Redistribuye carga operativa por prioridad y fecha límite.' },
-      { nombre: 'Abastecimiento predictivo', descripcion: 'Dispara alertas y compras cuando el stock cae al umbral.' },
-      { nombre: 'Reporte ejecutivo IA', descripcion: 'Resume riesgos y oportunidades para comité de dirección.' },
+      { nombre: 'Ruteador de capacidad', descripcion: 'Reasigna personal y estaciones según score de riesgo.' },
+      { nombre: 'Compra predictiva', descripcion: 'Genera orden de compra cuando material cae al umbral.' },
+      { nombre: 'Brief ejecutivo', descripcion: 'Resumen automático diario para comité de operaciones.' },
     ]
   }
-
   if (rol === 'operario') {
     return [
-      { nombre: 'Secuenciador de tareas', descripcion: 'Ordena automáticamente tus órdenes para reducir tiempos muertos.' },
-      { nombre: 'Inspector de calidad', descripcion: 'Checklist preventivo dinámico según tipo de prenda.' },
-      { nombre: 'Actualizador de avances', descripcion: 'Sugiere el siguiente hito a reportar según progreso.' },
+      { nombre: 'Secuencia inteligente', descripcion: 'Ordena la cola del día para minimizar bloqueos.' },
+      { nombre: 'Checklist IA de calidad', descripcion: 'Activa puntos de control por tipo de prenda.' },
+      { nombre: 'Asistente de reporte', descripcion: 'Sugiere avances y alertas antes del cierre de turno.' },
     ]
   }
-
   return [
-    { nombre: 'Asistente de estado', descripcion: 'Resumen automático del estado de tus pedidos.' },
-    { nombre: 'Comunicador proactivo', descripcion: 'Notifica cambios de ETA y estado sin que tengas que consultar.' },
-    { nombre: 'Recomendador de urgencias', descripcion: 'Sugiere rutas rápidas según disponibilidad y riesgo.' },
+    { nombre: 'Radar de entregas', descripcion: 'Monitorea cambios de estado y ETA continuamente.' },
+    { nombre: 'Comunicador proactivo', descripcion: 'Genera mensajes automáticos de estado de pedido.' },
+    { nombre: 'Asistente de recompra', descripcion: 'Sugiere cuándo y qué volver a pedir según historial.' },
   ]
 }
 
-function construirAccionesPorRol({ rol, atrasadas, materialesBajos, pendientes, enProceso }) {
+function construirPlaybook({ rol, resumen, prioridades, materialesBajos }) {
+  const top = prioridades[0]
+  return {
+    inmediato: top
+      ? `Priorizar Orden #${top.idOrden} (${top.titulo}) por score ${top.score}.`
+      : 'No hay órdenes críticas en este momento.',
+    estaSemana:
+      resumen.atrasadas > 0
+        ? `Objetivo: reducir atrasos de ${resumen.atrasadas} a ${Math.max(0, resumen.atrasadas - 2)}.`
+        : 'Objetivo: mantener cero atrasos y aumentar cumplimiento +5%.',
+    comunicacion:
+      rol === 'cliente'
+        ? 'Enviar actualización automática de ETA y estado al correo del cliente.'
+        : materialesBajos.length
+          ? `Notificar compras por riesgo en ${materialesBajos[0].Nombre_Material}.`
+          : 'Enviar resumen diario de cumplimiento al cierre del turno.',
+  }
+}
+
+function construirAccionesPorRol({ rol, resumen, prioridades, materialesBajos }) {
+  const top = prioridades[0]
   if (rol === 'admin') {
     return [
-      `Mover 2 recursos a órdenes atrasadas (${atrasadas}) durante el siguiente turno.`,
+      top ? `Asignar refuerzo inmediato a Orden #${top.idOrden}.` : 'Mantener distribución actual de capacidad.',
       materialesBajos.length
-        ? `Comprar material crítico: ${materialesBajos[0].Nombre_Material} en las próximas 24 horas.`
-        : 'Mantener política de inventario actual con monitoreo diario.',
-      `Ejecutar reunión de revisión con foco en ${pendientes} órdenes pendientes.`,
+        ? `Lanzar compra de ${materialesBajos[0].Nombre_Material} en las próximas 12 horas.`
+        : 'Sin compras urgentes de materiales hoy.',
+      `Foco diario: bajar riesgo global de ${resumen.riesgoPct}% a menos de ${Math.max(20, resumen.riesgoPct - 10)}%.`,
     ]
   }
 
   if (rol === 'operario') {
     return [
-      `Atacar primero órdenes con mayor riesgo de atraso (${atrasadas}).`,
-      'Aplicar control de calidad en punto intermedio (50%) y final (100%).',
-      `Planificar bloque de trabajo continuo para ${enProceso} órdenes en proceso.`,
+      top ? `Comenzar turno con Orden #${top.idOrden} (${top.razon}).` : 'No hay prioridad crítica asignada.',
+      'Aplicar control de calidad al 50% y 100% de cada orden priorizada.',
+      `Cerrar turno dejando menos de ${Math.max(0, resumen.pendientes - 1)} órdenes pendientes.`,
     ]
   }
 
   return [
-    'Activar notificaciones para cambios de fecha en tiempo real.',
-    `Revisar pedidos en proceso (${enProceso}) y coordinar recepción preventiva.`,
-    'Descargar comprobantes automáticamente al pasar a estado entregado.',
+    'Activar canal de notificaciones para cambios de ETA.',
+    top ? `Pedido más sensible detectado: Orden #${top.idOrden}.` : 'No se detectan pedidos sensibles ahora.',
+    'Programar confirmación de entrega automática al pasar a “Completada”.',
   ]
 }
 
