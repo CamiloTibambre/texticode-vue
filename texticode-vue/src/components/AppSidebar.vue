@@ -110,6 +110,7 @@ const iconTareas     = `<svg width="18" height="18" fill="none" viewBox="0 0 24 
 const iconAvances    = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>`
 const iconPedidos    = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>`
 const iconSoporte    = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/></svg>`
+const iconIA         = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V6.75A2.25 2.25 0 0 1 11.25 4.5h1.5A2.25 2.25 0 0 1 15 6.75V9m-6 0h6m-6 0A2.25 2.25 0 0 0 6.75 11.25v4.5A2.25 2.25 0 0 0 9 18h6a2.25 2.25 0 0 0 2.25-2.25v-4.5A2.25 2.25 0 0 0 15 9m-9.75 3H3m18 0h-2.25M12 3v1.5m0 15V21"/></svg>`
 
 // ── MENÚ POR ROL ──
 const menuConfig = {
@@ -123,6 +124,7 @@ const menuConfig = {
       { to: '/admin/inventario', label: 'Gestión de Inventario', icon: iconInventario },
       { to: '/admin/reportes',   label: 'Reportes',              icon: iconReportes },
       { to: '/admin/produccion', label: 'Gestión de Producción', icon: iconProduccion },
+      { to: '/admin/ia',         label: 'Centro IA',            icon: iconIA },
     ]
   },
   operario: {
@@ -133,6 +135,7 @@ const menuConfig = {
       { to: '/operario/cuenta',  label: 'Cuenta Personal',  icon: iconCuenta },
       { to: '/operario/tareas',  label: 'Tareas Asignadas', icon: iconTareas },
       { to: '/operario/avances', label: 'Reportar Avances', icon: iconAvances },
+      { to: '/operario/ia',      label: 'Copiloto IA',      icon: iconIA },
     ]
   },
   cliente: {
@@ -143,6 +146,7 @@ const menuConfig = {
       { to: '/cliente/cuenta',  label: 'Cuenta Personal',   icon: iconCuenta },
       { to: '/cliente/pedidos', label: 'Pedidos y Entregas', icon: iconPedidos },
       { to: '/cliente/soporte', label: 'Centro de Soporte',  icon: iconSoporte },
+      { to: '/cliente/ia',      label: 'Asistente IA',      icon: iconIA },
     ]
   }
 }

@@ -10,16 +10,19 @@ const routes = [
   { path: '/admin/inventario', name: 'AdminInventario', component: () => import('../views/admin/GestionInventario.vue'), meta: { rol: 'admin' } },
   { path: '/admin/reportes',   name: 'AdminReportes',   component: () => import('../views/admin/Reportes.vue'),          meta: { rol: 'admin' } },
   { path: '/admin/produccion', name: 'AdminProduccion', component: () => import('../views/admin/GestionProduccion.vue'), meta: { rol: 'admin' } },
+  { path: '/admin/ia',         name: 'AdminIA',         component: () => import('../views/shared/CentroIA.vue'),      meta: { rol: 'admin' } },
 
   // OPERARIO
   { path: '/operario/cuenta',  name: 'OperarioCuenta',  component: () => import('../views/operario/CuentaPersonal.vue'),  meta: { rol: 'operario' } },
   { path: '/operario/tareas',  name: 'OperarioTareas',  component: () => import('../views/operario/TareasAsignadas.vue'), meta: { rol: 'operario' } },
   { path: '/operario/avances', name: 'OperarioAvances', component: () => import('../views/operario/ReportarAvances.vue'), meta: { rol: 'operario' } },
+  { path: '/operario/ia',      name: 'OperarioIA',      component: () => import('../views/shared/CentroIA.vue'),      meta: { rol: 'operario' } },
 
   // CLIENTE
   { path: '/cliente/cuenta',   name: 'ClienteCuenta',   component: () => import('../views/cliente/CuentaPersonal.vue'),   meta: { rol: 'cliente' } },
   { path: '/cliente/pedidos',  name: 'ClientePedidos',  component: () => import('../views/cliente/PedidosEntregas.vue'),  meta: { rol: 'cliente' } },
   { path: '/cliente/soporte',  name: 'ClienteSoporte',  component: () => import('../views/cliente/CentroSoporte.vue'),    meta: { rol: 'cliente' } },
+  { path: '/cliente/ia',       name: 'ClienteIA',       component: () => import('../views/shared/CentroIA.vue'),      meta: { rol: 'cliente' } },
 
   // 404
   { path: '/:pathMatch(.*)*', redirect: '/' }
