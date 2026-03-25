@@ -288,6 +288,7 @@ const historial = ref([])
 const ordenes   = ref([])
 
 const reporte = ref({ nuevas: 0, nota: '' })
+const historialStorageKey = computed(() => `historial-avances-operario-${auth.idUsuario || 'anon'}`)
 
 // ── Helpers ────────────────────────────────────────────────
 function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '' }
@@ -304,6 +305,8 @@ function estadoLabel(estado) {
 // ── Carga ──────────────────────────────────────────────────
 onMounted(async () => {
   if (!auth.idUsuario) { cargando.value = false; return }
+
+  cargarHistorialLocal()
 
   try {
     const res  = await fetch(`${BASE}/ordenes/operario/${auth.idUsuario}`)
@@ -361,9 +364,55 @@ function abrirModal(o) {
 }
 function cerrarModal() { modalVisible.value = false }
 
+function cargarHistorialLocal() {
+  try {
+    const raw = localStorage.getItem(historialStorageKey.value)
+    historial.value = raw ? JSON.parse(raw) : []
+  } catch {
+    historial.value = []
+  }
+}
+
+function guardarHistorialLocal() {
+  localStorage.setItem(historialStorageKey.value, JSON.stringify(historial.value))
+}
+
 // ── Toggle pausa ───────────────────────────────────────────
-function togglePausa(o) {
-  o.estado = o.estado === 'pausado' ? 'en-proceso' : 'pausado'
+async function togglePausa(o) {
+  const siguienteEstado = o.estado === 'pausado' ? 'En Proceso' : 'Pausado'
+
+  try {
+    const res  = await fetch(`${BASE}/ordenes/${o.idReal}`)
+    if (!res.ok) throw new Error(`GET orden falló: ${res.status}`)
+    const data = await res.json()
+
+    const payload = {
+      Id_Cliente:          data.Id_Cliente,
+      Id_Material:         data.Id_Material,
+      Id_Operario:         data.Id_Operario  || null,
+      Producto:            data.Producto     || null,
+      Descripcion:         data.Descripcion,
+      Cantidad:            data.Cantidad,
+      Prioridad:           data.Prioridad,
+      Fecha_Limite:        data.Fecha_Limite?.split('T')[0] || data.Fecha_Limite,
+      Estado:              siguienteEstado,
+      Unidades:            data.Unidades            ?? o.unidadesTotales,
+      Unidades_Realizadas: data.Unidades_Realizadas ?? o.unidadesHechas,
+    }
+
+    const putRes = await fetch(`${BASE}/ordenes/${o.idReal}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!putRes.ok) throw new Error(`PUT falló: ${putRes.status}`)
+
+    o.estado = siguienteEstado === 'Pausado' ? 'pausado' : 'en-proceso'
+    showToast(siguienteEstado === 'Pausado' ? 'Orden pausada correctamente' : 'Orden reanudada correctamente', 'toast-success')
+  } catch (err) {
+    console.error('Error pausando/reanudando:', err)
+    showToast('No se pudo actualizar el estado de la orden', 'toast-error')
+  }
 }
 
 // ── Enviar reporte ─────────────────────────────────────────
@@ -416,6 +465,7 @@ async function enviarReporte() {
       nota:     reporte.value.nota,
       fecha:    new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }),
     })
+    guardarHistorialLocal()
 
     showToast('Reporte enviado correctamente', 'toast-success')
     cerrarModal()
