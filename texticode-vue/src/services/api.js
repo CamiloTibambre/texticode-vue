@@ -41,12 +41,13 @@ export const actualizarOrden    = (id, body) => request(`/ordenes/${id}`, { meth
 export const eliminarOrden      = (id)       => request(`/ordenes/${id}`, { method: 'DELETE' })
 
 // ── COMPROBANTES ──────────────────────────────────────────
-export const getComprobantes      = ()         => request('/comprobantes')
-export const getComprobante       = (id)       => request(`/comprobantes/${id}`)
-export const crearComprobante     = (body)     => request('/comprobantes', { method: 'POST', body: JSON.stringify(body) })
-export const actualizarComprobante= (id, body) => request(`/comprobantes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
-export const eliminarComprobante  = (id)       => request(`/comprobantes/${id}`, { method: 'DELETE' })
-
+export const getComprobantes           = ()         => request('/comprobantes')
+export const getComprobantesPorCliente = (idCliente)=> request(`/comprobantes/cliente/${idCliente}`)
+export const getComprobante            = (id)       => request(`/comprobantes/${id}`)
+export const crearComprobante          = (body)     => request('/comprobantes', { method: 'POST', body: JSON.stringify(body) })
+export const actualizarComprobante     = (id, body) => request(`/comprobantes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+export const eliminarComprobante       = (id)       => request(`/comprobantes/${id}`, { method: 'DELETE' })
+ 
 // ── ROLES ─────────────────────────────────────────────────
 export const getRoles   = ()         => request('/roles')
 export const getRol     = (id)       => request(`/roles/${id}`)

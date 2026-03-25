@@ -32,6 +32,7 @@ app.get('/', (req, res) => {
       'GET  /api/materiales',
       'GET  /api/ordenes',
       'GET  /api/comprobantes',
+      'GET  /api/comprobantes/cliente/:idCliente',
       'GET  /api/roles',
       'GET  /api/orden-material/orden/:id',
       'GET  /api/usuario-orden/orden/:id',
