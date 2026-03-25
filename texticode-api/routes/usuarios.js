@@ -81,7 +81,7 @@ router.post('/login', async (req, res) => {
 
 // POST crear usuario — encripta la contraseña con bcrypt
 router.post('/', async (req, res) => {
-  const { Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena } = req.body
+  const { Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Estado, Contrasena } = req.body
   if (!Id_Rol || !Nombre_Completo || !Nombre_Usuario || !Correo || !Contrasena)
     return res.status(400).json({ error: 'Faltan campos obligatorios' })
 
@@ -89,9 +89,9 @@ router.post('/', async (req, res) => {
     const hash = await bcrypt.hash(Contrasena, 10)
 
     const [result] = await pool.query(`
-      INSERT INTO usuario (Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono || null, Estado || 'activo', hash])
+      INSERT INTO usuario (Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Estado, Contrasena)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo || null, Estado || 'activo', hash])
 
     res.status(201).json({ mensaje: 'Usuario creado', Id_Usuario: result.insertId })
   } catch (err) {
@@ -103,23 +103,23 @@ router.post('/', async (req, res) => {
 
 // PUT actualizar usuario — encripta la contraseña si se envía una nueva
 router.put('/:id', async (req, res) => {
-  const { Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena } = req.body
+  const { Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Estado, Contrasena } = req.body
   try {
     if (Contrasena && Contrasena.trim() !== '') {
       // Se envió nueva contraseña — encriptarla
       const hash = await bcrypt.hash(Contrasena, 10)
       await pool.query(`
         UPDATE usuario
-        SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?, Contrasena=?
+        SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Estado=?, Contrasena=?
         WHERE Id_Usuario=?
-      `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono || null, Estado, hash, req.params.id])
+      `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo || null, Estado, hash, req.params.id])
     } else {
       // No se envió contraseña — mantener la actual
       await pool.query(`
         UPDATE usuario
-        SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?
+        SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Estado=?
         WHERE Id_Usuario=?
-      `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono || null, Estado, req.params.id])
+      `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo || null, Estado, req.params.id])
     }
 
     res.json({ mensaje: 'Usuario actualizado' })

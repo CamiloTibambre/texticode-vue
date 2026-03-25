@@ -1,11 +1,11 @@
 <template>
   <div class="layout">
     <AppSidebar rol="admin" />
-
+ 
     <main class="content">
       <div class="main-content">
         <h1 :class="{ 'fade-in': mounted }">Gestión de Inventario</h1>
-
+ 
       
         <!-- TOP BAR -->
         <div class="top-bar surface-panel" :class="{ 'topbar-visible': mounted }">
@@ -15,7 +15,7 @@
             </svg>
             <input v-model="busqueda" type="text" placeholder="Buscar productos..." class="search-input">
           </div>
-
+ 
           <div class="select-wrapper">
             <select v-model="categoriaFiltro" class="category-select">
               <option value="">Todas las categorías</option>
@@ -27,7 +27,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
             </svg>
           </div>
-
+ 
           <button class="btn-primary" @click="abrirModal(null)">
             <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
@@ -35,7 +35,7 @@
             Agregar Material
           </button>
         </div>
-
+ 
         <!-- CARDS con contadores animados -->
         <div v-if="cargandoVista" class="summary-cards">
           <div v-for="i in 3" :key="i" class="card card-visible surface-panel skeleton-card">
@@ -57,7 +57,7 @@
             <p class="number number-primary">{{ displayCategorias }}</p>
           </div>
         </div>
-
+ 
         <!-- ALERTAS con ícono pulsante -->
         <Transition name="slide-down">
           <div class="alert-box" v-if="alertas.length">
@@ -82,7 +82,7 @@
             </TransitionGroup>
           </div>
         </Transition>
-
+ 
         <!-- TABLA -->
         <div class="table-container surface-panel" :class="{ 'section-visible': mounted }" style="transition-delay:250ms">
           <div class="table-header-row">
@@ -94,7 +94,7 @@
             </h3>
             <span class="result-count">{{ materialesFiltrados.length }} resultado(s)</span>
           </div>
-
+ 
           <div v-if="cargandoVista" class="table-skeleton">
             <div v-for="i in 6" :key="i" class="table-skeleton-row">
               <span class="data-skeleton skeleton-line skeleton-user"></span>
@@ -146,7 +146,7 @@
                       <span class="nivel-pct">{{ stockPct(m) }}%</span>
                     </div>
                   </td>
-                  <td>{{ m.cliente }}</td>
+                  <td>{{ m.cliente || '—' }}</td>
                   <td><span class="badge" :class="m.estadoClass">{{ m.estado }}</span></td>
                   <td class="fecha">{{ m.fecha }}</td>
                   <td>
@@ -167,7 +167,7 @@
               </TransitionGroup>
             </tbody>
           </table>
-
+ 
           <div v-if="materialesFiltrados.length === 0" class="empty-state">
             <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#9ca3af" width="42" height="42">
               <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
@@ -177,7 +177,7 @@
         </div>
       </div>
     </main>
-
+ 
     <!-- MODAL AGREGAR / EDITAR -->
     <Transition name="modal">
       <div v-if="modalVisible" class="modal" @click.self="cerrarModal">
@@ -230,7 +230,7 @@
                 <input v-model.number="form.maximo" type="number" min="0">
               </div>
             </div>
-
+ 
             <!-- Preview barra de nivel en modal -->
             <div class="form-group" v-if="form.maximo > 0">
               <label>Vista previa del nivel</label>
@@ -246,12 +246,13 @@
                 <strong :style="{ color: estadoColor(calcularEstado(form).estadoClass) }">{{ calcularEstado(form).estado }}</strong>
               </span>
             </div>
-
+ 
+            <!-- v-model apunta a Id_Cliente y :value usa c.id (el número) -->
             <div class="form-group">
               <label>Cliente</label>
-              <select v-model="form.cliente">
-                <option disabled value="">Selecciona cliente</option>
-                <option v-for="c in clientes" :key="c.id" :value="c.nombre">{{ c.nombre }}</option>
+              <select v-model="form.Id_Cliente">
+                <option value="">Sin cliente</option>
+                <option v-for="c in clientes" :key="c.id" :value="c.id">{{ c.nombre }}</option>
               </select>
             </div>
           </div>
@@ -265,7 +266,7 @@
         </div>
       </div>
     </Transition>
-
+ 
     <!-- CONFIRM ELIMINAR -->
     <Transition name="modal">
       <div v-if="confirmItem" class="modal" @click.self="confirmItem = null">
@@ -284,7 +285,7 @@
         </div>
       </div>
     </Transition>
-
+ 
     <!-- TOAST -->
     <Transition name="toast">
       <div v-if="toastMsg" class="toast" :class="toastType">
@@ -297,16 +298,16 @@
     </Transition>
   </div>
 </template>
-
+ 
 <script setup>
 import { getMateriales, crearMaterial, actualizarMaterial, eliminarMaterial, getUsuarios } from '../../services/api.js'
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
-
+ 
 // ── Datos ────────────────────────────────────────────────────
 const materiales = ref([])
-const clientes = ref([])
-
+const clientes   = ref([])
+ 
 const busqueda        = ref('')
 const categoriaFiltro = ref('')
 const modalVisible    = ref(false)
@@ -317,14 +318,18 @@ const cargandoVista   = ref(true)
 const toastMsg        = ref('')
 const toastType       = ref('toast-success')
 const confirmItem     = ref(null)
-
-const form = ref({ id: null, nombre: '', categoria: '', stock: 0, unidad: '', minimo: 0, maximo: 0, cliente: '' })
-
+ 
+// El form ahora incluye Id_Cliente además de cliente
+const form = ref({
+  id: null, nombre: '', categoria: '', stock: 0,
+  unidad: '', minimo: 0, maximo: 0, cliente: '', Id_Cliente: null
+})
+ 
 // ── Contadores animados ──────────────────────────────────────
 const displayTotal      = ref(0)
 const displayAlertas    = ref(0)
 const displayCategorias = ref(0)
-
+ 
 function animateCount(targetRef, target) {
   let val = 0
   const step = Math.max(1, Math.ceil(target / 40))
@@ -334,29 +339,29 @@ function animateCount(targetRef, target) {
     else targetRef.value = val
   }, 20)
 }
-
+ 
 // ── Helpers ──────────────────────────────────────────────────
 const categorias = ['Telas', 'Hilos', 'Accesorios', 'Otros']
-
+ 
 function calcularEstado(m) {
   if (m.stock === 0)      return { estado: 'Agotado',    estadoClass: 'danger' }
   if (m.stock < m.minimo) return { estado: 'Stock Bajo', estadoClass: 'warning' }
   return                         { estado: 'En Stock',   estadoClass: 'success' }
 }
-
+ 
 function estadoColor(cls) {
   return cls === 'success' ? '#16a34a' : cls === 'warning' ? '#ca8a04' : '#dc2626'
 }
-
+ 
 function stockPct(m) {
   if (!m.maximo) return 0
   return Math.min(100, Math.round((m.stock / m.maximo) * 100))
 }
-
+ 
 // ── Ordenamiento ─────────────────────────────────────────────
 const sortKey = ref('nombre')
 const sortDir = ref(1)
-
+ 
 function doSort(key) {
   if (sortKey.value === key) sortDir.value *= -1
   else { sortKey.value = key; sortDir.value = 1 }
@@ -365,10 +370,10 @@ function sIcon(key) {
   if (sortKey.value !== key) return '⇅'
   return sortDir.value === 1 ? '↑' : '↓'
 }
-
+ 
 // ── Computed ─────────────────────────────────────────────────
 const alertas = computed(() => materiales.value.filter(m => m.estadoClass !== 'success'))
-
+ 
 const materialesFiltrados = computed(() => {
   const lista = materiales.value.filter(m => {
     const b = m.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
@@ -381,29 +386,48 @@ const materialesFiltrados = computed(() => {
     return va > vb ? sortDir.value : -sortDir.value
   })
 })
-
+ 
 const errores = computed(() => ({
   nombre:    !form.value.nombre.trim() ? 'El nombre es requerido' : '',
   categoria: !form.value.categoria     ? 'Selecciona una categoría' : '',
   unidad:    !form.value.unidad        ? 'Selecciona una unidad' : '',
 }))
 const formValido = computed(() => !errores.value.nombre && !errores.value.categoria && !errores.value.unidad)
-
+ 
+// ── Helper para mapear un material de la BD al formato de la vista ──
+function mapearMaterial(m) {
+  return {
+    id:         m.Id_Material,
+    nombre:     m.Nombre_Material,
+    categoria:  m.Categoria,
+    stock:      m.Stock_Actual,
+    unidad:     m.Unidad,
+    minimo:     m.Stock_Minimo,
+    maximo:     m.Stock_Maximo,
+    fecha:      m.Fecha ? m.Fecha.split('T')[0] : '',
+    cliente:    m.Nombre_Cliente || '',   // viene del JOIN en el backend
+    Id_Cliente: m.Id_Cliente     || null,
+    eliminando: false,
+    ...calcularEstado({ stock: m.Stock_Actual, minimo: m.Stock_Minimo }),
+  }
+}
+ 
 // ── Acciones ─────────────────────────────────────────────────
 function abrirModal(m) {
   editando.value = !!m
-  form.value = m ? { ...m } : { id: null, nombre: '', categoria: '', stock: 0, unidad: '', minimo: 0, maximo: 0, cliente: '' }
+  form.value = m
+    ? { ...m, Id_Cliente: m.Id_Cliente || null }
+    : { id: null, nombre: '', categoria: '', stock: 0, unidad: '', minimo: 0, maximo: 0, cliente: '', Id_Cliente: null }
   modalVisible.value = true
 }
 function cerrarModal() { modalVisible.value = false }
-
+ 
 async function guardar() {
   if (!formValido.value) return
   guardando.value = true
-
+ 
   try {
     if (editando.value) {
-      // Actualizar en MySQL
       await actualizarMaterial(form.value.id, {
         Nombre_Material: form.value.nombre,
         Categoria:       form.value.categoria,
@@ -411,10 +435,10 @@ async function guardar() {
         Unidad:          form.value.unidad,
         Stock_Minimo:    form.value.minimo,
         Stock_Maximo:    form.value.maximo,
+        Id_Cliente:      form.value.Id_Cliente || null,
       })
       showToast('Material actualizado correctamente', 'toast-success')
     } else {
-      // Crear en MySQL
       await crearMaterial({
         Nombre_Material: form.value.nombre,
         Categoria:       form.value.categoria,
@@ -422,95 +446,66 @@ async function guardar() {
         Unidad:          form.value.unidad,
         Stock_Minimo:    form.value.minimo,
         Stock_Maximo:    form.value.maximo,
+        Id_Cliente:      form.value.Id_Cliente || null,
       })
       showToast('Material agregado correctamente', 'toast-success')
     }
-
+ 
     // Recargar lista desde MySQL
     const data = await getMateriales()
-    materiales.value = data.map(m => ({
-      id:        m.Id_Material,
-      nombre:    m.Nombre_Material,
-      categoria: m.Categoria,
-      stock:     m.Stock_Actual,
-      unidad:    m.Unidad,
-      minimo:    m.Stock_Minimo,
-      maximo:    m.Stock_Maximo,
-      fecha:     m.Fecha ? m.Fecha.split('T')[0] : '',
-      cliente:   '',
-      eliminando: false,
-      ...calcularEstado({ stock: m.Stock_Actual, minimo: m.Stock_Minimo })
-    }))
-
+    materiales.value = data.map(mapearMaterial)
+ 
   } catch (err) {
     showToast(err.message || 'Error al guardar', 'toast-danger')
   }
-
+ 
   guardando.value = false
   cerrarModal()
 }
-
+ 
 async function confirmarEliminar() {
   const m = confirmItem.value
   confirmItem.value = null
   m.eliminando = true
-
+ 
   try {
     await eliminarMaterial(m.id)
-
     setTimeout(() => {
       materiales.value = materiales.value.filter(x => x.id !== m.id)
       showToast(`"${m.nombre}" eliminado`, 'toast-danger')
     }, 400)
-
   } catch (err) {
     m.eliminando = false
     showToast(err.message || 'Error al eliminar', 'toast-danger')
   }
 }
-
+ 
 function showToast(msg, type = 'toast-success') {
   toastMsg.value = msg
   toastType.value = type
   setTimeout(() => { toastMsg.value = '' }, 3000)
 }
-
-// ── onMounted (solo uno) ──────────────────────────────────────
+ 
+// ── onMounted ──────────────────────────────────────────────
 onMounted(async () => {
-  // Cargar datos reales de MySQL
   try {
     const data = await getMateriales()
-    // Mapear campos de la BD al formato que usa la vista
-    materiales.value = data.map(m => ({
-      id:       m.Id_Material,
-      nombre:   m.Nombre_Material,
-      categoria:m.Categoria,
-      stock:    m.Stock_Actual,
-      unidad:   m.Unidad,
-      minimo:   m.Stock_Minimo,
-      maximo:   m.Stock_Maximo,
-      fecha:    m.Fecha ? m.Fecha.split('T')[0] : '',
-      cliente:  '',
-      eliminando: false,
-      ...calcularEstado({ stock: m.Stock_Actual, minimo: m.Stock_Minimo })
-    }))
+    materiales.value = data.map(mapearMaterial)
   } catch (err) {
     console.error('Error cargando materiales:', err)
   }
-
-  // Cargar clientes reales desde la BD
+ 
   try {
     const usuarios = await getUsuarios()
     clientes.value = usuarios
-      .filter(u => (u.Rol || u.Nombre_Rol || "").toLowerCase() === "cliente" && u.Estado === "activo")
+      .filter(u => (u.Rol || u.Nombre_Rol || '').toLowerCase() === 'cliente' && u.Estado === 'activo')
       .map(u => ({ id: u.Id_Usuario, nombre: u.Nombre_Completo }))
   } catch (err) {
-    console.error("Error cargando clientes:", err)
+    console.error('Error cargando clientes:', err)
   } finally {
     cargandoVista.value = false
   }
-
-  // Animaciones de entrada
+ 
   setTimeout(() => {
     mounted.value = true
     animateCount(displayTotal,      materiales.value.length)
@@ -519,12 +514,12 @@ onMounted(async () => {
   }, 80)
 })
 </script>
-
+ 
 <style scoped>
 .layout       { display: flex; min-height: 100vh; }
 .content      { flex: 1; padding: 28px 30px; }
 .main-content { max-width: 100%; }
-
+ 
 h1 {
   font-size: 26px; font-weight: 600; color: #111827;
   padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb;
@@ -532,54 +527,24 @@ h1 {
   transition: opacity .4s ease, transform .4s ease;
 }
 h1.fade-in { opacity: 1; transform: translateY(0); }
-
+ 
 .hero-banner {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 22px 24px;
-  border-radius: 22px;
-  margin-bottom: 18px;
-  opacity: 0;
-  transform: translateY(10px);
+  display: flex; justify-content: space-between; gap: 18px;
+  padding: 22px 24px; border-radius: 22px; margin-bottom: 18px;
+  opacity: 0; transform: translateY(10px);
   transition: opacity .4s ease, transform .4s ease;
 }
 .hero-banner.hero-visible { opacity: 1; transform: translateY(0); }
 .hero-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #0f766e;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: #0f766e;
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
 }
-.hero-banner h2 {
-  margin: 0 0 8px;
-  font-size: 24px;
-  line-height: 1.15;
-  color: #0f172a;
-}
-.hero-banner p {
-  margin: 0;
-  color: #475569;
-  line-height: 1.55;
-  max-width: 680px;
-}
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-self: flex-start;
-  justify-content: flex-end;
-}
-.hero-chip {
-  min-width: 138px;
-  justify-content: space-between;
-}
-
+.hero-banner h2 { margin: 0 0 8px; font-size: 24px; line-height: 1.15; color: #0f172a; }
+.hero-banner p  { margin: 0; color: #475569; line-height: 1.55; max-width: 680px; }
+.hero-actions   { display: flex; gap: 12px; flex-wrap: wrap; align-self: flex-start; justify-content: flex-end; }
+.hero-chip      { min-width: 138px; justify-content: space-between; }
+ 
 /* ── TOP BAR ─────────────────────────────────────────────── */
 .top-bar {
   display: flex; gap: 12px; align-items: center; margin-bottom: 25px;
@@ -588,7 +553,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
   padding: 14px; border-radius: 18px;
 }
 .top-bar.topbar-visible { opacity: 1; transform: translateY(0); }
-
+ 
 .search-wrapper { position: relative; display: flex; align-items: center; }
 .search-icon    { position: absolute; left: 10px; width: 16px; height: 16px; color: #9ca3af; pointer-events: none; }
 .search-input   {
@@ -597,7 +562,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
   transition: border-color .2s, box-shadow .2s;
 }
 .search-input:focus { border-color: #1f3c4d; box-shadow: 0 0 0 3px rgba(31,60,77,.12); }
-
+ 
 .select-wrapper  { position: relative; display: flex; align-items: center; }
 .category-select {
   padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid #d1d5db;
@@ -606,17 +571,17 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 }
 .category-select:focus { border-color: #1f3c4d; }
 .select-arrow { position: absolute; right: 10px; width: 14px; height: 14px; color: #6b7280; pointer-events: none; }
-
+ 
 .btn-primary {
   margin-left: auto; padding: 10px 18px; background: #1f3c4d; color: white;
   border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;
   display: flex; align-items: center; gap: 8px; white-space: nowrap;
   transition: background .2s, transform .15s;
 }
-.btn-primary:hover   { background: #162b36; }
-.btn-primary:active  { transform: scale(.97); }
+.btn-primary:hover    { background: #162b36; }
+.btn-primary:active   { transform: scale(.97); }
 .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
-
+ 
 /* ── CARDS ───────────────────────────────────────────────── */
 .summary-cards { display: flex; gap: 20px; margin-bottom: 30px; }
 .card {
@@ -635,7 +600,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 .skeleton-line { display: block; border-radius: 999px; }
 .skeleton-sm   { width: 46%; height: 12px; margin-bottom: 16px; }
 .skeleton-xl   { width: 72%; height: 30px; }
-
+ 
 /* ── ALERTAS ─────────────────────────────────────────────── */
 .alert-box {
   background: #fff7ed; padding: 20px 24px; border-radius: 12px;
@@ -646,7 +611,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 .alert-count  { background: #dc2626; color: white; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 .pulse { animation: pulse 2s ease infinite; }
-
+ 
 .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; color: #4b5563; }
 .alert-item + .alert-item { border-top: 1px solid #fed7aa; }
 .alert-item-left  { display: flex; align-items: center; gap: 8px; }
@@ -655,7 +620,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 .alert-dot.warning { background: #ca8a04; }
 .alert-dot.danger  { background: #dc2626; }
 .alert-stock { font-size: 12px; color: #9ca3af; }
-
+ 
 /* ── TABLE ───────────────────────────────────────────────── */
 .table-container {
   padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.82);
@@ -666,7 +631,7 @@ h1.fade-in { opacity: 1; transform: translateY(0); }
 .table-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .table-header-row h3 { font-size: 15px; font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; }
 .result-count { font-size: 13px; color: #9ca3af; }
-
+ 
 table  { width: 100%; border-collapse: collapse; }
 thead  { background: #f9fafb; }
 th     { padding: 11px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; user-select: none; }
@@ -674,33 +639,30 @@ td     { padding: 12px; font-size: 14px; color: #374151; border-bottom: 1px soli
 tbody tr:last-child td { border-bottom: none; }
 .table-skeleton { display: grid; gap: 12px; }
 .table-skeleton-row {
-  display: grid;
-  grid-template-columns: 1.4fr 0.8fr 0.8fr 0.6fr;
-  gap: 14px;
-  padding: 14px 12px;
-  border-radius: 16px;
+  display: grid; grid-template-columns: 1.4fr 0.8fr 0.8fr 0.6fr;
+  gap: 14px; padding: 14px 12px; border-radius: 16px;
   background: rgba(255,255,255,0.72);
 }
 .skeleton-user  { width: 72%; height: 16px; }
 .skeleton-tag   { width: 88px; height: 14px; }
 .skeleton-stock { width: 84px; height: 14px; }
 .skeleton-date  { width: 70px; height: 14px; }
-
+ 
 .sortable       { cursor: pointer; }
 .sortable:hover { color: #374151; }
 .sort-icon      { font-size: 11px; margin-left: 4px; opacity: .6; }
-
+ 
 .table-row { transition: background .18s, opacity .35s; }
 .table-row:hover { background: #f9fafb; }
 .table-row.row-eliminating { opacity: 0; background: #fee2e2; }
-
+ 
 .stock-cell    { display: flex; align-items: center; gap: 6px; }
 .trend-icon    { width: 15px; height: 15px; flex-shrink: 0; }
 .trend-up      { color: #16a34a; }
 .trend-warning { color: #ca8a04; }
 .trend-down    { color: #dc2626; }
 .minmax        { color: #9ca3af; font-size: 13px; }
-
+ 
 /* ── BARRA DE NIVEL ──────────────────────────────────────── */
 .nivel-td       { min-width: 110px; }
 .nivel-bar-wrap { display: flex; align-items: center; gap: 6px; }
@@ -711,14 +673,14 @@ tbody tr:last-child td { border-bottom: none; }
 .nivel-fill.danger  { background: #dc2626; }
 .nivel-pct      { font-size: 11px; color: #9ca3af; white-space: nowrap; }
 .modal-preview-bar { height: 10px; border-radius: 99px; background: #f3f4f6; overflow: hidden; margin-top: 6px; }
-
+ 
 /* ── BADGE ───────────────────────────────────────────────── */
 .badge   { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .success { background: #dcfce7; color: #166534; }
 .warning { background: #fef9c3; color: #854d0e; }
 .danger  { background: #fee2e2; color: #991b1b; }
 .cat-pill { background: #eff6ff; color: #1d4ed8; font-size: 12px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
-
+ 
 /* ── ACCIONES ────────────────────────────────────────────── */
 .acciones   { display: flex; gap: 8px; }
 .action-btn {
@@ -734,10 +696,10 @@ tbody tr:last-child td { border-bottom: none; }
 .delete-btn:hover  { background: #fee2e2; border-color: #fca5a5; }
 .delete-btn svg    { color: #dc2626; }
 .fecha { white-space: nowrap; color: #9ca3af; font-size: 13px; }
-
+ 
 /* ── EMPTY STATE ─────────────────────────────────────────── */
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 0; color: #9ca3af; font-size: 14px; }
-
+ 
 /* ── MODAL ───────────────────────────────────────────────── */
 .modal {
   position: fixed; inset: 0; background: rgba(0,0,0,.45);
@@ -751,12 +713,12 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-header h2 { margin: 0; font-size: 18px; font-weight: 600; color: #111827; }
 .close { cursor: pointer; font-size: 24px; color: #9ca3af; background: none; border: none; line-height: 1; }
 .close:hover { color: #374151; }
-
+ 
 .form-group       { display: flex; flex-direction: column; margin-bottom: 15px; }
 .form-group label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
 .form-row         { display: flex; gap: 15px; }
 .form-row .form-group { flex: 1; }
-
+ 
 .modal-body input,
 .modal-body select {
   padding: 10px 12px; border-radius: 8px; border: 1px solid #d1d5db;
@@ -767,7 +729,7 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-body select:focus { border-color: #1f3c4d; background: white; }
 .input-error { border-color: #dc2626 !important; }
 .error-msg   { font-size: 12px; color: #dc2626; margin-top: 4px; }
-
+ 
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .btn-secondary {
   padding: 10px 18px; background: #f3f4f6; color: #374151;
@@ -775,7 +737,7 @@ tbody tr:last-child td { border-bottom: none; }
   transition: background .2s;
 }
 .btn-secondary:hover { background: #e5e7eb; }
-
+ 
 /* ── CONFIRM ─────────────────────────────────────────────── */
 .confirm-box {
   background: white; border-radius: 14px; padding: 32px 28px;
@@ -787,7 +749,7 @@ tbody tr:last-child td { border-bottom: none; }
 .confirm-btns   { display: flex; gap: 10px; justify-content: center; }
 .btn-danger     { padding: 10px 18px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background .2s; }
 .btn-danger:hover { background: #b91c1c; }
-
+ 
 /* ── TOAST ───────────────────────────────────────────────── */
 .toast {
   position: fixed; bottom: 28px; right: 28px; color: white;
@@ -797,20 +759,20 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .toast-success { background: #111827; }
 .toast-danger  { background: #dc2626; }
-
+ 
 /* ── TRANSITIONS ─────────────────────────────────────────── */
 .modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
 .modal-enter-from, .modal-leave-to       { opacity: 0; }
-
+ 
 .toast-enter-active, .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .toast-enter-from, .toast-leave-to       { opacity: 0; transform: translateY(12px); }
-
+ 
 .slide-down-enter-active, .slide-down-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .slide-down-enter-from, .slide-down-leave-to       { opacity: 0; transform: translateY(-8px); }
-
+ 
 .row-enter-active, .row-leave-active { transition: opacity .3s ease; }
 .row-enter-from, .row-leave-to       { opacity: 0; }
-
+ 
 @media (max-width: 900px) {
   .hero-banner { flex-direction: column; }
   .hero-actions { justify-content: flex-start; }
