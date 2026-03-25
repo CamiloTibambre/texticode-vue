@@ -10,6 +10,7 @@ import comprobantesRouter  from './routes/comprobantes.js'
 import rolesRouter         from './routes/roles.js'
 import ordenMaterialRouter from './routes/orden_material.js'
 import usuarioOrdenRouter  from './routes/usuario_orden.js'
+import iaRouter            from './routes/ia.js'
 
 const app = express()
 
@@ -23,6 +24,7 @@ app.use('/api/comprobantes',   comprobantesRouter)
 app.use('/api/roles',          rolesRouter)
 app.use('/api/orden-material', ordenMaterialRouter)
 app.use('/api/usuario-orden',  usuarioOrdenRouter)
+app.use('/api/ia',            iaRouter)
 
 app.get('/', (req, res) => {
   res.json({
@@ -35,6 +37,7 @@ app.get('/', (req, res) => {
       'GET  /api/roles',
       'GET  /api/orden-material/orden/:id',
       'GET  /api/usuario-orden/orden/:id',
+      'POST /api/ia/chat',
     ]
   })
 })

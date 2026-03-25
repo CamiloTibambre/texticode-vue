@@ -62,3 +62,6 @@ export const getOrdenesDeUsuario  = (idUsuario)          => request(`/usuario-or
 export const asignarUsuarioOrden  = (body)               => request('/usuario-orden', { method: 'POST', body: JSON.stringify(body) })
 export const desasignarUsuarioOrden=(idUsuario, idOrden) => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })
 
+
+// ── IA ─────────────────────────────────────────────────────
+export const chatIA = (body) => request('/ia/chat', { method: 'POST', body: JSON.stringify(body) })
