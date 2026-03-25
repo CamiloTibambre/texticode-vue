@@ -59,10 +59,6 @@
               <div class="contact-value">{{ perfil.Telefono || '—' }}</div>
             </div>
             <div class="contact-item">
-              <div class="contact-label">Dirección</div>
-              <div class="contact-value">{{ perfil.Direccion || '—' }}</div>
-            </div>
-            <div class="contact-item">
               <div class="contact-label">Usuario</div>
               <div class="contact-value">{{ perfil.Nombre_Usuario || '—' }}</div>
             </div>
@@ -140,8 +136,33 @@
             <input v-model="formEdicion.Telefono" type="tel" class="form-input">
           </div>
           <div class="form-group">
-            <label class="form-label">Dirección</label>
-            <input v-model="formEdicion.Direccion" type="text" class="form-input">
+            <label class="form-label">Contraseña</label>
+            <div class="input-wrap">
+    <input 
+    v-model="formEdicion.Contrasena" 
+    :type="mostrarPassword ? 'text' : 'password'" 
+    class="form-input"
+    placeholder="••••••••"
+  >
+
+  <button 
+    class="toggle-pass" 
+    @click="mostrarPassword = !mostrarPassword" 
+    type="button"
+  >
+    <!-- OJO ABIERTO -->
+    <svg v-if="!mostrarPassword" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+    </svg>
+
+    <!-- OJO CERRADO -->
+    <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/>
+    </svg>
+  </button>
+</div>
+            
           </div>
         </div>
  
@@ -178,6 +199,7 @@ const error           = ref('')
 const errorGuardar    = ref('')
 const guardando       = ref(false)
 const modalVisible    = ref(false)
+const mostrarPassword = ref(false)
 const toast           = ref({ visible: false, msg: '', type: 'success' })
  
 const perfil     = ref({})
@@ -272,11 +294,14 @@ function progresoEstado(estado) {
  
 // ── MODAL ─────────────────────────────────────────────────────
 function abrirModal() {
-  formEdicion.value = { ...perfil.value }
+  formEdicion.value = { 
+    ...perfil.value,
+    Contrasena: ''
+  }
+  mostrarPassword.value = false
   errorGuardar.value = ''
   modalVisible.value = true
 }
- 
 function cerrarModal() {
   modalVisible.value = false
   errorGuardar.value = ''
@@ -293,11 +318,14 @@ async function guardarCambios() {
  
   try {
     const payload = {
-      Nombre_Completo: formEdicion.value.Nombre_Completo,
-      Correo:          formEdicion.value.Correo,
-      Telefono:        formEdicion.value.Telefono   || null,
-      Direccion:       formEdicion.value.Direccion  || null,
-    }
+  Id_Rol:          perfil.value.Id_Rol,
+  Nombre_Completo: formEdicion.value.Nombre_Completo,
+  Nombre_Usuario:  perfil.value.Nombre_Usuario,
+  Correo:          formEdicion.value.Correo,
+  Telefono:        formEdicion.value.Telefono || null,
+  Estado:          perfil.value.Estado,
+  Contrasena:      formEdicion.value.Contrasena || null,
+}
  
     await actualizarUsuario(auth.idUsuario, payload)
 
@@ -422,4 +450,30 @@ function mostrarToast(msg, type = 'success') {
 .toast-danger  { background: #991b1b; color: white; }
 .toast-enter-active, .toast-leave-active { transition: opacity 0.3s, transform 0.3s; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
+.input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.input-wrap .form-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 9px 12px;
+}
+
+.toggle-pass {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 10px;
+  color: #9ca3af;
+}
+
+.toggle-pass:hover {
+  color: #374151;
+}
 </style>
