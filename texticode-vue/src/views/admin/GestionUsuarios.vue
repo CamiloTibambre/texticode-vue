@@ -238,15 +238,17 @@
           </select>
           <span v-if="errores.Id_Rol && formTouched" class="error-msg">{{ errores.Id_Rol }}</span>
 
-          <label>Contraseña{{ editando ? ' (dejar vacío para no cambiar)' : '' }}</label>
-          <input
-            v-model="form.contrasena"
-            type="password"
-            :placeholder="editando ? 'Dejar vacío para mantener la actual' : 'Contraseña del usuario'"
-            :class="{ 'input-error': errores.contrasena && formTouched }"
-            @blur="formTouched = true"
-          >
-          <span v-if="errores.contrasena && formTouched" class="error-msg">{{ errores.contrasena }}</span>
+          <template v-if="!editando">
+            <label>Contraseña</label>
+            <input
+              v-model="form.contrasena"
+              type="password"
+              placeholder="Contraseña del usuario"
+              :class="{ 'input-error': errores.contrasena && formTouched }"
+              @blur="formTouched = true"
+            >
+            <span v-if="errores.contrasena && formTouched" class="error-msg">{{ errores.contrasena }}</span>
+          </template>
 
           <!-- Preview del usuario -->
           <div v-if="form.nombre" class="user-preview">
