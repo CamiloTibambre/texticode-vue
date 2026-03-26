@@ -9,7 +9,7 @@ router.get('/orden/:idOrden', async (req, res) => {
     const [rows] = await pool.query(`
       SELECT om.*, m.Nombre_Producto, m.Unidad
       FROM orden_material om
-      INNER JOIN material m ON om.Id_Producto = m.Id_Producto
+      INNER JOIN material m ON om.Id_Producto = m.Id_Material
       WHERE om.Id_Orden = ?
     `, [req.params.idOrden])
     res.json(rows)
