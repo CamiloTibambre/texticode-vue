@@ -3,7 +3,7 @@
     <AppSidebar rol="cliente" />
  
     <main class="main">
-      <div class="title">Cuenta Personal</div>
+      <div class="title" :class="{ 'fade-in': mounted }">Cuenta Personal</div>
  
       <!-- CARGANDO -->
       <div v-if="cargando" class="loading-wrap">
@@ -33,8 +33,8 @@
         <!-- CON SESIÓN REAL -->
         <template v-else>
           <!-- BANNER -->
-          <div class="profile-banner">
-            <div class="avatar-initials">{{ iniciales }}</div>
+          <div class="profile-banner anim-item" :class="{ 'anim-visible': mounted }" style="transition-delay: 1s">
+            <div class="avatar-initials avatar-pop" :class="{ 'avatar-pop-in': mounted }">{{ iniciales }}</div>
             <div class="profile-info">
               <div class="profile-name">{{ perfil.Nombre_Completo }}</div>
               <div class="profile-role">Cliente Texticode</div>
@@ -45,7 +45,35 @@
             <button class="btn-edit" @click="abrirModal">Editar Perfil</button>
           </div>
  
-          <div class="card">
+          <!-- QUICK STATS con contadores -->
+          <div class="quick-stats">
+            <div class="qs-card" :class="{ 'qs-in': mounted }" style="transition-delay: 80ms">
+              <div class="qs-num">{{ displayOrdenes }}</div>
+              <div class="qs-lbl">Órdenes totales</div>
+            </div>
+            <div class="qs-card" :class="{ 'qs-in': mounted }" style="transition-delay: 160ms">
+              <div class="qs-num green">{{ displayEntregadas }}</div>
+              <div class="qs-lbl">Entregadas</div>
+            </div>
+            <div class="qs-card" :class="{ 'qs-in': mounted }" style="transition-delay: 240ms">
+              <div class="qs-num orange">{{ displayPendientes }}</div>
+              <div class="qs-lbl">Pendientes</div>
+            </div>
+            <div class="qs-card qs-bar-card" :class="{ 'qs-in': mounted }" style="transition-delay: 320ms">
+              <div class="qs-bar-label">
+                <span>Tasa de entrega</span>
+                <span class="qs-bar-pct">{{ displayOrdenes > 0 ? Math.round((displayEntregadas / displayOrdenes) * 100) : 0 }}%</span>
+              </div>
+              <div class="qs-bar-bg">
+                <div class="qs-bar-fill" :style="{
+                  width: mounted && displayOrdenes > 0 ? Math.round((displayEntregadas / displayOrdenes) * 100) + '%' : '0%',
+                  transition: 'width 1.2s cubic-bezier(.4,0,.2,1) 400ms'
+                }"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card anim-item" :class="{ 'anim-visible': mounted }" style="transition-delay: 120ms">
             <div class="card-header">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/>
@@ -69,7 +97,7 @@
           </div>
 
           <!-- COMPROBANTES -->
-          <section class="table-container">
+          <section class="table-container anim-item" :class="{ 'anim-visible': mounted }" style="transition-delay: 220ms">
             <h2 class="section-title">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="section-icon">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185Z"/>
@@ -95,7 +123,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="o in ordenesOrdenadas" :key="o.id" class="table-row" :class="{ 'row-flash': o.flash }">
+                  <tr v-for="(o, idx) in ordenesOrdenadas" :key="o.id" class="table-row anim-row" :class="{ 'row-flash': o.flash, 'row-visible': mounted }" :style="{ transitionDelay: (idx * 60 + 300) + 'ms' }">
                     <td>{{ o.numero }}</td>
                     <td>{{ o.fecha }}</td>
                     <td>{{ o.productos }}</td>
@@ -313,12 +341,30 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
 import { getUsuario, actualizarUsuario, getOrdenesDeCliente, getComprobantes } from '../../services/api'
 
 const auth = useAuthStore()
+
+// ── Contadores animados ─────────────────────────────────────
+const displayOrdenes    = ref(0)
+const displayEntregadas = ref(0)
+const displayPendientes = ref(0)
+
+function animateCount(targetRef, target) {
+  let val = 0
+  const step = Math.max(1, Math.ceil(target / 30))
+  const id = setInterval(() => {
+    val += step
+    if (val >= target) { targetRef.value = target; clearInterval(id) }
+    else targetRef.value = val
+  }, 20)
+}
+
+// ── ANIMACIONES ───────────────────────────────────────────────
+const mounted = ref(false)
 
 // ── ESTADO ────────────────────────────────────────────────────
 const cargando            = ref(true)
@@ -427,7 +473,19 @@ async function cargarDatos() {
   }
 }
 
-onMounted(cargarDatos)
+onMounted(() => {
+  cargarDatos().then(() => {
+    // Doble rAF: renderiza estado inicial, luego dispara animaciones
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        mounted.value = true
+        animateCount(displayOrdenes,    ordenes.value.length)
+        animateCount(displayEntregadas, ordenes.value.filter(o => o.estadoClass === 'success').length)
+        animateCount(displayPendientes, ordenes.value.filter(o => o.estadoClass === 'danger').length)
+      })
+    })
+  })
+})
 
 // ── ACCIONES COMPROBANTE ───────────────────────────────────────
 function verDetalle(orden) { ordenSeleccionada.value = orden }
@@ -638,4 +696,89 @@ td    { padding: 14px 0; border-top: 1px solid #f3f4f6; font-size: 14px; color: 
 .toast-danger  { background: #991b1b; color: white; }
 .toast-enter-active, .toast-leave-active { transition: opacity 0.3s, transform 0.3s; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
-</style>  
+
+
+/* ── QUICK STATS ── */
+.quick-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;
+}
+.qs-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .4s ease, transform .4s ease, box-shadow .2s;
+}
+.qs-card.qs-in { opacity: 1; transform: translateY(0); }
+.qs-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); transform: translateY(-2px) !important; }
+.qs-num { font-size: 30px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 4px; }
+.qs-num.green  { color: #15803d; }
+.qs-num.orange { color: #d97706; }
+.qs-lbl { font-size: 12px; color: #9ca3af; }
+.qs-bar-card { display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.qs-bar-label { display: flex; justify-content: space-between; font-size: 13px; color: #6b7280; }
+.qs-bar-pct { font-weight: 700; color: #1f3a52; }
+.qs-bar-bg { height: 8px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
+.qs-bar-fill { height: 100%; background: linear-gradient(90deg, #1f3a52, #3b82f6); border-radius: 999px; }
+
+/* ── ANIMACIONES BANNER ── */
+.profile-banner {
+  background: linear-gradient(135deg, #1f3a52 0%, #0f2236 60%, #1a3a5c 100%);
+  border-radius: 16px; padding: 28px 30px; display: flex; align-items: center; gap: 22px;
+  margin-bottom: 16px; position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(18px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.profile-banner.anim-visible { opacity: 1; transform: translateY(0); }
+
+/* Avatar bounce */
+.avatar-initials {
+  animation: none;
+  transition: transform .55s cubic-bezier(.34,1.56,.64,1) 80ms, opacity .4s ease 80ms;
+}
+
+/* Badge dot parpadeante */
+.badge-active { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Filas con slide correcto */
+.anim-row {
+  opacity: 0; transform: translateX(-14px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+.anim-row.row-visible { opacity: 1; transform: translateX(0); }
+
+/* ── ANIMACIONES DE ENTRADA ────────────────────────────────── */
+/* Título */
+.title {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.title.fade-in { opacity: 1; transform: translateY(0); }
+
+/* Cards y secciones: fade + slide-up */
+.anim-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.anim-item.anim-visible { opacity: 1; transform: translateY(0); }
+
+/* Avatar: escala desde 0 con bounce */
+.avatar-pop {
+  transform: scale(0.6);
+  opacity: 0;
+  transition: transform .5s cubic-bezier(.34,1.56,.64,1), opacity .4s ease;
+}
+.avatar-pop.avatar-pop-in { transform: scale(1); opacity: 1; }
+
+/* Filas de tabla con stagger */
+.anim-row {
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+.anim-row.row-visible { opacity: 1; transform: translateX(0); }
+
+/* Hover suave en cards */
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); transition: box-shadow .2s ease; }
+.table-container:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); transition: box-shadow .2s ease; }
+</style>
