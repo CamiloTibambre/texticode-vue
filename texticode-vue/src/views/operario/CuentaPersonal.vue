@@ -3,7 +3,7 @@
     <AppSidebar rol="operario" />
  
     <main class="main">
-      <div class="title">Cuenta Personal</div>
+      <div class="title" :class="{ 'fade-in': mounted }">Cuenta Personal</div>
  
       <!-- ESTADO DE CARGA -->
       <div v-if="cargando" class="loading-wrap">
@@ -21,8 +21,8 @@
       </div>
  
       <template v-else>
-        <!-- SIN SESIÓN REAL (login demo) -->
-        <div v-if="!auth.idUsuario" class="empty-session">
+        <!-- SIN SESIÓN REAL -->
+        <div v-if="!auth.idUsuario" class="empty-session" :class="{ 'section-visible': mounted }" style="transition-delay: 1s">
           <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
           </svg>
@@ -30,152 +30,147 @@
           <p class="empty-sub">Inicia sesión con tus credenciales reales para ver tu perfil y actividad.</p>
         </div>
  
-        <!-- CON SESIÓN REAL — datos de la BD -->
+        <!-- CON SESIÓN REAL -->
         <template v-else>
-        <div class="profile-banner">
-          <div class="profile-avatar-wrap">
-            <div class="avatar-initials">{{ iniciales }}</div>
+          <div class="profile-banner" :class="{ 'section-visible': mounted }" style="transition-delay: 80ms">
+            <div class="profile-avatar-wrap">
+              <div class="avatar-initials">{{ iniciales }}</div>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">{{ perfil.Nombre_Completo }}</div>
+              <div class="profile-role">{{ perfil.Rol || 'Operario' }}</div>
+              <span class="badge-active" :class="perfil.Estado === 'activo' ? 'badge-green' : 'badge-red'">
+                {{ perfil.Estado === 'activo' ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+            <button class="btn-edit" @click="abrirModal">Editar Perfil</button>
           </div>
-          <div class="profile-info">
-            <div class="profile-name">{{ perfil.Nombre_Completo }}</div>
-            <div class="profile-role">{{ perfil.Rol || 'Operario' }}</div>
-            <span class="badge-active" :class="perfil.Estado === 'activo' ? 'badge-green' : 'badge-red'">
-              {{ perfil.Estado === 'activo' ? 'Activo' : 'Inactivo' }}
-            </span>
-          </div>
-          <button class="btn-edit" @click="abrirModal">Editar Perfil</button>
-        </div>
  
-        <!-- INFORMACIÓN DE CONTACTO -->
-        <div class="card">
-          <div class="activity-title">Información de Contacto</div>
-          <div class="contact-grid">
-            <div class="contact-item">
-              <div class="contact-label">Email</div>
-              <div class="contact-value">{{ perfil.Correo || '—' }}</div>
+          <!-- STATS con contadores animados -->
+          <div class="card stats-row" :class="{ 'section-visible': mounted }" style="transition-delay: 160ms">
+            <div class="stat-box" :class="{ 'card-visible': mounted }" style="transition-delay: 160ms">
+              <div class="stat-number">{{ displayCompletadas }}</div>
+              <div class="stat-label">Tareas Completadas</div>
             </div>
-            <div class="contact-item">
-              <div class="contact-label">Teléfono</div>
-              <div class="contact-value">{{ perfil.Telefono || '—' }}</div>
+            <div class="stat-box" :class="{ 'card-visible': mounted }" style="transition-delay: 240ms">
+              <div class="stat-number">{{ displayEnProceso }}</div>
+              <div class="stat-label">En Proceso</div>
             </div>
-            <div class="contact-item">
-              <div class="contact-label">Usuario</div>
-              <div class="contact-value">{{ perfil.Nombre_Usuario || '—' }}</div>
+            <div class="stat-box" :class="{ 'card-visible': mounted }" style="transition-delay: 320ms">
+              <div class="stat-number">{{ displayTotal }}</div>
+              <div class="stat-label">Total Asignadas</div>
             </div>
           </div>
-        </div>
- 
-        <!-- TAREAS COMPLETADAS -->
-        <div class="card stats-row">
-          <div class="stat-box">
-            <div class="stat-number">{{ tareasCompletadas }}</div>
-            <div class="stat-label">Tareas Completadas</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-number">{{ tareasEnProceso }}</div>
-            <div class="stat-label">En Proceso</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-number">{{ totalOrdenes }}</div>
-            <div class="stat-label">Total Asignadas</div>
-          </div>
-        </div>
- 
-        <!-- ACTIVIDAD RECIENTE (órdenes asignadas) -->
-        <div class="card">
-          <div class="activity-title">Actividad Reciente</div>
-          <div v-if="cargandoOrdenes" class="loading-inline">Cargando órdenes...</div>
-          <div v-else-if="ordenes.length === 0" class="empty-msg">No hay órdenes asignadas aún.</div>
-          <div v-else class="activity-list">
-            <div v-for="o in ordenes.slice(0, 5)" :key="o.Id_Orden" class="activity-item">
-              <div class="activity-dot" :class="dotClass(o.Estado)"></div>
-              <div class="activity-body">
-                <div class="activity-head">
-                  <div class="activity-name">Orden #{{ o.Id_Orden }} — {{ o.Descripcion }}</div>
-                  <span class="activity-badge" :class="badgeClass(o.Estado)">{{ o.Estado }}</span>
-                </div>
-                <div class="activity-sub">Cliente: {{ o.Cliente || 'Sin cliente' }} · Cantidad: {{ o.Cantidad }}</div>
-                <div class="activity-progress">
-                  <div class="activity-progress-bar">
-                    <div class="activity-progress-fill" :class="badgeClass(o.Estado)" :style="{ width: progresoEstado(o.Estado) + '%' }"></div>
-                  </div>
-                  <span>{{ progresoEstado(o.Estado) }}%</span>
-                </div>
-                <div class="activity-time">Fecha límite: {{ formatFecha(o.Fecha_Limite) }}</div>
+
+          <!-- INFORMACIÓN DE CONTACTO -->
+          <div class="card" :class="{ 'section-visible': mounted }" style="transition-delay: 220ms">
+            <div class="activity-title">Información de Contacto</div>
+            <div class="contact-grid">
+              <div class="contact-item">
+                <div class="contact-label">Email</div>
+                <div class="contact-value">{{ perfil.Correo || '—' }}</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">Teléfono</div>
+                <div class="contact-value">{{ perfil.Telefono || '—' }}</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">Usuario</div>
+                <div class="contact-value">{{ perfil.Nombre_Usuario || '—' }}</div>
               </div>
             </div>
           </div>
-        </div>
-        </template><!-- fin v-else sesión real -->
+ 
+          <!-- ACTIVIDAD RECIENTE -->
+          <div class="card" :class="{ 'section-visible': mounted }" style="transition-delay: 300ms">
+            <div class="activity-title">Actividad Reciente</div>
+            <div v-if="cargandoOrdenes" class="loading-inline">Cargando órdenes...</div>
+            <div v-else-if="ordenes.length === 0" class="empty-msg">No hay órdenes asignadas aún.</div>
+            <div v-else class="activity-list">
+              <TransitionGroup name="row">
+                <div v-for="o in ordenes.slice(0, 5)" :key="o.Id_Orden" class="activity-item">
+                  <div class="activity-dot" :class="dotClass(o.Estado)"></div>
+                  <div class="activity-body">
+                    <div class="activity-head">
+                      <div class="activity-name">Orden #{{ o.Id_Orden }} — {{ o.Descripcion }}</div>
+                      <span class="activity-badge" :class="badgeClass(o.Estado)">{{ o.Estado }}</span>
+                    </div>
+                    <div class="activity-sub">Cliente: {{ o.Cliente || 'Sin cliente' }} · Cantidad: {{ o.Cantidad }}</div>
+                    <div class="activity-progress">
+                      <div class="activity-progress-bar">
+                        <div class="activity-progress-fill" :class="badgeClass(o.Estado)" :style="{ width: progresoEstado(o.Estado) + '%' }"></div>
+                      </div>
+                      <span>{{ progresoEstado(o.Estado) }}%</span>
+                    </div>
+                    <div class="activity-time">Fecha límite: {{ formatFecha(o.Fecha_Limite) }}</div>
+                  </div>
+                </div>
+              </TransitionGroup>
+            </div>
+          </div>
+        </template>
       </template>
     </main>
  
-    <!-- MODAL EDITAR PERFIL -->
-    <div v-if="modalVisible" class="modal-overlay active" @click.self="cerrarModal">
-      <div class="modal-container">
-        <div class="modal-header">
-          <h3 class="modal-title">Editar Perfil</h3>
-          <button class="modal-close" @click="cerrarModal">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
+    <!-- MODAL EDITAR PERFIL con Transition -->
+    <Transition name="modal">
+      <div v-if="modalVisible" class="modal-overlay" @click.self="cerrarModal">
+        <div class="modal-container">
+          <div class="modal-header">
+            <h3 class="modal-title">Editar Perfil</h3>
+            <button class="modal-close" @click="cerrarModal">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
  
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Nombre Completo</label>
-            <input v-model="formEdicion.Nombre_Completo" type="text" class="form-input">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Nombre Completo</label>
+              <input v-model="formEdicion.Nombre_Completo" type="text" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico</label>
+              <input v-model="formEdicion.Correo" type="email" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input v-model="formEdicion.Telefono" type="tel" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <div class="input-wrap">
+                <input 
+                  v-model="formEdicion.Contrasena" 
+                  :type="mostrarPassword ? 'text' : 'password'" 
+                  class="form-input"
+                  placeholder="••••••••"
+                >
+                <button class="toggle-pass" @click="mostrarPassword = !mostrarPassword" type="button">
+                  <svg v-if="!mostrarPassword" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                  </svg>
+                  <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Correo Electrónico</label>
-            <input v-model="formEdicion.Correo" type="email" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Teléfono</label>
-            <input v-model="formEdicion.Telefono" type="tel" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Contraseña</label>
-            <div class="input-wrap">
-    <input 
-    v-model="formEdicion.Contrasena" 
-    :type="mostrarPassword ? 'text' : 'password'" 
-    class="form-input"
-    placeholder="••••••••"
-  >
-
-  <button 
-    class="toggle-pass" 
-    @click="mostrarPassword = !mostrarPassword" 
-    type="button"
-  >
-    <!-- OJO ABIERTO -->
-    <svg v-if="!mostrarPassword" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-    </svg>
-
-    <!-- OJO CERRADO -->
-    <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/>
-    </svg>
-  </button>
-</div>
-            
-          </div>
-        </div>
  
-        <div v-if="errorGuardar" class="error-inline">{{ errorGuardar }}</div>
+          <div v-if="errorGuardar" class="error-inline">{{ errorGuardar }}</div>
  
-        <div class="modal-footer">
-          <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
-          <button class="btn-guardar" :disabled="guardando" @click="guardarCambios">
-            {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
-          </button>
+          <div class="modal-footer">
+            <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
+            <button class="btn-guardar" :disabled="guardando" @click="guardarCambios">
+              {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
  
     <!-- TOAST -->
     <Transition name="toast">
@@ -192,7 +187,6 @@ import { getUsuario, actualizarUsuario, getOrdenesDeOperario } from '../../servi
  
 const auth = useAuthStore()
  
-// ── ESTADO ──────────────────────────────────────────────────
 const cargando        = ref(true)
 const cargandoOrdenes = ref(false)
 const error           = ref('')
@@ -201,12 +195,27 @@ const guardando       = ref(false)
 const modalVisible    = ref(false)
 const mostrarPassword = ref(false)
 const toast           = ref({ visible: false, msg: '', type: 'success' })
+const mounted         = ref(false)
  
 const perfil     = ref({})
 const ordenes    = ref([])
 const formEdicion = ref({})
+
+// ── Contadores animados ──
+const displayCompletadas = ref(0)
+const displayEnProceso   = ref(0)
+const displayTotal       = ref(0)
+
+function animateCount(targetRef, target) {
+  let val = 0
+  const step = Math.max(1, Math.ceil(target / 40))
+  const id = setInterval(() => {
+    val += step
+    if (val >= target) { targetRef.value = target; clearInterval(id) }
+    else targetRef.value = val
+  }, 20)
+}
  
-// ── COMPUTED ─────────────────────────────────────────────────
 const iniciales = computed(() =>
   (perfil.value.Nombre_Completo || '')
     .split(' ')
@@ -216,28 +225,21 @@ const iniciales = computed(() =>
     .toUpperCase()
 )
  
-const tareasCompletadas = computed(() =>
-  ordenes.value.filter(o => o.Estado === 'Completada').length
-)
-const tareasEnProceso = computed(() =>
-  ordenes.value.filter(o => o.Estado === 'En Proceso').length
-)
+const tareasCompletadas = computed(() => ordenes.value.filter(o => o.Estado === 'Completada').length)
+const tareasEnProceso = computed(() => ordenes.value.filter(o => o.Estado === 'En Proceso').length)
 const totalOrdenes = computed(() => ordenes.value.length)
  
-// ── CARGA DE DATOS ───────────────────────────────────────────
 async function cargarDatos() {
   cargando.value = true
   error.value    = ''
  
   try {
-    // Sin Id_Usuario real (login demo) → no llamamos a la API, mostramos vacío
     if (!auth.idUsuario) {
       perfil.value  = {}
       ordenes.value = []
       return
     }
  
-    // Login real — cargamos desde la BD
     perfil.value = await getUsuario(auth.idUsuario)
 
     cargandoOrdenes.value = true
@@ -254,50 +256,36 @@ async function cargarDatos() {
     error.value = e.message || 'Error al cargar el perfil.'
   } finally {
     cargando.value = false
+    setTimeout(() => {
+      mounted.value = true
+      animateCount(displayCompletadas, ordenes.value.filter(o => o.Estado === 'Completada').length)
+      animateCount(displayEnProceso,   ordenes.value.filter(o => o.Estado === 'En Proceso').length)
+      animateCount(displayTotal,       ordenes.value.length)
+    }, 80)
   }
 }
  
 onMounted(cargarDatos)
  
-// ── HELPERS ───────────────────────────────────────────────────
 function formatFecha(fecha) {
   if (!fecha) return '—'
   return new Date(fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
 }
  
 function dotClass(estado) {
-  return {
-    'Completada':  'dot-green',
-    'En Proceso':  'dot-blue',
-    'Pausado':     'dot-yellow',
-    'Cancelada':   'dot-red',
-  }[estado] || 'dot-yellow'
+  return { 'Completada': 'dot-green', 'En Proceso': 'dot-blue', 'Pausado': 'dot-yellow', 'Cancelada': 'dot-red' }[estado] || 'dot-yellow'
 }
 
 function badgeClass(estado) {
-  return {
-    'Completada': 'badge-completada',
-    'En Proceso': 'badge-proceso',
-    'Pausado': 'badge-pausado',
-    'Cancelada': 'badge-cancelada',
-  }[estado] || 'badge-pausado'
+  return { 'Completada': 'badge-completada', 'En Proceso': 'badge-proceso', 'Pausado': 'badge-pausado', 'Cancelada': 'badge-cancelada' }[estado] || 'badge-pausado'
 }
 
 function progresoEstado(estado) {
-  return {
-    'Completada': 100,
-    'En Proceso': 58,
-    'Pausado': 28,
-    'Cancelada': 10,
-  }[estado] ?? 0
+  return { 'Completada': 100, 'En Proceso': 58, 'Pausado': 28, 'Cancelada': 10 }[estado] ?? 0
 }
  
-// ── MODAL ─────────────────────────────────────────────────────
 function abrirModal() {
-  formEdicion.value = { 
-    ...perfil.value,
-    Contrasena: ''
-  }
+  formEdicion.value = { ...perfil.value, Contrasena: '' }
   mostrarPassword.value = false
   errorGuardar.value = ''
   modalVisible.value = true
@@ -318,17 +306,16 @@ async function guardarCambios() {
  
   try {
     const payload = {
-  Id_Rol:          perfil.value.Id_Rol,
-  Nombre_Completo: formEdicion.value.Nombre_Completo,
-  Nombre_Usuario:  perfil.value.Nombre_Usuario,
-  Correo:          formEdicion.value.Correo,
-  Telefono:        formEdicion.value.Telefono || null,
-  Estado:          perfil.value.Estado,
-  Contrasena:      formEdicion.value.Contrasena || null,
-}
+      Id_Rol:          perfil.value.Id_Rol,
+      Nombre_Completo: formEdicion.value.Nombre_Completo,
+      Nombre_Usuario:  perfil.value.Nombre_Usuario,
+      Correo:          formEdicion.value.Correo,
+      Telefono:        formEdicion.value.Telefono || null,
+      Estado:          perfil.value.Estado,
+      Contrasena:      formEdicion.value.Contrasena || null,
+    }
  
     await actualizarUsuario(auth.idUsuario, payload)
-
     perfil.value = { ...perfil.value, ...payload }
     if (auth.usuario) auth.usuario.Nombre_Completo = formEdicion.value.Nombre_Completo
  
@@ -341,7 +328,6 @@ async function guardarCambios() {
   }
 }
  
-// ── TOAST ─────────────────────────────────────────────────────
 function mostrarToast(msg, type = 'success') {
   toast.value = { visible: true, msg, type }
   setTimeout(() => { toast.value.visible = false }, 2800)
@@ -350,8 +336,26 @@ function mostrarToast(msg, type = 'success') {
  
 <style scoped>
 .main { flex: 1; padding: 28px 30px; overflow-y: auto; }
-.title { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #111827; }
- 
+
+/* ── TITLE con fade-in ── */
+.title {
+  font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #111827;
+  opacity: 0; transform: translateY(-10px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.title.fade-in { opacity: 1; transform: translateY(0); }
+
+/* ── Secciones con slide-up ── */
+.profile-banner,
+.card,
+.empty-session {
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.profile-banner.section-visible,
+.card.section-visible,
+.empty-session.section-visible { opacity: 1; transform: translateY(0); }
+
 /* LOADING */
 .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; }
 .spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spin 0.7s linear infinite; }
@@ -375,17 +379,22 @@ function mostrarToast(msg, type = 'success') {
 .badge-active { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; }
 .badge-green { background: #dcfce7; color: #166534; }
 .badge-red   { background: #fee2e2; color: #991b1b; }
-.btn-edit { background: white; color: #1f3a52; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-.btn-edit:hover { background: #f1f5f9; }
+.btn-edit { background: white; color: #1f3a52; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform .15s; }
+.btn-edit:hover { background: #f1f5f9; transform: translateY(-1px); }
  
 /* CARDS */
 .card { background: white; border-radius: 12px; padding: 22px 24px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
 .activity-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 16px; }
  
-/* STATS */
+/* STATS con card-visible */
 .stats-row { display: flex; gap: 0; }
-.stat-box { flex: 1; text-align: center; padding: 8px 0; border-right: 1px solid #f3f4f6; }
+.stat-box {
+  flex: 1; text-align: center; padding: 8px 0; border-right: 1px solid #f3f4f6;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .4s ease, transform .4s ease;
+}
 .stat-box:last-child { border-right: none; }
+.stat-box.card-visible { opacity: 1; transform: translateY(0); }
 .stat-number { font-size: 32px; font-weight: 700; color: #1f3a52; }
 .stat-label  { font-size: 12px; color: #6b7280; margin-top: 4px; }
  
@@ -396,7 +405,8 @@ function mostrarToast(msg, type = 'success') {
  
 /* ACTIVIDAD */
 .activity-list { display: flex; flex-direction: column; gap: 16px; }
-.activity-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border: 1px solid #eef2f7; border-radius: 14px; background: linear-gradient(180deg, #ffffff, #f8fbff); }
+.activity-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border: 1px solid #eef2f7; border-radius: 14px; background: linear-gradient(180deg, #ffffff, #f8fbff); transition: box-shadow .2s, transform .2s; }
+.activity-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
 .activity-body { flex: 1; min-width: 0; }
 .activity-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .activity-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
@@ -414,7 +424,7 @@ function mostrarToast(msg, type = 'success') {
 .badge-cancelada { background: #fee2e2; color: #b91c1c; }
 .activity-progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; color: #475569; }
 .activity-progress-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
-.activity-progress-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+.activity-progress-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
 .activity-progress-fill.badge-completada { background: linear-gradient(90deg, #22c55e, #16a34a); }
 .activity-progress-fill.badge-proceso { background: linear-gradient(90deg, #60a5fa, #2563eb); }
 .activity-progress-fill.badge-pausado { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
@@ -425,18 +435,20 @@ function mostrarToast(msg, type = 'success') {
 .modal-container { background: white; border-radius: 16px; width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
 .modal-title { font-size: 17px; font-weight: 600; color: #111827; }
-.modal-close { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; }
+.modal-close { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; transition: background .15s; }
 .modal-close:hover { background: #f3f4f6; }
  
 .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-label { font-size: 12px; font-weight: 600; color: #374151; }
-.form-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 14px; color: #111827; outline: none; transition: border-color 0.2s; }
-.form-input:focus { border-color: #1f3a52; }
+.form-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 14px; color: #111827; outline: none; transition: border-color 0.2s, box-shadow .2s; }
+.form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,.1); }
  
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid #f3f4f6; }
-.btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; }
-.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; transition: background .15s; }
+.btn-cancelar:hover { background: #f3f4f6; }
+.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s, transform .15s; }
+.btn-guardar:hover:not(:disabled) { background: #2d5580; transform: translateY(-1px); }
 .btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
  
 /* EMPTY SESSION */
@@ -444,36 +456,21 @@ function mostrarToast(msg, type = 'success') {
 .empty-title { font-size: 16px; font-weight: 600; color: #374151; }
 .empty-sub   { font-size: 13px; color: #9ca3af; max-width: 320px; line-height: 1.6; }
  
-/* TOAST */
+/* ── Transitions ── */
+.modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+
 .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 200; }
 .toast-success { background: #166534; color: white; }
 .toast-danger  { background: #991b1b; color: white; }
-.toast-enter-active, .toast-leave-active { transition: opacity 0.3s, transform 0.3s; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
-.input-wrap {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-}
+.toast-enter-active, .toast-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
 
-.input-wrap .form-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 9px 12px;
-}
+.row-enter-active, .row-leave-active { transition: opacity .3s ease, transform .3s ease; }
+.row-enter-from, .row-leave-to { opacity: 0; transform: translateY(8px); }
 
-.toggle-pass {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 10px;
-  color: #9ca3af;
-}
-
-.toggle-pass:hover {
-  color: #374151;
-}
+.input-wrap { display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
+.input-wrap .form-input { flex: 1; border: none; outline: none; padding: 9px 12px; box-shadow: none !important; }
+.toggle-pass { background: none; border: none; cursor: pointer; padding: 0 10px; color: #9ca3af; transition: color .15s; }
+.toggle-pass:hover { color: #374151; }
 </style>
