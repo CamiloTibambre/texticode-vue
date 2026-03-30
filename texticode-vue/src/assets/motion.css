@@ -1,203 +1,1000 @@
+/* ═══════════════════════════════════════════════════════════════════
+   TEXTICODE — SISTEMA DE ANIMACIONES ULTRA-COMPLETO
+   Reemplaza: texticode-vue/src/assets/motion.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   1. VARIABLES DE MOVIMIENTO Y CURVAS
+   ───────────────────────────────────────────── */
 :root {
-  --motion-fast: 120ms;
-  --motion-base: 190ms;
-  --motion-slow: 280ms;
-  --motion-xl: 420ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
-  --ring-primary: 0 0 0 4px rgba(59, 130, 246, 0.12);
-  --surface-border: rgba(255, 255, 255, 0.7);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-soft:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-snappy:   cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-elastic:  cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-bounce:   cubic-bezier(0.87, 0, 0.13, 1);
+
+  --dur-instant: 80ms;
+  --dur-fast:    150ms;
+  --dur-base:    220ms;
+  --dur-slow:    380ms;
+  --dur-xl:      550ms;
+  --dur-hero:    900ms;
+
+  /* Colores del proyecto */
+  --c-primary:   #1f3a52;
+  --c-accent:    #2d6a9f;
+  --c-accent2:   #4a8fcc;
+  --c-glow:      rgba(45, 106, 159, 0.35);
+  --c-glow-warm: rgba(234, 88, 12, 0.25);
+  --c-glow-green: rgba(22, 163, 74, 0.25);
+
+  /* Surface */
+  --surface-border: rgba(255, 255, 255, 0.72);
   --surface-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* ─────────────────────────────────────────────
+   2. SCROLL REVEAL — Intersection Observer
+   ───────────────────────────────────────────── */
 
-body {
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button,
-a,
-[role='button'] {
-  -webkit-tap-highlight-color: transparent;
-}
-
-*:focus-visible {
-  outline: none;
-  box-shadow: var(--ring-primary);
-  transition: box-shadow var(--motion-fast) var(--ease-standard);
-}
-
-.route-fade-enter-active,
-.route-fade-leave-active {
-  transition:
-    opacity var(--motion-xl) var(--ease-emphasized),
-    transform var(--motion-xl) var(--ease-emphasized),
-    filter var(--motion-xl) var(--ease-emphasized);
-}
-
-.route-fade-enter-from,
-.route-fade-leave-to {
+/* Estado inicial — hidden */
+.reveal,
+.reveal-up,
+.reveal-left,
+.reveal-right,
+.reveal-scale,
+.reveal-blur,
+.reveal-slide {
   opacity: 0;
-  transform: translateY(16px) scale(0.992);
-  filter: blur(8px);
+  transition:
+    opacity   var(--dur-slow) var(--ease-out-expo),
+    transform var(--dur-slow) var(--ease-out-expo),
+    filter    var(--dur-slow) var(--ease-out-expo);
 }
 
-.surface-panel {
+.reveal-up     { transform: translateY(40px); }
+.reveal-left   { transform: translateX(-50px); }
+.reveal-right  { transform: translateX(50px); }
+.reveal-scale  { transform: scale(0.85); }
+.reveal-blur   { transform: translateY(20px); filter: blur(8px); }
+.reveal-slide  { transform: translateY(60px) scale(0.95); }
+
+/* Estado visible */
+.reveal.visible,
+.reveal-up.visible,
+.reveal-left.visible,
+.reveal-right.visible,
+.reveal-scale.visible,
+.reveal-blur.visible,
+.reveal-slide.visible {
+  opacity:   1;
+  transform: none;
+  filter:    none;
+}
+
+/* Stagger children */
+.stagger > *:nth-child(1)  { transition-delay:   0ms; }
+.stagger > *:nth-child(2)  { transition-delay:  60ms; }
+.stagger > *:nth-child(3)  { transition-delay: 120ms; }
+.stagger > *:nth-child(4)  { transition-delay: 180ms; }
+.stagger > *:nth-child(5)  { transition-delay: 240ms; }
+.stagger > *:nth-child(6)  { transition-delay: 300ms; }
+.stagger > *:nth-child(7)  { transition-delay: 360ms; }
+.stagger > *:nth-child(8)  { transition-delay: 420ms; }
+
+/* ─────────────────────────────────────────────
+   3. CARDS — Hover completo
+   ───────────────────────────────────────────── */
+:where(
+  .card,
+  .stat-card,
+  .order-card,
+  .task-card,
+  .pedido-card,
+  .info-card,
+  .hist-card,
+  .qs-card,
+  .profile-banner,
+  .report-row,
+  .panel,
+  .table-container,
+  .table-box,
+  .table-wrap,
+  .surface-panel,
+  .modal-container,
+  .confirm-box
+) {
   position: relative;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid var(--surface-border);
-  box-shadow: var(--surface-shadow);
-  backdrop-filter: blur(18px);
+  transition:
+    transform    var(--dur-base) var(--ease-spring),
+    box-shadow   var(--dur-base) var(--ease-soft),
+    border-color var(--dur-base) var(--ease-soft),
+    background   var(--dur-base) var(--ease-soft);
+  will-change: transform;
+  transform-style: preserve-3d;
 }
 
 :where(
   .card,
   .stat-card,
-  .table-container,
-  .table-wrap,
-  .panel,
-  .info-card,
-  .profile-banner,
-  .empty-card,
-  .confirm-box,
-  .modal-container,
-  .pedido-card,
   .order-card,
   .task-card,
-  .surface-panel
+  .pedido-card,
+  .info-card,
+  .hist-card,
+  .qs-card
+):hover {
+  transform:   translateY(-5px) scale(1.008);
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.12),
+    0 4px 12px  rgba(15, 23, 42, 0.06),
+    0 0 0 1px   rgba(255,255,255,0.9) inset;
+}
+
+/* Card "lift" más pronunciado */
+.card-lift:hover {
+  transform:   translateY(-8px) scale(1.015) !important;
+  box-shadow:
+    0 30px 60px rgba(15, 23, 42, 0.16),
+    0 8px  20px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Card con brillo de borde al hover */
+.card-glow {
+  overflow: hidden;
+}
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 106, 159, 0) 0%,
+    rgba(45, 106, 159, 0.06) 50%,
+    rgba(45, 106, 159, 0) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-soft);
+  pointer-events: none;
+  z-index: 0;
+}
+.card-glow:hover::before { opacity: 1; }
+
+/* Shimmer sweep en hover */
+.card-shimmer {
+  overflow: hidden;
+}
+.card-shimmer::after {
+  content: '';
+  position: absolute;
+  top:    -50%;
+  left:   -75%;
+  width:  50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 50%,
+    transparent 100%
+  );
+  transform: skewX(-12deg);
+  transition: left 0.7s var(--ease-out-expo);
+  pointer-events: none;
+}
+.card-shimmer:hover::after { left: 125%; }
+
+/* ─────────────────────────────────────────────
+   4. BOTONES — Micro-interacciones
+   ───────────────────────────────────────────── */
+:where(
+  button:not(.modal-close):not(.close):not(.toggle-pass):not(.chip-remove):not(.tab-btn),
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-nueva,
+  .btn-guardar,
+  .btn-enviar,
+  .btn-reportar,
+  .btn-edit,
+  .btn-login
+):not(:disabled) {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform    var(--dur-fast) var(--ease-spring),
+    box-shadow   var(--dur-fast) var(--ease-soft),
+    background   var(--dur-base) var(--ease-soft),
+    color        var(--dur-fast) var(--ease-soft),
+    border-color var(--dur-fast) var(--ease-soft);
+  cursor: pointer;
+}
+
+/* Ripple effect */
+:where(
+  button:not(.modal-close):not(.close):not(.toggle-pass):not(.chip-remove):not(.tab-btn),
+  .btn-primary,
+  .btn-secondary,
+  .btn-guardar
+)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--rx, 50%) var(--ry, 50%), rgba(255,255,255,0.25) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+:where(
+  button:not(.modal-close):not(.close):not(.toggle-pass):not(.chip-remove),
+  .btn-primary,
+  .btn-guardar
+):active::after {
+  opacity: 1;
+  transition: none;
+}
+
+:where(
+  .btn-primary,
+  .btn-nueva,
+  .btn-guardar,
+  .btn-enviar,
+  .btn-reportar,
+  .btn-edit
+):not(:disabled):hover {
+  transform:   translateY(-2px);
+  box-shadow:  0 8px 24px var(--c-glow);
+}
+
+:where(
+  .btn-primary,
+  .btn-nueva,
+  .btn-guardar,
+  .btn-enviar,
+  .btn-reportar,
+  .btn-edit
+):not(:disabled):active {
+  transform:   translateY(0) scale(0.97);
+  box-shadow:  0 2px 8px var(--c-glow);
+  transition-duration: 80ms;
+}
+
+/* Acción peligrosa */
+.btn-danger:not(:disabled):hover {
+  transform:   translateY(-2px);
+  box-shadow:  0 8px 24px rgba(220, 38, 38, 0.35);
+}
+
+/* Botones icono */
+:where(.action-btn, .btn-accion, .icon-btn):hover {
+  transform: scale(1.12);
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+:where(.action-btn, .btn-accion, .icon-btn):active {
+  transform: scale(0.92);
+  transition-duration: 60ms;
+}
+
+/* ─────────────────────────────────────────────
+   5. LINKS Y NAVEGACIÓN
+   ───────────────────────────────────────────── */
+:where(a, .menu-item) {
+  transition:
+    color        var(--dur-fast) var(--ease-soft),
+    background   var(--dur-fast) var(--ease-soft),
+    transform    var(--dur-fast) var(--ease-spring),
+    box-shadow   var(--dur-fast) var(--ease-soft);
+}
+
+/* Menu item activo: entrada suave */
+.menu-item.active {
+  animation: menuItemActivate 0.35s var(--ease-spring) both;
+}
+@keyframes menuItemActivate {
+  from { transform: translateX(-6px) scale(0.97); opacity: 0.6; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* Hover en menu items */
+.menu-item:not(.active):hover {
+  transform:   translateX(4px);
+  transition:  transform var(--dur-fast) var(--ease-spring);
+}
+
+/* ─────────────────────────────────────────────
+   6. INPUTS Y SELECTS — Animados
+   ───────────────────────────────────────────── */
+:where(
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="tel"],
+  textarea,
+  select
 ) {
   transition:
-    transform var(--motion-base) var(--ease-emphasized),
-    box-shadow var(--motion-base) var(--ease-standard),
-    border-color var(--motion-base) var(--ease-standard),
-    background-color var(--motion-base) var(--ease-standard);
-  transform-origin: center;
+    border-color var(--dur-fast) var(--ease-soft),
+    box-shadow   var(--dur-fast) var(--ease-soft),
+    background   var(--dur-fast) var(--ease-soft),
+    transform    var(--dur-fast) var(--ease-spring);
 }
 
 :where(
-  .card,
-  .stat-card,
-  .table-container,
-  .table-wrap,
-  .panel,
-  .info-card,
-  .profile-banner,
-  .empty-card,
-  .confirm-box,
-  .modal-container,
-  .pedido-card,
-  .order-card,
-  .task-card,
-  .surface-panel
-):hover {
-  transform: translateY(-3px);
-  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.1);
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="tel"],
+  textarea
+):focus {
+  transform:   scale(1.008);
+  box-shadow:
+    0 0 0 3px rgba(31, 58, 82, 0.12),
+    0 4px 12px rgba(31, 58, 82, 0.08);
 }
 
-:where(button, .btn, .btn-primary, .btn-secondary, .btn-nueva, .icon-btn, .action-btn) {
+:where(select):focus {
+  transform:   scale(1.008);
+}
+
+/* Label flotante */
+.form-group:focus-within .form-label {
+  color:      var(--c-accent);
+  transform:  translateY(-1px);
+  transition: color var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-spring);
+}
+
+/* Select wrapper personalizado */
+.select-wrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: none;
+  cursor: pointer;
   transition:
-    transform var(--motion-fast) var(--ease-emphasized),
-    box-shadow var(--motion-fast) var(--ease-standard),
-    filter var(--motion-fast) var(--ease-standard);
+    border-color var(--dur-fast) var(--ease-soft),
+    box-shadow   var(--dur-fast) var(--ease-soft),
+    transform    var(--dur-fast) var(--ease-spring);
 }
 
-:where(button, .btn, .btn-primary, .btn-secondary, .btn-nueva, .icon-btn, .action-btn):hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+.select-wrapper:hover select {
+  border-color: var(--c-accent) !important;
 }
 
-:where(a, button, .menu-item, .tab-btn, .tab, .sortable, .th-sort, .btn-accion, .help-btn, .avatar) {
+.select-wrapper .select-arrow {
+  transition: transform var(--dur-base) var(--ease-spring);
+  pointer-events: none;
+}
+
+.select-wrapper select:focus + .select-arrow,
+.select-wrapper:focus-within .select-arrow {
+  transform: rotate(180deg);
+}
+
+/* ─────────────────────────────────────────────
+   7. BADGES Y PILLS
+   ───────────────────────────────────────────── */
+:where(.badge, .badge-role, .badge-estado, .badge-active, .cat-pill, .chip-material) {
   transition:
-    transform var(--motion-fast) var(--ease-emphasized),
-    color var(--motion-fast) var(--ease-standard),
-    background-color var(--motion-fast) var(--ease-standard),
-    border-color var(--motion-fast) var(--ease-standard),
-    box-shadow var(--motion-fast) var(--ease-standard);
+    transform    var(--dur-fast) var(--ease-spring),
+    box-shadow   var(--dur-fast) var(--ease-soft),
+    background   var(--dur-base) var(--ease-soft);
 }
 
-:where(tbody tr, .table-row, .report-row, .order-card, .pedido-card) {
+:where(.badge, .badge-role, .badge-estado, .cat-pill):hover {
+  transform:   scale(1.08);
+  box-shadow:  0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* Badges de estado con dot pulsante */
+.badge-active::before,
+.badge.en-proceso::before,
+.badge.estado-proceso::before {
+  content: '';
+  display: inline-block;
+  width:   6px;
+  height:  6px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 5px;
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(0.6); opacity: 0.4; }
+}
+
+/* ─────────────────────────────────────────────
+   8. TABLAS — Filas interactivas
+   ───────────────────────────────────────────── */
+tbody tr {
   transition:
-    transform var(--motion-fast) var(--ease-emphasized),
-    background-color var(--motion-fast) var(--ease-standard),
-    box-shadow var(--motion-fast) var(--ease-standard);
+    background   var(--dur-fast) var(--ease-soft),
+    transform    var(--dur-fast) var(--ease-spring),
+    box-shadow   var(--dur-fast) var(--ease-soft);
 }
 
-:where(tbody tr, .table-row, .report-row, .order-card, .pedido-card):hover {
-  transform: translateY(-1px);
+tbody tr:hover {
+  transform:   translateX(3px);
+  background:  rgba(31, 58, 82, 0.02) !important;
+  box-shadow:  inset 3px 0 0 var(--c-primary);
 }
 
+/* Header de tabla con sort */
+.th-sort,
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--dur-fast) var(--ease-soft);
+  position: relative;
+}
+
+.th-sort::after,
+.sortable::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--c-primary);
+  transition: width var(--dur-base) var(--ease-out-expo);
+}
+
+.th-sort:hover::after,
+.sortable:hover::after {
+  width: 100%;
+}
+
+/* Sort icon animado */
+.sort-icon {
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+.th-sort:hover .sort-icon,
+.sortable:hover .sort-icon {
+  transform: scale(1.3);
+}
+
+/* ─────────────────────────────────────────────
+   9. ICONOS SVG — Micro-animaciones
+   ───────────────────────────────────────────── */
+svg {
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+
+/* Icons dentro de action buttons */
+.action-btn:hover svg,
+.btn-accion:hover svg,
+.icon-btn:hover svg {
+  transform: scale(1.2) rotate(-5deg);
+}
+
+/* Edit icon */
+.edit-btn:hover svg   { transform: rotate(-8deg) scale(1.15); }
+.delete-btn:hover svg { transform: rotate(5deg) scale(1.15); }
+
+/* Menu icons */
+.menu-icon {
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+.menu-item:hover .menu-icon {
+  transform: scale(1.15) rotate(-3deg);
+}
+.menu-item.active .menu-icon {
+  transform: scale(1.1);
+  animation: iconPop 0.4s var(--ease-spring);
+}
+@keyframes iconPop {
+  0%   { transform: scale(0.7) rotate(-15deg); }
+  60%  { transform: scale(1.2) rotate(3deg);   }
+  100% { transform: scale(1.1); }
+}
+
+/* ─────────────────────────────────────────────
+   10. AVATARES
+   ───────────────────────────────────────────── */
+.avatar,
+.avatar-initials,
+.user-avatar {
+  transition:
+    transform    var(--dur-base) var(--ease-spring),
+    box-shadow   var(--dur-base) var(--ease-soft);
+}
+
+.avatar:hover,
+.avatar-initials:hover,
+.user-avatar:hover {
+  transform:   scale(1.12) rotate(-3deg);
+  box-shadow:  0 8px 20px rgba(31, 58, 82, 0.3);
+}
+
+/* ─────────────────────────────────────────────
+   11. PROGRESS BARS — Animación de entrada
+   ───────────────────────────────────────────── */
+.progress-fill,
+.oc-bar-fill,
+.activity-progress-fill,
+.nivel-fill,
+.qs-bar-fill,
+.hist-pct-fill {
+  transform-origin: left center;
+  animation: progressGrow var(--dur-xl) var(--ease-out-expo) both;
+}
+
+@keyframes progressGrow {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0);   }
+}
+
+/* Progress bar shimmer */
+.progress-fill::after,
+.oc-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.2) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerSlide 2.5s linear infinite;
+}
+
+@keyframes shimmerSlide {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ─────────────────────────────────────────────
+   12. NÚMEROS — Contadores animados
+   ───────────────────────────────────────────── */
+.stat-num,
+.stat-value,
+.stat-number,
+.number,
+.displayNum {
+  display: inline-block;
+  animation: numberPop 0.5s var(--ease-spring) both;
+}
+
+@keyframes numberPop {
+  from { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────
+   13. TOOLTIPS — Aparición suave
+   ───────────────────────────────────────────── */
+[title] { position: relative; }
+
+/* Custom tooltip */
+.tx-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #1f2937;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity   var(--dur-fast) var(--ease-soft),
+    transform var(--dur-fast) var(--ease-spring);
+  z-index: 9999;
+}
+.tx-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+[data-tooltip]:hover .tx-tooltip,
+.tx-tooltip-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ─────────────────────────────────────────────
+   14. MODALES — Entrance/Exit
+   ───────────────────────────────────────────── */
+.modal-enter-active,
+.modal-leave-active {
+  transition:
+    opacity   var(--dur-base) var(--ease-soft),
+    transform var(--dur-base) var(--ease-spring) !important;
+}
+
+.modal-enter-active .modal-container,
+.modal-enter-active .modal-content,
+.modal-enter-active .confirm-box,
+.modal-enter-active .cp-wrap {
+  animation: modalBounceIn var(--dur-slow) var(--ease-spring) both;
+}
+
+.modal-leave-active .modal-container,
+.modal-leave-active .modal-content,
+.modal-leave-active .confirm-box,
+.modal-leave-active .cp-wrap {
+  animation: modalShrink var(--dur-base) var(--ease-soft) both;
+}
+
+@keyframes modalBounceIn {
+  from { transform: scale(0.85) translateY(20px); opacity: 0; }
+  60%  { transform: scale(1.02) translateY(-4px); }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+
+@keyframes modalShrink {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92) translateY(10px); opacity: 0; }
+}
+
+/* ─────────────────────────────────────────────
+   15. TOASTS
+   ───────────────────────────────────────────── */
+.toast-enter-active {
+  animation: toastSlideIn 0.4s var(--ease-spring) both;
+}
+.toast-leave-active {
+  animation: toastSlideOut 0.25s var(--ease-soft) both;
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateY(20px) scale(0.9); opacity: 0; }
+  60%  { transform: translateY(-4px) scale(1.02); }
+  to   { transform: none; opacity: 1; }
+}
+@keyframes toastSlideOut {
+  from { transform: none; opacity: 1; }
+  to   { transform: translateY(10px) scale(0.9); opacity: 0; }
+}
+
+/* ─────────────────────────────────────────────
+   16. TRANSICIONES DE RUTA
+   ───────────────────────────────────────────── */
+.route-fade-enter-active {
+  animation: pageFadeIn 0.5s var(--ease-out-expo) both;
+}
+.route-fade-leave-active {
+  animation: pageFadeOut 0.3s var(--ease-soft) both;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.99); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes pageFadeOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-8px) scale(1.01); }
+}
+
+/* ─────────────────────────────────────────────
+   17. SIDEBAR
+   ───────────────────────────────────────────── */
+.sidebar {
+  transition:
+    opacity   0.4s var(--ease-out-expo),
+    transform 0.4s var(--ease-out-expo);
+}
+
+/* Rail animada */
+.menu-rail {
+  transition: transform 0.35s var(--ease-spring), opacity 0.2s ease !important;
+}
+
+/* ─────────────────────────────────────────────
+   18. SKELETON LOADING — Animado
+   ───────────────────────────────────────────── */
+.data-skeleton,
+.skeleton-card,
+.skeleton-line {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.7)  0%,
+    rgba(241, 245, 249, 0.95) 40%,
+    rgba(226, 232, 240, 0.7)  80%
+  );
+  background-size: 300% 100%;
+  animation: skeletonWave 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeletonWave {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ─────────────────────────────────────────────
+   19. CHIPS Y TAGS
+   ───────────────────────────────────────────── */
+.chip-selected,
+.chip-material,
+.cat-pill {
+  transition:
+    transform    var(--dur-fast) var(--ease-spring),
+    background   var(--dur-fast) var(--ease-soft),
+    box-shadow   var(--dur-fast) var(--ease-soft);
+}
+
+.chip-selected:hover,
+.chip-material:hover {
+  transform:   scale(1.05);
+  box-shadow:  0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.chip-remove {
+  transition:
+    transform    var(--dur-fast) var(--ease-spring),
+    background   var(--dur-fast) var(--ease-soft),
+    color        var(--dur-fast) var(--ease-soft);
+}
+.chip-remove:hover {
+  transform: scale(1.2) rotate(90deg) !important;
+}
+
+/* ─────────────────────────────────────────────
+   20. ESTADÍSTICAS — Entrada escalonada
+   ───────────────────────────────────────────── */
+.stats-grid .stat-card:nth-child(1) { animation-delay:   0ms; }
+.stats-grid .stat-card:nth-child(2) { animation-delay:  80ms; }
+.stats-grid .stat-card:nth-child(3) { animation-delay: 160ms; }
+.stats-grid .stat-card:nth-child(4) { animation-delay: 240ms; }
+
+/* Número grande con efecto */
+.stat-value:not(:empty) {
+  display: inline-block;
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────
+   21. ANIMACIONES DE PÁGINA — Generales
+   ───────────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fadeSlideLeft {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fadeSlideRight {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8); }
+  60%  { transform: scale(1.05); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes floatLoop {
+  0%, 100% { transform: translateY(0);   }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--c-glow); }
+  50%       { box-shadow: 0 0 0 10px transparent; }
+}
+
+@keyframes borderSpin {
+  to { --border-angle: 360deg; }
+}
+
+/* ─────────────────────────────────────────────
+   22. LIVE DOT
+   ───────────────────────────────────────────── */
+.live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  position: relative;
+  animation: liveDotPulse 2s ease-in-out infinite;
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.25);
+  animation: liveDotRing 2s ease-in-out infinite;
+}
+
+@keyframes liveDotPulse {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%       { transform: scale(0.85); opacity: 0.7; }
+}
+@keyframes liveDotRing {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0;   }
+}
+
+/* ─────────────────────────────────────────────
+   23. FOCUS VISIBLE — Accesibilidad
+   ───────────────────────────────────────────── */
+*:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px white,
+    0 0 0 4px var(--c-primary);
+  border-radius: 6px;
+  transition: box-shadow var(--dur-fast) var(--ease-soft);
+}
+
+/* ─────────────────────────────────────────────
+   24. UTILITY CLASSES
+   ───────────────────────────────────────────── */
+
+/* Float suave */
+.float { animation: floatLoop 3s ease-in-out infinite; }
+
+/* Glow pulsante */
+.glow-pulse { animation: pulseGlow 2s ease-in-out infinite; }
+
+/* Entrada rápida */
+.anim-pop    { animation: popIn 0.4s var(--ease-spring) both; }
+.anim-up     { animation: fadeSlideUp   0.4s var(--ease-out-expo) both; }
+.anim-left   { animation: fadeSlideLeft 0.4s var(--ease-out-expo) both; }
+.anim-right  { animation: fadeSlideRight 0.4s var(--ease-out-expo) both; }
+
+/* Delays */
+.delay-0   { animation-delay:   0ms; }
+.delay-50  { animation-delay:  50ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+
+/* ─────────────────────────────────────────────
+   25. REDUCIR MOVIMIENTO — Accesibilidad
+   ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:       0.01ms !important;
+    animation-iteration-count: 1     !important;
+    transition-duration:      0.01ms !important;
+    scroll-behavior:          auto   !important;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   26. SCROLL SUAVE GLOBAL
+   ───────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─────────────────────────────────────────────
+   27. SELECCIÓN DE TEXTO
+   ───────────────────────────────────────────── */
+::selection {
+  background: rgba(45, 106, 159, 0.2);
+  color: inherit;
+}
+
+/* ─────────────────────────────────────────────
+   28. SCROLLBAR PERSONALIZADO
+   ───────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(31, 58, 82, 0.25);
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(31, 58, 82, 0.45);
+}
+
+/* ─────────────────────────────────────────────
+   29. HOVER ROWS EN HISTORIAL
+   ───────────────────────────────────────────── */
+.hist-card {
+  transition:
+    box-shadow var(--dur-fast) var(--ease-soft),
+    transform  var(--dur-fast) var(--ease-spring),
+    border-color var(--dur-fast) var(--ease-soft) !important;
+}
+.hist-card:hover {
+  transform:    translateY(-3px) translateX(2px) !important;
+  border-color: var(--c-accent2) !important;
+  box-shadow:   0 8px 24px rgba(45, 106, 159, 0.12) !important;
+}
+
+/* ─────────────────────────────────────────────
+   30. ÍCONOS SIDEBAR — Animación de entrada
+   ───────────────────────────────────────────── */
+.sidebar-footer.visible {
+  animation: footerSlideUp 0.5s var(--ease-out-expo) 0.35s both;
+}
+@keyframes footerSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Logo ring — ya existe, mejoramos velocidad de spark */
+.logo-spark,
+.ring-spark {
+  animation-timing-function: ease-in-out !important;
+}
+
+/* ─────────────────────────────────────────────
+   31. BARRA DE ALERTAS / BANNERS
+   ───────────────────────────────────────────── */
+.alert-box,
+.estado-banner,
+.pausa-banner {
+  animation: alertSlideDown 0.4s var(--ease-spring) both;
+}
+@keyframes alertSlideDown {
+  from { opacity: 0; transform: translateY(-12px) scaleY(0.8); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ─────────────────────────────────────────────
+   32. INTERACTIVE LIFT (Global)
+   ───────────────────────────────────────────── */
+.interactive-lift {
+  transition:
+    transform  var(--dur-base) var(--ease-spring),
+    box-shadow var(--dur-base) var(--ease-soft),
+    border-color var(--dur-base) var(--ease-soft);
+  will-change: transform;
+}
+.interactive-lift:hover {
+  transform:   translateY(-4px);
+  box-shadow:  0 16px 40px rgba(15, 23, 42, 0.1);
+}
+
+/* ─────────────────────────────────────────────
+   33. GLASS CHIP
+   ───────────────────────────────────────────── */
 .glass-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   border-radius: 999px;
-  padding: 8px 12px;
+  padding: 6px 14px;
   border: 1px solid rgba(148, 163, 184, 0.18);
   background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-}
-
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #22c55e;
-  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
-  animation: livePulse 1.8s ease-in-out infinite;
-}
-
-@keyframes livePulse {
-  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.42); opacity: 0.9; }
-  70%  { box-shadow: 0 0 0 9px rgba(34, 197, 94, 0); opacity: 1; }
-  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); opacity: 0.9; }
-}
-
-.interactive-lift {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(12px);
   transition:
-    transform var(--motion-base) var(--ease-emphasized),
-    box-shadow var(--motion-base) var(--ease-standard),
-    border-color var(--motion-base) var(--ease-standard);
-  will-change: transform;
+    background   var(--dur-fast) var(--ease-soft),
+    box-shadow   var(--dur-fast) var(--ease-soft),
+    transform    var(--dur-fast) var(--ease-spring);
 }
-
-.interactive-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.12);
-}
-
-.data-skeleton {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(90deg, rgba(226, 232, 240, 0.72) 20%, rgba(241, 245, 249, 0.95) 50%, rgba(226, 232, 240, 0.72) 80%);
-  background-size: 200% 100%;
-  animation: skeletonShift 1.4s linear infinite;
-}
-
-@keyframes skeletonShift {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+.glass-chip:hover {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+  transform: translateY(-1px);
 }
