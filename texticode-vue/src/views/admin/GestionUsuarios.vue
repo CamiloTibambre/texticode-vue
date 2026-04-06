@@ -4,6 +4,14 @@
 
     <main class="main">
 
+      <!-- PARTÍCULAS DE FONDO DECORATIVAS -->
+      <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="bg-grid"></div>
+      </div>
+
       <!-- TOAST -->
       <Transition name="toast">
         <div v-if="toast.visible" class="toast" :class="toast.type">
@@ -39,79 +47,110 @@
         </div>
       </Transition>
 
-      <!-- TÍTULO -->
-      <div class="title" :class="{ visible: animVisible }">Gestión de Usuarios</div>
-
-    
-
-      <!-- TOP BAR -->
-      <div class="top-bar surface-panel" :class="{ visible: animVisible }">
-        <div class="filters">
-          <input
-            v-model="busqueda"
-            class="search"
-            :class="{ 'search-focus': searchFocus }"
-            type="text"
-            placeholder="Buscar usuarios..."
-            @focus="searchFocus = true"
-            @blur="searchFocus = false"
-          >
-          <div class="select-wrapper">
-            <select v-model="filtroRol" class="select">
-              <option value="">Todos los roles</option>
-              <option value="administrador">Administrador</option>
-              <option value="operador">Operario</option>
-              <option value="cliente">Cliente</option>
-            </select>
-            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+      <!-- HERO HEADER -->
+      <div class="page-hero" :class="{ 'hero-visible': animVisible }">
+        <div class="hero-left">
+          <div class="hero-icon-wrap">
+            <svg class="hero-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
             </svg>
+            <div class="hero-icon-ring ring-1"></div>
+            <div class="hero-icon-ring ring-2"></div>
+          </div>
+          <div class="hero-text">
+            <h1 class="hero-title">
+              <span
+                v-for="(ch, i) in 'Gestión de Usuarios'"
+                :key="i"
+                class="title-char"
+                :style="{ animationDelay: animVisible ? `${i * 35}ms` : '9999s' }"
+              >{{ ch === ' ' ? '\u00A0' : ch }}</span>
+            </h1>
+            <p class="hero-sub">Administración y control de accesos</p>
           </div>
         </div>
-        <button class="btn" @click="abrirModal(null)">
-          <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-          </svg>
-          Nuevo Usuario
-        </button>
+        <div class="hero-actions-wrap">
+          <div class="filters">
+            <div class="search-box" :class="{ 'search-focus': searchFocus }">
+              <svg class="search-ico" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+              </svg>
+              <input
+                v-model="busqueda"
+                type="text"
+                placeholder="Buscar usuarios..."
+                @focus="searchFocus = true"
+                @blur="searchFocus = false"
+              >
+            </div>
+            <div class="select-wrapper">
+              <select v-model="filtroRol" class="select">
+                <option value="">Todos los roles</option>
+                <option value="administrador">Administrador</option>
+                <option value="operador">Operario</option>
+                <option value="cliente">Cliente</option>
+              </select>
+              <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+              </svg>
+            </div>
+          </div>
+          <button class="btn" @click="abrirModal(null)">
+            <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            Nuevo Usuario
+          </button>
+        </div>
       </div>
 
       <!-- STATS -->
-      <div v-if="cargando" class="stats stats-skeleton visible">
-        <div v-for="i in 4" :key="i" class="stat-card skeleton-card surface-panel">
-          <div class="data-skeleton skeleton-line skeleton-sm"></div>
-          <div class="data-skeleton skeleton-line skeleton-lg"></div>
+      <div v-if="cargando" class="stats">
+        <div v-for="i in 4" :key="i" class="stat-card skeleton-card">
+          <div class="skeleton-line skeleton-sm"></div>
+          <div class="skeleton-line skeleton-lg"></div>
         </div>
       </div>
-      <div v-else class="stats" :class="{ visible: animVisible }">
+      <div v-else class="stats" :class="{ 'stats-visible': animVisible }">
         <div
           v-for="(s, i) in statsCards"
           :key="i"
-          class="stat-card surface-panel interactive-lift"
-          :style="{ transitionDelay: animVisible ? `${i * 70}ms` : '0ms' }"
+          class="stat-card"
+          :style="{ transitionDelay: animVisible ? `${i * 80}ms` : '0ms' }"
         >
+          <div class="stat-accent" :style="{ background: s.accentColor }"></div>
+          <div class="stat-icon-bg" :style="{ color: s.accentColor }">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" :d="s.iconPath"/>
+            </svg>
+          </div>
           <h3>{{ s.label }}</h3>
-          <p :class="s.color">{{ s.display }}</p>
+          <p :style="{ color: s.accentColor }">{{ s.display }}</p>
         </div>
       </div>
 
       <!-- TABLA -->
-      <div class="table-box surface-panel" :class="{ visible: animVisible }">
-        <div class="table-header">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
-          </svg>
-          Lista de Usuarios ({{ usuariosFiltrados.length }})
-        </div>
-        <div v-if="cargando" class="table-skeleton">
-          <div v-for="i in 6" :key="i" class="table-skeleton-row">
-            <span class="data-skeleton skeleton-avatar"></span>
-            <span class="data-skeleton skeleton-line skeleton-user"></span>
-            <span class="data-skeleton skeleton-line skeleton-tag"></span>
-            <span class="data-skeleton skeleton-line skeleton-phone"></span>
-            <span class="data-skeleton skeleton-line skeleton-date"></span>
+      <div class="table-box" :class="{ 'box-visible': animVisible }">
+        <div class="table-header-bar">
+          <div class="table-header-left">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+            </svg>
+            Lista de Usuarios
+            <span class="count-badge">{{ usuariosFiltrados.length }}</span>
           </div>
         </div>
+
+        <div v-if="cargando" class="table-skeleton">
+          <div v-for="i in 6" :key="i" class="table-skeleton-row">
+            <span class="skeleton-avatar"></span>
+            <span class="skeleton-line skeleton-user"></span>
+            <span class="skeleton-line skeleton-tag"></span>
+            <span class="skeleton-line skeleton-phone"></span>
+            <span class="skeleton-line skeleton-date"></span>
+          </div>
+        </div>
+
         <table v-else>
           <thead>
             <tr>
@@ -131,14 +170,18 @@
           <tbody>
             <TransitionGroup name="row">
               <tr
-                v-for="u in usuariosOrdenados"
+                v-for="(u, idx) in usuariosOrdenados"
                 :key="u.id"
+                class="table-row"
                 :class="{ 'row-flash': u.flash, 'row-eliminating': u.eliminating }"
+                :style="{ animationDelay: `${idx * 40}ms` }"
               >
                 <td>
                   <div class="user">
-                    <div class="avatar" :style="{ background: avatarBg(u.nombre), color: avatarColor(u.nombre) }">
-                      {{ u.iniciales }}
+                    <div class="avatar-wrap">
+                      <div class="avatar" :style="{ background: avatarBg(u.nombre), color: avatarColor(u.nombre) }">
+                        {{ u.iniciales }}
+                      </div>
                     </div>
                     <div class="user-info">
                       <span class="user-name">{{ u.nombre }}</span>
@@ -159,12 +202,12 @@
                 <td>
                   <div class="actions">
                     <button class="action-btn edit-btn" @click="abrirModal(u)" title="Editar">
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
                       </svg>
                     </button>
                     <button class="action-btn delete-btn" @click="pedirEliminar(u.id)" title="Eliminar">
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                       </svg>
                     </button>
@@ -174,7 +217,7 @@
             </TransitionGroup>
             <!-- Estado vacío -->
             <tr v-if="usuariosOrdenados.length === 0">
-              <td colspan="6" class="empty-state">
+              <td colspan="5" class="empty-state">
                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
                 </svg>
@@ -230,7 +273,6 @@
           >
           <span v-if="errores.telefono && formTouched" class="error-msg">{{ errores.telefono }}</span>
 
-
           <label>Rol</label>
           <select v-model="form.Id_Rol" :class="{ 'input-error': errores.Id_Rol && formTouched }">
             <option value="" disabled>Selecciona un rol</option>
@@ -281,51 +323,48 @@ import {
 } from '../../services/api.js'
 
 // ── ESTADO ──
-const animVisible  = ref(false)
-const cargando     = ref(true)
-const guardando    = ref(false)
-const searchFocus  = ref(false)
-const busqueda     = ref('')
-const filtroRol    = ref('')
+const animVisible = ref(false)
+const cargando = ref(true)
+const guardando = ref(false)
+const searchFocus = ref(false)
+const busqueda = ref('')
+const filtroRol = ref('')
 const modalVisible = ref(false)
-const editando     = ref(false)
-const formTouched  = ref(false)
-const roles        = ref([])   // lista de roles de la BD
-const usuarios     = ref([])
+const editando = ref(false)
+const formTouched = ref(false)
+const roles = ref([])
+const usuarios = ref([])
 
 const confirmDialog = ref({ visible: false, id: null })
-const toast         = ref({ visible: false, msg: '', type: 'success' })
+const toast = ref({ visible: false, msg: '', type: 'success' })
 
 // ── ROL HELPERS ──
-// Normaliza el nombre de rol de la BD al valor que usan los badges/filtros
 const ROL_NORM = { 'administrador': 'administrador', 'admin': 'administrador', 'operario': 'operador', 'operador': 'operador', 'cliente': 'cliente' }
-const ROL_LABEL= { administrador: 'Administrador', operador: 'Operario', cliente: 'Cliente' }
+const ROL_LABEL = { administrador: 'Administrador', operador: 'Operario', cliente: 'Cliente' }
 function normRol(nombreRol) { return ROL_NORM[(nombreRol || '').toLowerCase()] || 'operador' }
 
 // ── MAPEO BD → vista ──
-// usuarios.js devuelve el rol como campo "Rol" (alias del JOIN), no "Nombre_Rol"
-// y el SELECT no expone Id_Rol directamente, lo buscamos desde roles[]
 function mapear(u) {
   const rolNombreRaw = u.Rol || u.Nombre_Rol || ''
-  const rol          = normRol(rolNombreRaw)
-  const nombre       = u.Nombre_Completo || u.Nombre_Usuario || ''
-  const rolObj       = roles.value.find(r =>
+  const rol = normRol(rolNombreRaw)
+  const nombre = u.Nombre_Completo || u.Nombre_Usuario || ''
+  const rolObj = roles.value.find(r =>
     (r.Nombre_Rol || '').toLowerCase() === rolNombreRaw.toLowerCase()
   )
   return {
-    id:            u.Id_Usuario,
+    id: u.Id_Usuario,
     nombre,
     nombreUsuario: u.Nombre_Usuario || '',
-    email:         u.Correo         || '',
-    telefono:      u.Telefono       || '',
-    Id_Rol:        rolObj?.Id_Rol   ?? '',
+    email: u.Correo || '',
+    telefono: u.Telefono || '',
+    Id_Rol: rolObj?.Id_Rol ?? '',
     rol,
-    rolLabel:      ROL_LABEL[rol]   || rolNombreRaw,
-    estado:        u.Estado === 'activo' ? 'active' : 'inactive',
+    rolLabel: ROL_LABEL[rol] || rolNombreRaw,
+    estado: u.Estado === 'activo' ? 'active' : 'inactive',
     fechaRegistro: u.Fecha_Registro ? new Date(u.Fecha_Registro).toLocaleDateString('es-CO') : '—',
-    iniciales:     nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase(),
-    flash:         false,
-    eliminating:   false,
+    iniciales: nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase(),
+    flash: false,
+    eliminating: false,
   }
 }
 
@@ -334,8 +373,7 @@ async function cargarDatos() {
   cargando.value = true
   try {
     const [dataU, dataR] = await Promise.all([getUsuarios(), getRoles()])
-    roles.value    = dataR
-    // Solo mostrar usuarios activos en la lista
+    roles.value = dataR
     usuarios.value = dataU.filter(u => u.Estado === 'activo').map(mapear)
   } catch (e) {
     mostrarToast('Error al cargar usuarios', 'danger')
@@ -366,14 +404,13 @@ async function confirmarEliminar() {
   if (!u) return
   u.eliminating = true
   try {
-    // Marcar como inactivo en la BD en lugar de eliminar
     await actualizarUsuario(id, {
-      Id_Rol:          u.Id_Rol,
+      Id_Rol: u.Id_Rol,
       Nombre_Completo: u.nombre,
-      Nombre_Usuario:  u.nombreUsuario,
-      Correo:          u.email,
-      Telefono:        u.telefono || null,
-      Estado:          'inactivo',
+      Nombre_Usuario: u.nombreUsuario,
+      Correo: u.email,
+      Telefono: u.telefono || null,
+      Estado: 'inactivo',
     })
     setTimeout(() => {
       usuarios.value = usuarios.value.filter(x => x.id !== id)
@@ -401,16 +438,22 @@ function animateCount(key, target) {
   }, intervalMs)
 }
 function animateStats() {
-  animateCount('total',     usuarios.value.length)
-  animateCount('activos',   usuarios.value.filter(u => u.estado === 'active').length)
+  animateCount('total', usuarios.value.length)
+  animateCount('activos', usuarios.value.filter(u => u.estado === 'active').length)
   animateCount('operarios', usuarios.value.filter(u => u.rol === 'operador').length)
-  animateCount('clientes',  usuarios.value.filter(u => u.rol === 'cliente').length)
+  animateCount('clientes', usuarios.value.filter(u => u.rol === 'cliente').length)
 }
+
+const ICON_USERS = 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
+const ICON_CHECK = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+const ICON_WRENCH = 'M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z'
+const ICON_CLIENT = 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z'
+
 const statsCards = computed(() => [
-  { label: 'Total Usuarios', display: statsDisplay.value.total,    color: '' },
-  { label: 'Activos',        display: statsDisplay.value.activos,   color: 'green' },
-  { label: 'Operarios',      display: statsDisplay.value.operarios, color: 'blue' },
-  { label: 'Clientes',       display: statsDisplay.value.clientes,  color: '' },
+  { label: 'Total Usuarios', display: statsDisplay.value.total, accentColor: '#1f3a52', iconPath: ICON_USERS },
+  { label: 'Activos', display: statsDisplay.value.activos, accentColor: '#16a34a', iconPath: ICON_CHECK },
+  { label: 'Operarios', display: statsDisplay.value.operarios, accentColor: '#2563eb', iconPath: ICON_WRENCH },
+  { label: 'Clientes', display: statsDisplay.value.clientes, accentColor: '#d97706', iconPath: ICON_CLIENT },
 ])
 
 // ── AVATAR COLORS ──
@@ -419,7 +462,7 @@ const PALETTES = [
   { bg: '#d1fae5', color: '#065f46' }, { bg: '#fef9c3', color: '#92400e' },
   { bg: '#ede9fe', color: '#5b21b6' }, { bg: '#fee2e2', color: '#991b1b' },
 ]
-function avatarBg(n)    { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].bg }
+function avatarBg(n) { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].bg }
 function avatarColor(n) { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].color }
 
 // ── ORDENAMIENTO ──
@@ -433,7 +476,7 @@ const usuariosFiltrados = computed(() =>
   usuarios.value.filter(u => {
     const q = busqueda.value.toLowerCase()
     return (u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
-           (!filtroRol.value    || u.rol    === filtroRol.value)
+           (!filtroRol.value || u.rol === filtroRol.value)
   })
 )
 const usuariosOrdenados = computed(() =>
@@ -446,9 +489,9 @@ const usuariosOrdenados = computed(() =>
 // ── VALIDACIÓN ──
 const form = ref({ id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: '', estado: 'activo', contrasena: '' })
 const errores = computed(() => ({
-  nombre:   !form.value.nombre.trim()         ? 'El nombre es requerido'  : '',
-  email:    !form.value.email.includes('@')   ? 'Ingresa un email válido' : '',
-  Id_Rol:   !form.value.Id_Rol                ? 'Selecciona un rol'       : '',
+  nombre: !form.value.nombre.trim() ? 'El nombre es requerido' : '',
+  email: !form.value.email.includes('@') ? 'Ingresa un email válido' : '',
+  Id_Rol: !form.value.Id_Rol ? 'Selecciona un rol' : '',
   contrasena: !editando.value && !form.value.contrasena.trim() ? 'La contraseña es requerida' : '',
   telefono: form.value.telefono && !/^\+?[\d\s]{7,}$/.test(form.value.telefono) ? 'Teléfono inválido' : '',
 }))
@@ -460,14 +503,14 @@ function abrirModal(usuario) {
   if (usuario) {
     editando.value = true
     form.value = {
-      id:            usuario.id,
-      nombre:        usuario.nombre,
+      id: usuario.id,
+      nombre: usuario.nombre,
       nombreUsuario: usuario.nombreUsuario,
-      email:         usuario.email,
-      telefono:      usuario.telefono,
-      Id_Rol:        usuario.Id_Rol,
-      estado:        usuario.estado === 'active' ? 'activo' : 'inactivo',
-      contrasena:    '',
+      email: usuario.email,
+      telefono: usuario.telefono,
+      Id_Rol: usuario.Id_Rol,
+      estado: usuario.estado === 'active' ? 'activo' : 'inactivo',
+      contrasena: '',
     }
   } else {
     editando.value = false
@@ -484,12 +527,11 @@ async function guardarUsuario() {
 
   const payload = {
     Nombre_Completo: form.value.nombre,
-    Nombre_Usuario:  form.value.nombreUsuario || form.value.nombre.toLowerCase().replace(/\s+/g, '.'),
-    Correo:          form.value.email,
-    Telefono:        form.value.telefono  || null,
-    Id_Rol:          form.value.Id_Rol,
-    Estado:          form.value.estado,
-    // Contraseña por defecto para usuarios nuevos; el admin deberá cambiarla
+    Nombre_Usuario: form.value.nombreUsuario || form.value.nombre.toLowerCase().replace(/\s+/g, '.'),
+    Correo: form.value.email,
+    Telefono: form.value.telefono || null,
+    Id_Rol: form.value.Id_Rol,
+    Estado: form.value.estado,
     ...(form.value.contrasena.trim() ? { Contrasena: form.value.contrasena.trim() } : {}),
   }
 
@@ -513,187 +555,255 @@ async function guardarUsuario() {
 </script>
 
 <style scoped>
-.layout { display: flex; min-height: 100vh; }
-.main { flex: 1; padding: 28px 30px; }
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
+.main { flex: 1; padding: 28px 30px; position: relative; z-index: 1; }
 
-/* ── ANIMACIONES DE ENTRADA ── */
-.title, .hero-strip, .top-bar, .stats, .table-box {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+/* ── FONDO DECORATIVO ── */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.07; }
+.orb-1 {
+  width: 600px; height: 600px; background: #1f3a52;
+  top: -200px; right: -100px;
+  animation: orbDrift1 18s ease-in-out infinite alternate;
 }
-.title.visible     { opacity: 1; transform: none; transition-delay: 0ms; }
-.hero-strip.visible { opacity: 1; transform: none; transition-delay: 40ms; }
-.top-bar.visible   { opacity: 1; transform: none; transition-delay: 80ms; }
-.stats.visible     { opacity: 1; transform: none; transition-delay: 160ms; }
-.table-box.visible { opacity: 1; transform: none; transition-delay: 240ms; }
-
-.title { font-size: 26px; font-weight: 600; color: #111827; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
-
-.hero-strip {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  border-radius: 22px;
-  padding: 22px 24px;
-  margin-bottom: 18px;
+.orb-2 {
+  width: 400px; height: 400px; background: #2563eb;
+  bottom: -100px; left: 10%;
+  animation: orbDrift2 22s ease-in-out infinite alternate;
 }
-.hero-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
-}
-.hero-strip h2 {
-  font-size: 24px;
-  line-height: 1.15;
-  color: #0f172a;
-  margin: 0 0 8px;
-}
-.hero-strip p {
-  color: #475569;
-  line-height: 1.55;
-  max-width: 700px;
-}
-.hero-metrics {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-self: flex-start;
-  justify-content: flex-end;
-}
-.hero-pill {
-  min-width: 132px;
-  justify-content: space-between;
-}
-.pill-label {
-  font-size: 11px;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.orb-3 {
+  width: 300px; height: 300px; background: #16a34a;
+  top: 40%; right: 5%;
+  animation: orbDrift3 15s ease-in-out infinite alternate;
 }
 
-/* ── TOP BAR ── */
-.top-bar {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
-  padding: 14px; border-radius: 18px;
+@keyframes orbDrift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px,40px) scale(1.1); } }
+@keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
+@keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
+
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
-.filters { display: flex; gap: 12px; flex-wrap: wrap; }
-.search {
-  padding: 9px 12px 9px 36px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
-  background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z'/%3E%3C/svg%3E") no-repeat 10px center;
-  width: 220px; outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+
+/* ── HERO HEADER ── */
+.page-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+  opacity: 0; transform: translateY(-16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-.search-focus { border-color: #1f3a52 !important; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
-.select { padding: 9px 32px 9px 12px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 14px; background: white; appearance: none; -webkit-appearance: none; outline: none; cursor: pointer; }
+.page-hero.hero-visible { opacity: 1; transform: translateY(0); }
+
+.hero-left { display: flex; align-items: center; gap: 16px; }
+.hero-text { display: flex; flex-direction: column; }
+
+.hero-icon-wrap {
+  position: relative; width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  background: #1f3a52; border-radius: 14px; flex-shrink: 0;
+}
+.hero-icon { width: 26px; height: 26px; color: white; }
+.hero-icon-ring {
+  position: absolute; border-radius: 50%;
+  border: 1.5px solid #1f3a52; opacity: 0;
+  animation: iconPulse 3s ease-out infinite;
+}
+.ring-1 { width: 68px; height: 68px; animation-delay: 0s; }
+.ring-2 { width: 86px; height: 86px; animation-delay: 0.8s; }
+
+@keyframes iconPulse {
+  0% { transform: scale(0.7); opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.hero-title {
+  font-size: 24px; font-weight: 700; color: #111827;
+  margin: 0; display: flex; flex-wrap: wrap;
+}
+.title-char {
+  display: inline-block;
+  opacity: 0; transform: translateY(12px);
+  animation: charReveal 0.4s ease forwards;
+}
+@keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
+
+.hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
+
+.hero-actions-wrap {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0;
+}
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; background: white;
+  border: 1.5px solid #e5e7eb; border-radius: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s; width: 220px;
+}
+.search-box.search-focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
+.search-ico { width: 16px; height: 16px; color: #9ca3af; flex-shrink: 0; }
+.search-box input { border: none; outline: none; width: 100%; font-size: 14px; color: #374151; background: transparent; }
+.search-box input::placeholder { color: #9ca3af; }
+
 .select-wrapper { position: relative; display: inline-flex; align-items: center; }
+.select {
+  padding: 9px 32px 9px 12px; border-radius: 10px;
+  border: 1.5px solid #e5e7eb; font-size: 14px; background: white;
+  appearance: none; -webkit-appearance: none; outline: none; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.select:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
 .select-arrow { position: absolute; right: 10px; width: 14px; height: 14px; color: #6b7280; pointer-events: none; }
-.btn { display: flex; align-items: center; gap: 8px; background: #1f3a52; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.1s; }
+
+.btn {
+  display: flex; align-items: center; gap: 8px;
+  background: #1f3a52; color: white; border: none;
+  padding: 10px 16px; border-radius: 10px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; transition: background 0.2s, transform 0.1s; flex-shrink: 0;
+}
 .btn:hover { background: #162b3c; transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
 .btn-icon { width: 18px; height: 18px; }
 
 /* ── STATS ── */
-.stats { display: flex; gap: 20px; margin-bottom: 30px; }
+.stats { display: flex; gap: 18px; margin-bottom: 28px; }
 .stat-card {
-  background: white; flex: 1; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb;
-  opacity: 0; transform: translateY(12px);
-  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.2s;
+  background: white; flex: 1; padding: 20px 20px 20px 24px;
+  border-radius: 14px; border: 1px solid #e5e7eb;
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s;
 }
-.stats.visible .stat-card { opacity: 1; transform: none; }
-.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
-.stat-card h3 { font-size: 14px; color: #6b7280; font-weight: 500; margin: 0; }
-.stat-card p { font-size: 26px; font-weight: 600; margin: 10px 0 0 0; }
-.green { color: #16a34a; } .blue { color: #2563eb; }
-.skeleton-card { min-height: 106px; pointer-events: none; }
-.skeleton-line { display: block; border-radius: 999px; }
+.stats-visible .stat-card { opacity: 1; transform: translateY(0); }
+.stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.09); transform: translateY(-3px) !important; }
+
+.stat-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+.stat-icon-bg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); opacity: 0.07; }
+.stat-icon-bg svg { width: 52px; height: 52px; }
+
+.stat-card h3 { font-size: 13px; color: #6b7280; font-weight: 500; margin: 0 0 10px 0; }
+.stat-card p { font-size: 30px; font-weight: 800; margin: 0; line-height: 1; }
+
+.skeleton-card { pointer-events: none; min-height: 90px; }
+.skeleton-line { display: block; border-radius: 999px; background: #e5e7eb; }
 .skeleton-sm { width: 45%; height: 12px; margin-bottom: 16px; }
 .skeleton-lg { width: 70%; height: 30px; }
 
+/* ── TABLA BOX ── */
+.table-box {
+  background: white; border-radius: 14px; border: 1px solid #e5e7eb;
+  overflow: hidden;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition-delay: 280ms;
+}
+.box-visible { opacity: 1; transform: translateY(0); }
+
+.table-header-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb;
+}
+.table-header-left {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: #374151;
+}
+.table-header-left svg { color: #1f3a52; }
+.count-badge {
+  background: #1f3a52; color: white;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 999px; line-height: 1.6;
+}
+
 /* ── TABLA ── */
-.table-box { border: 1px solid rgba(255,255,255,0.8); border-radius: 20px; overflow: hidden; }
-.table-header { padding: 16px 18px; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 table { width: 100%; border-collapse: collapse; }
 thead { background: #f9fafb; }
 th { font-size: 12px; font-weight: 600; color: #6b7280; padding: 14px 18px; text-align: left; }
 .th-sortable { cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.15s; }
 .th-sortable:hover { color: #1f3a52; }
 .sort-icon { font-size: 11px; margin-left: 4px; opacity: 0.6; }
-td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; transition: background 0.2s; }
-tbody tr:hover td { background: #f9fafb; }
-.table-skeleton { padding: 18px; display: grid; gap: 12px; }
-.table-skeleton-row {
-  display: grid;
-  grid-template-columns: 34px 1.6fr 0.8fr 1fr 0.8fr;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 10px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.72);
-}
-.skeleton-avatar { width: 34px; height: 34px; border-radius: 999px; }
-.skeleton-user  { width: 72%; height: 16px; }
-.skeleton-tag   { width: 90px; height: 14px; }
-.skeleton-phone { width: 120px; height: 14px; }
-.skeleton-date  { width: 80px; height: 14px; }
+td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 
-/* ── ROW ANIMACIONES ── */
+.table-row {
+  transition: background 0.18s;
+  animation: rowSlideIn 0.35s ease both;
+}
+.table-row:hover td { background: #f8fafc; }
+
+@keyframes rowSlideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .row-flash td { background: #f0fdf4 !important; }
 .row-eliminating { opacity: 0 !important; transform: translateX(20px) !important; transition: all 0.35s ease !important; }
 .row-enter-active { transition: all 0.3s ease; }
 .row-leave-active { transition: all 0.3s ease; }
 .row-enter-from { opacity: 0; transform: translateY(-10px); }
-.row-leave-to   { opacity: 0; transform: translateX(20px); }
+.row-leave-to { opacity: 0; transform: translateX(20px); }
+
+/* ── SKELETON TABLA ── */
+.table-skeleton { padding: 18px; display: grid; gap: 12px; }
+.table-skeleton-row {
+  display: grid;
+  grid-template-columns: 34px 1.6fr 0.8fr 1fr 0.8fr;
+  align-items: center; gap: 16px; padding: 14px 10px;
+  border-radius: 16px; background: rgba(255,255,255,0.72);
+}
+.skeleton-avatar { display: block; width: 34px; height: 34px; border-radius: 999px; background: #e5e7eb; }
+.skeleton-user { width: 72%; height: 16px; }
+.skeleton-tag { width: 90px; height: 14px; }
+.skeleton-phone { width: 120px; height: 14px; }
+.skeleton-date { width: 80px; height: 14px; }
 
 /* ── USER ── */
 .user { display: flex; align-items: center; gap: 10px; }
-.user-info { display: flex; flex-direction: column; }
-.user-name { font-weight: 500; font-size: 14px; }
-.user-handle { font-size: 12px; color: #6b7280; }
+.avatar-wrap { position: relative; flex-shrink: 0; }
 .avatar {
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; flex-shrink: 0;
-  transition: transform 0.2s;
+  font-size: 12px; font-weight: 700; transition: transform 0.2s;
 }
 .avatar:hover { transform: scale(1.1); }
+.user-info { display: flex; flex-direction: column; }
+.user-name { font-weight: 600; font-size: 14px; color: #111827; }
+.user-handle { font-size: 12px; color: #6b7280; }
+.phone-cell { display: flex; align-items: center; gap: 6px; color: #374151; }
 
 /* ── BADGES ── */
 .badge-role { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .badge-role.administrador { background: #f3f4f6; color: #374151; }
-.badge-role.operador      { background: #e0ecff; color: #2563eb; }
-.badge-role.cliente       { background: #fef9c3; color: #92400e; }
-.badge-status { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-.badge-status.active   { background: #dcfce7; color: #15803d; }
-.badge-status.inactive { background: #e5e7eb; color: #374151; }
-.phone-cell { display: flex; align-items: center; gap: 6px; color: #374151; }
+.badge-role.operador { background: #e0ecff; color: #2563eb; }
+.badge-role.cliente { background: #fef9c3; color: #92400e; }
 
 /* ── ACCIONES ── */
 .actions { display: flex; gap: 8px; align-items: center; }
 .action-btn {
-  width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e5e7eb;
-  background: white; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.15s; color: #6b7280;
+  width: 32px; height: 32px; border-radius: 7px; border: none;
+  background: #1f3a52; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; color: white;
+  -webkit-font-smoothing: antialiased;
 }
-.edit-btn:hover   { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
-.delete-btn:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.action-btn svg { pointer-events: none; filter: drop-shadow(0 0 0.3px rgba(255,255,255,0.4)); }
+.edit-btn:hover { background: #2d5580; transform: scale(1.07); }
+.delete-btn:hover { background: #dc2626; transform: scale(1.07); }
 
-/* ── ESTADO VACÍO ── */
+/* ── EMPTY STATE ── */
 .empty-state { text-align: center; padding: 48px 20px; color: #9ca3af; }
 .empty-state svg { margin: 0 auto 12px; display: block; opacity: 0.4; }
 .empty-state p { font-size: 14px; margin: 0; }
 
 /* ── MODAL ── */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; padding: 20px;
+}
 .modal-content {
   background: white; width: 100%; max-width: 500px; max-height: 90vh;
   overflow-y: auto; padding: 30px; border-radius: 14px; position: relative;
@@ -715,14 +825,12 @@ tbody tr:hover td { background: #f9fafb; }
 .input-error:focus { box-shadow: 0 0 0 3px rgba(248,113,113,0.15) !important; }
 .error-msg { font-size: 12px; color: #dc2626; margin-top: 4px; display: block; }
 
-/* ── PREVIEW ── */
 .user-preview {
   display: flex; align-items: center; gap: 12px;
   margin-top: 18px; padding: 12px 14px;
   background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb;
 }
 
-/* ── BOTONES MODAL ── */
 .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb; background: white; font-size: 14px; cursor: pointer; transition: background 0.15s; }
 .btn-cancel:hover { background: #f3f4f6; }
@@ -760,21 +868,20 @@ tbody tr:hover td { background: #f9fafb; }
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 .toast.success { background: #16a34a; }
-.toast.danger  { background: #dc2626; }
-.toast.info    { background: #2563eb; }
+.toast.danger { background: #dc2626; }
+.toast.info { background: #2563eb; }
 
 /* ── TRANSICIONES ── */
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
-.modal-enter-from, .modal-leave-to       { opacity: 0; }
-
+.modal-enter-from, .modal-leave-to { opacity: 0; }
 .toast-enter-active { transition: all 0.3s ease; }
 .toast-leave-active { transition: all 0.25s ease; }
-.toast-enter-from   { opacity: 0; transform: translateY(12px); }
-.toast-leave-to     { opacity: 0; transform: translateY(12px); }
+.toast-enter-from { opacity: 0; transform: translateY(12px); }
+.toast-leave-to { opacity: 0; transform: translateY(12px); }
 
-@media (max-width: 900px) {
-  .hero-strip { flex-direction: column; }
-  .hero-metrics { justify-content: flex-start; }
+@media (max-width: 960px) {
+  .page-hero { flex-direction: column; align-items: flex-start; }
+  .hero-actions-wrap { width: 100%; }
   .table-skeleton-row { grid-template-columns: 28px 1fr; }
   .skeleton-tag, .skeleton-phone, .skeleton-date { display: none; }
 }
