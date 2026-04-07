@@ -1,16 +1,46 @@
 <template>
-  <div style="display:flex;min-height:100vh;background:#f3f4f6">
+  <div class="layout">
     <AppSidebar rol="operario" />
- 
+
     <main class="main">
-      <div class="title" :class="{ 'fade-in': mounted }">Cuenta Personal</div>
- 
-      <!-- ESTADO DE CARGA -->
+
+      <!-- PARTÍCULAS DE FONDO DECORATIVAS -->
+      <div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="bg-grid"></div>
+</div>
+      
+
+      <!-- HERO HEADER -->
+      <div class="hero-header" :class="{ 'hero-in': mounted }">
+        <div class="hero-icon-wrap">
+          <div class="hero-icon-box">
+            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="white" shape-rendering="geometricPrecision" style="display:block">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+            </svg>
+          </div>
+          <div class="pulse-ring ring-1"></div>
+          <div class="pulse-ring ring-2"></div>
+        </div>
+        <div class="hero-text">
+          <h1 class="hero-title">
+            <span v-for="(c, i) in titleChars" :key="i"
+              class="title-char"
+              :class="{ 'char-visible': mounted }"
+              :style="{ transitionDelay: mounted ? `${i * 35}ms` : '0ms' }">{{ c === ' ' ? '\u00A0' : c }}</span>
+          </h1>
+          <p class="hero-sub">Tu perfil y actividad de operario</p>
+        </div>
+      </div>
+
+      <!-- CARGANDO -->
       <div v-if="cargando" class="loading-wrap">
-        <div class="spinner"></div>
+        <div class="loader-ring"></div>
         <p class="loading-text">Cargando perfil...</p>
       </div>
- 
+
       <!-- ERROR -->
       <div v-else-if="error" class="error-banner">
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -19,174 +49,244 @@
         {{ error }}
         <button class="btn-retry" @click="cargarDatos">Reintentar</button>
       </div>
- 
+
       <template v-else>
-        <!-- SIN SESIÓN REAL -->
-        <div v-if="!auth.idUsuario" class="empty-session" :class="{ 'section-visible': mounted }" style="transition-delay: 1s">
-          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
-          </svg>
-          <p class="empty-title">Ingresa con tu cuenta</p>
-          <p class="empty-sub">Inicia sesión con tus credenciales reales para ver tu perfil y actividad.</p>
-        </div>
- 
-        <!-- CON SESIÓN REAL -->
-        <template v-else>
-          <div class="profile-banner" :class="{ 'section-visible': mounted }" style="transition-delay: 80ms">
-            <div class="profile-avatar-wrap">
-              <div class="avatar-initials">{{ iniciales }}</div>
-            </div>
-            <div class="profile-info">
-              <div class="profile-name">{{ perfil.Nombre_Completo }}</div>
-              <div class="profile-role">{{ perfil.Rol || 'Operario' }}</div>
-              <span class="badge-active" :class="perfil.Estado === 'activo' ? 'badge-green' : 'badge-red'">
-                {{ perfil.Estado === 'activo' ? 'Activo' : 'Inactivo' }}
-              </span>
-            </div>
-            <button class="btn-edit" @click="abrirModal">Editar Perfil</button>
+        <!-- SIN SESIÓN -->
+        <div v-if="!auth.idUsuario" class="empty-session">
+          <div class="empty-icon-hex">
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#9ca3af">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+            </svg>
           </div>
- 
-          <!-- STATS con contadores animados -->
-          <div class="card stats-row" :class="{ 'section-visible': mounted }" style="transition-delay: 160ms">
-            <div class="stat-box" :class="{ 'card-visible': mounted }" style="transition-delay: 160ms">
-              <div class="stat-number">{{ displayCompletadas }}</div>
-              <div class="stat-label">Tareas Completadas</div>
+          <p class="empty-title">Ingresa con tu cuenta</p>
+          <p class="empty-sub">Inicia sesión para ver tu perfil y actividad.</p>
+        </div>
+
+        <!-- CON SESIÓN -->
+        <template v-else>
+
+          <!-- BANNER PERFIL -->
+          <div class="profile-banner" :class="{ 'banner-in': mounted }">
+            <!-- Engranajes decorativos -->
+            <div class="gear-deco gear-big" :class="{ 'gear-spin': mounted }">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.07)" stroke-width=".8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+              </svg>
             </div>
-            <div class="stat-box" :class="{ 'card-visible': mounted }" style="transition-delay: 240ms">
-              <div class="stat-number">{{ displayEnProceso }}</div>
-              <div class="stat-label">En Proceso</div>
+            <div class="gear-deco gear-small" :class="{ 'gear-spin-rev': mounted }">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.1)" stroke-width=".8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+              </svg>
             </div>
-            <div class="stat-box" :class="{ 'card-visible': mounted }" style="transition-delay: 320ms">
-              <div class="stat-number">{{ displayTotal }}</div>
-              <div class="stat-label">Total Asignadas</div>
+
+            <!-- Avatar con hexágono SVG -->
+            <div class="avatar-wrap" :class="{ 'avatar-in': mounted }">
+              <svg class="avatar-hex-border" viewBox="0 0 100 100">
+                <polygon points="50,5 93,27.5 93,72.5 50,95 7,72.5 7,27.5"
+                  fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"
+                  stroke-dasharray="260" stroke-dashoffset="260"
+                  :style="{ transition: 'stroke-dashoffset 1.2s ease .3s', strokeDashoffset: mounted ? '0' : '260' }"/>
+              </svg>
+              <div class="avatar-circle">{{ iniciales }}</div>
+            </div>
+
+            <div class="profile-info">
+              <div class="profile-name">
+                <span v-for="(c, i) in (perfil.Nombre_Completo || '')" :key="i"
+                  class="name-char" :class="{ 'char-in': mounted }"
+                  :style="{ animationDelay: mounted ? `${80 + i * 30}ms` : '0ms' }">{{ c === ' ' ? '\u00A0' : c }}</span>
+              </div>
+              <div class="profile-role-badge">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/>
+                </svg>
+                Operario · Texticode
+              </div>
+              <div class="status-pill" :class="perfil.Estado === 'activo' ? 'status-active' : 'status-inactive'">
+                <span class="status-dot"></span>
+                {{ perfil.Estado === 'activo' ? 'Activo' : 'Inactivo' }}
+              </div>
+            </div>
+
+            <button class="btn-edit" @click="abrirModal">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+              </svg>
+              Editar
+            </button>
+          </div>
+
+          <!-- STATS CARDS — mismo patrón que las vistas admin -->
+          <div class="stats-row">
+            <div class="stat-card" v-for="(s, i) in statsCards" :key="s.label"
+              :class="{ 'stat-in': mounted }"
+              :style="{ '--i': i }">
+              <div class="stat-accent" :style="{ background: s.color }"></div>
+              <div class="stat-icon-bg" :style="{ color: s.color }">
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                  <path stroke-linecap="round" stroke-linejoin="round" :d="s.icon"/>
+                </svg>
+              </div>
+              <div class="stat-body">
+                <div class="stat-value" :style="{ color: s.color }">{{ s.display }}</div>
+                <div class="stat-label">{{ s.label }}</div>
+                <div class="stat-sub">{{ s.sub }}</div>
+              </div>
             </div>
           </div>
 
-          <!-- INFORMACIÓN DE CONTACTO -->
-          <div class="card" :class="{ 'section-visible': mounted }" style="transition-delay: 220ms">
-            <div class="activity-title">Información de Contacto</div>
+          <!-- CONTACTO -->
+          <div class="card" :class="{ 'slide-up': mounted }" style="--d:300ms">
+            <div class="card-header">
+              <div class="ch-dot" style="background:#e0eaf2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#1f3a52" shape-rendering="geometricPrecision" style="display:block">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/>
+                </svg>
+              </div>
+              Información de Contacto
+              <div class="card-line"></div>
+            </div>
             <div class="contact-grid">
-              <div class="contact-item">
-                <div class="contact-label">Email</div>
-                <div class="contact-value">{{ perfil.Correo || '—' }}</div>
-              </div>
-              <div class="contact-item">
-                <div class="contact-label">Teléfono</div>
-                <div class="contact-value">{{ perfil.Telefono || '—' }}</div>
-              </div>
-              <div class="contact-item">
-                <div class="contact-label">Usuario</div>
-                <div class="contact-value">{{ perfil.Nombre_Usuario || '—' }}</div>
-              </div>
-            </div>
-          </div>
- 
-          <!-- ACTIVIDAD RECIENTE -->
-          <div class="card" :class="{ 'section-visible': mounted }" style="transition-delay: 300ms">
-            <div class="activity-title">Actividad Reciente</div>
-            <div v-if="cargandoOrdenes" class="loading-inline">Cargando órdenes...</div>
-            <div v-else-if="ordenes.length === 0" class="empty-msg">No hay órdenes asignadas aún.</div>
-            <div v-else class="activity-list">
-              <TransitionGroup name="row">
-                <div v-for="o in ordenes.slice(0, 5)" :key="o.Id_Orden" class="activity-item">
-                  <div class="activity-dot" :class="dotClass(o.Estado)"></div>
-                  <div class="activity-body">
-                    <div class="activity-head">
-                      <div class="activity-name">Orden #{{ o.Id_Orden }} — {{ o.Descripcion }}</div>
-                      <span class="activity-badge" :class="badgeClass(o.Estado)">{{ o.Estado }}</span>
-                    </div>
-                    <div class="activity-sub">Cliente: {{ o.Cliente || 'Sin cliente' }} · Cantidad: {{ o.Cantidad }}</div>
-                    <div class="activity-progress">
-                      <div class="activity-progress-bar">
-                        <div class="activity-progress-fill" :class="badgeClass(o.Estado)" :style="{ width: progresoEstado(o.Estado) + '%' }"></div>
-                      </div>
-                      <span>{{ progresoEstado(o.Estado) }}%</span>
-                    </div>
-                    <div class="activity-time">Fecha límite: {{ formatFecha(o.Fecha_Limite) }}</div>
-                  </div>
+              <div class="contact-item" v-for="(item, i) in contactItems" :key="item.label"
+                :class="{ 'contact-reveal': mounted }"
+                :style="{ animationDelay: mounted ? `${350 + i * 65}ms` : '0ms' }">
+                <div class="contact-icon-wrap" :style="{ background: item.bg }">
+                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="1.8" :style="{ color: item.color }" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                    <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon"/>
+                  </svg>
                 </div>
-              </TransitionGroup>
+                <div>
+                  <div class="c-label">{{ item.label }}</div>
+                  <div class="c-val">{{ item.value }}</div>
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- ACTIVIDAD RECIENTE con timeline animado -->
+          <div class="card" :class="{ 'slide-up': mounted }" style="--d:420ms">
+            <div class="card-header">
+              <div class="ch-dot" style="background:#e0eaf2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#1f3a52" shape-rendering="geometricPrecision" style="display:block">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              Actividad Reciente
+              <div class="card-badge">{{ ordenes.length }}</div>
+              <div class="card-line"></div>
+            </div>
+
+            <div v-if="cargandoOrdenes" class="loading-inline">
+              <div class="skeleton-row" v-for="i in 3" :key="i"></div>
+            </div>
+            <div v-else-if="ordenes.length === 0" class="empty-msg">No hay órdenes asignadas aún.</div>
+
+            <div v-else class="timeline">
+              <div class="timeline-line" :class="{ 'line-grow': mounted }"></div>
+              <div class="timeline-item"
+                v-for="(o, i) in ordenes.slice(0, 5)" :key="o.Id_Orden"
+                :class="{ 'item-in': mounted }"
+                :style="{ animationDelay: mounted ? `${480 + i * 75}ms` : '0ms' }">
+
+                <!-- Número de orden como pill -->
+                <div class="tl-order-pill">#{{ o.Id_Orden }}</div>
+
+                <!-- Nodo -->
+                <div class="tl-node" :class="nodeClass(o.Estado)">
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                    <path v-if="o.Estado === 'Completada'" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    <path v-else-if="o.Estado === 'En Proceso'" stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5"/>
+                    <path v-else stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5"/>
+                  </svg>
+                </div>
+
+                <!-- Contenido -->
+                <div class="tl-content">
+                  <div class="tl-head">
+                    <span class="tl-badge" :class="badgeClass(o.Estado)">{{ o.Estado }}</span>
+                  </div>
+                  <div class="tl-desc">{{ o.Descripcion }}</div>
+                  <div class="tl-sub">Cliente: {{ o.Cliente || '—' }} · Cantidad: {{ o.Cantidad }}</div>
+                  <div class="tl-prog">
+                    <div class="tl-prog-bar">
+                      <div class="tl-prog-fill" :class="badgeClass(o.Estado)"
+                        :style="{ width: mounted ? progresoEstado(o.Estado) + '%' : '0%',
+                                  transition: `width 1s ease ${500 + i * 80}ms` }"></div>
+                    </div>
+                    <span class="tl-prog-txt">{{ progresoEstado(o.Estado) }}%</span>
+                  </div>
+                  <div class="tl-fecha">{{ formatFecha(o.Fecha_Limite) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </template>
       </template>
     </main>
- 
-    <!-- MODAL EDITAR PERFIL con Transition -->
+
+    <!-- MODAL EDITAR -->
     <Transition name="modal">
       <div v-if="modalVisible" class="modal-overlay" @click.self="cerrarModal">
         <div class="modal-container">
           <div class="modal-header">
             <h3 class="modal-title">Editar Perfil</h3>
             <button class="modal-close" @click="cerrarModal">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
- 
           <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">Nombre Completo</label>
-              <input v-model="formEdicion.Nombre_Completo" type="text" class="form-input">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Correo Electrónico</label>
-              <input v-model="formEdicion.Correo" type="email" class="form-input">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Teléfono</label>
-              <input v-model="formEdicion.Telefono" type="tel" class="form-input">
-            </div>
+            <div class="form-group"><label class="form-label">Nombre Completo</label><input v-model="formEdicion.Nombre_Completo" type="text" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Correo Electrónico</label><input v-model="formEdicion.Correo" type="email" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Teléfono</label><input v-model="formEdicion.Telefono" type="tel" class="form-input"></div>
             <div class="form-group">
               <label class="form-label">Contraseña</label>
               <div class="input-wrap">
-                <input 
-                  v-model="formEdicion.Contrasena" 
-                  :type="mostrarPassword ? 'text' : 'password'" 
-                  class="form-input"
-                  placeholder="••••••••"
-                >
+                <input v-model="formEdicion.Contrasena" :type="mostrarPassword ? 'text' : 'password'" class="form-input" placeholder="••••••••">
                 <button class="toggle-pass" @click="mostrarPassword = !mostrarPassword" type="button">
-                  <svg v-if="!mostrarPassword" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                  </svg>
-                  <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/>
-                  </svg>
+                  <svg v-if="!mostrarPassword" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/></svg>
+                  <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
                 </button>
               </div>
             </div>
           </div>
- 
           <div v-if="errorGuardar" class="error-inline">{{ errorGuardar }}</div>
- 
           <div class="modal-footer">
             <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
-            <button class="btn-guardar" :disabled="guardando" @click="guardarCambios">
-              {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
-            </button>
+            <button class="btn-guardar" :disabled="guardando" @click="guardarCambios">{{ guardando ? 'Guardando...' : 'Guardar Cambios' }}</button>
           </div>
         </div>
       </div>
     </Transition>
- 
-    <!-- TOAST -->
+
     <Transition name="toast">
       <div v-if="toast.visible" class="toast" :class="'toast-' + toast.type">{{ toast.msg }}</div>
     </Transition>
   </div>
 </template>
- 
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
 import { getUsuario, actualizarUsuario, getOrdenesDeOperario } from '../../services/api'
- 
+
 const auth = useAuthStore()
- 
+
+const displayCompletadas = ref(0)
+const displayEnProceso   = ref(0)
+const displayTotal       = ref(0)
+
+function animateCount(targetRef, target) {
+  let val = 0; const step = Math.max(1, Math.ceil(target / 40))
+  const id = setInterval(() => {
+    val += step
+    if (val >= target) { targetRef.value = target; clearInterval(id) } else targetRef.value = val
+  }, 20)
+}
+
+const mounted         = ref(false)
 const cargando        = ref(true)
 const cargandoOrdenes = ref(false)
 const error           = ref('')
@@ -195,63 +295,67 @@ const guardando       = ref(false)
 const modalVisible    = ref(false)
 const mostrarPassword = ref(false)
 const toast           = ref({ visible: false, msg: '', type: 'success' })
-const mounted         = ref(false)
- 
-const perfil     = ref({})
-const ordenes    = ref([])
-const formEdicion = ref({})
+const perfil          = ref({})
+const ordenes         = ref([])
+const formEdicion     = ref({})
 
-// ── Contadores animados ──
-const displayCompletadas = ref(0)
-const displayEnProceso   = ref(0)
-const displayTotal       = ref(0)
+const titleChars = 'Cuenta Personal'.split('')
 
-function animateCount(targetRef, target) {
-  let val = 0
-  const step = Math.max(1, Math.ceil(target / 40))
-  const id = setInterval(() => {
-    val += step
-    if (val >= target) { targetRef.value = target; clearInterval(id) }
-    else targetRef.value = val
-  }, 20)
-}
- 
 const iniciales = computed(() =>
-  (perfil.value.Nombre_Completo || '')
-    .split(' ')
-    .map(p => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  (perfil.value.Nombre_Completo || '').split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase()
 )
- 
-const tareasCompletadas = computed(() => ordenes.value.filter(o => o.Estado === 'Completada').length)
-const tareasEnProceso = computed(() => ordenes.value.filter(o => o.Estado === 'En Proceso').length)
-const totalOrdenes = computed(() => ordenes.value.length)
- 
-async function cargarDatos() {
-  cargando.value = true
-  error.value    = ''
- 
-  try {
-    if (!auth.idUsuario) {
-      perfil.value  = {}
-      ordenes.value = []
-      return
-    }
- 
-    perfil.value = await getUsuario(auth.idUsuario)
 
+const contactItems = computed(() => [
+  { label: 'Email',    value: perfil.value.Correo         || '—', color: '#2563eb', bg: '#eff6ff', icon: 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75' },
+  { label: 'Teléfono', value: perfil.value.Telefono       || '—', color: '#16a34a', bg: '#f0fdf4', icon: 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25Z' },
+  { label: 'Usuario',  value: perfil.value.Nombre_Usuario || '—', color: '#7c3aed', bg: '#ede9fe', icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0' },
+])
+
+const statsCards = computed(() => {
+  const total = ordenes.value.length
+  const comp  = displayCompletadas.value
+  const proc  = displayEnProceso.value
+  return [
+    {
+      label: 'Completadas', sub: 'Órdenes finalizadas', display: comp, color: '#16a34a',
+      icon: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+    },
+    {
+      label: 'En Proceso', sub: 'Producción activa', display: proc, color: '#2563eb',
+      icon: 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+    },
+    {
+      label: 'Total', sub: 'Órdenes asignadas', display: displayTotal.value, color: '#1f3a52',
+      icon: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'
+    },
+  ]
+})
+
+function formatFecha(fecha) {
+  if (!fecha) return '—'
+  return new Date(fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+function nodeClass(estado) {
+  return { 'Completada': 'node-green', 'En Proceso': 'node-blue', 'Pausado': 'node-yellow' }[estado] || 'node-yellow'
+}
+function badgeClass(estado) {
+  return { 'Completada': 'badge-completada', 'En Proceso': 'badge-proceso', 'Pausado': 'badge-pausado' }[estado] || 'badge-pausado'
+}
+function progresoEstado(estado) {
+  return { 'Completada': 100, 'En Proceso': 58, 'Pausado': 28 }[estado] ?? 0
+}
+
+async function cargarDatos() {
+  cargando.value = true; error.value = ''
+  try {
+    if (!auth.idUsuario) { perfil.value = {}; ordenes.value = []; return }
+    perfil.value = await getUsuario(auth.idUsuario)
     cargandoOrdenes.value = true
     try {
       const data = await getOrdenesDeOperario(auth.idUsuario)
       ordenes.value = Array.isArray(data) ? data : []
-    } catch {
-      ordenes.value = []
-    } finally {
-      cargandoOrdenes.value = false
-    }
- 
+    } catch { ordenes.value = [] }
+    finally { cargandoOrdenes.value = false }
   } catch (e) {
     error.value = e.message || 'Error al cargar el perfil.'
   } finally {
@@ -264,213 +368,430 @@ async function cargarDatos() {
     }, 80)
   }
 }
- 
+
 onMounted(cargarDatos)
- 
-function formatFecha(fecha) {
-  if (!fecha) return '—'
-  return new Date(fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
-}
- 
-function dotClass(estado) {
-  return { 'Completada': 'dot-green', 'En Proceso': 'dot-blue', 'Pausado': 'dot-yellow', 'Cancelada': 'dot-red' }[estado] || 'dot-yellow'
-}
 
-function badgeClass(estado) {
-  return { 'Completada': 'badge-completada', 'En Proceso': 'badge-proceso', 'Pausado': 'badge-pausado', 'Cancelada': 'badge-cancelada' }[estado] || 'badge-pausado'
-}
-
-function progresoEstado(estado) {
-  return { 'Completada': 100, 'En Proceso': 58, 'Pausado': 28, 'Cancelada': 10 }[estado] ?? 0
-}
- 
-function abrirModal() {
-  formEdicion.value = { ...perfil.value, Contrasena: '' }
-  mostrarPassword.value = false
-  errorGuardar.value = ''
-  modalVisible.value = true
-}
-function cerrarModal() {
-  modalVisible.value = false
-  errorGuardar.value = ''
-}
- 
+function abrirModal() { formEdicion.value = { ...perfil.value, Contrasena: '' }; mostrarPassword.value = false; errorGuardar.value = ''; modalVisible.value = true }
+function cerrarModal() { modalVisible.value = false; errorGuardar.value = '' }
 async function guardarCambios() {
-  if (!formEdicion.value.Nombre_Completo?.trim() || !formEdicion.value.Correo?.trim()) {
-    errorGuardar.value = 'Nombre y correo son obligatorios.'
-    return
-  }
- 
-  guardando.value    = true
-  errorGuardar.value = ''
- 
+  if (!formEdicion.value.Nombre_Completo?.trim() || !formEdicion.value.Correo?.trim()) { errorGuardar.value = 'Nombre y correo son obligatorios.'; return }
+  guardando.value = true; errorGuardar.value = ''
   try {
-    const payload = {
-      Id_Rol:          perfil.value.Id_Rol,
-      Nombre_Completo: formEdicion.value.Nombre_Completo,
-      Nombre_Usuario:  perfil.value.Nombre_Usuario,
-      Correo:          formEdicion.value.Correo,
-      Telefono:        formEdicion.value.Telefono || null,
-      Estado:          perfil.value.Estado,
-      Contrasena:      formEdicion.value.Contrasena || null,
-    }
- 
+    const payload = { Id_Rol: perfil.value.Id_Rol, Nombre_Completo: formEdicion.value.Nombre_Completo, Nombre_Usuario: perfil.value.Nombre_Usuario, Correo: formEdicion.value.Correo, Telefono: formEdicion.value.Telefono || null, Estado: perfil.value.Estado, Contrasena: formEdicion.value.Contrasena || null }
     await actualizarUsuario(auth.idUsuario, payload)
     perfil.value = { ...perfil.value, ...payload }
     if (auth.usuario) auth.usuario.Nombre_Completo = formEdicion.value.Nombre_Completo
- 
-    cerrarModal()
-    mostrarToast('Perfil actualizado correctamente', 'success')
-  } catch (e) {
-    errorGuardar.value = e.message || 'Error al guardar los cambios.'
-  } finally {
-    guardando.value = false
-  }
+    cerrarModal(); mostrarToast('Perfil actualizado correctamente', 'success')
+  } catch (e) { errorGuardar.value = e.message || 'Error al guardar los cambios.' }
+  finally { guardando.value = false }
 }
- 
-function mostrarToast(msg, type = 'success') {
-  toast.value = { visible: true, msg, type }
-  setTimeout(() => { toast.value.visible = false }, 2800)
-}
+function mostrarToast(msg, type = 'success') { toast.value = { visible: true, msg, type }; setTimeout(() => { toast.value.visible = false }, 2800) }
 </script>
- 
+
 <style scoped>
-.main { flex: 1; padding: 28px 30px; overflow-y: auto; }
-
-/* ── TITLE con fade-in ── */
-.title {
-  font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #111827;
-  opacity: 0; transform: translateY(-10px);
-  transition: opacity .4s ease, transform .4s ease;
+/* ═══ LAYOUT ═══ */
+.bg-grid{
+  background-image:
+    linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
-.title.fade-in { opacity: 1; transform: translateY(0); }
+.layout { display: flex; min-height: 100vh; background: #f3f4f6; }
+.main{
+  flex: 1;
+  padding: 28px 30px;
+  overflow-y: auto;
+  position: relative;
 
-/* ── Secciones con slide-up ── */
-.profile-banner,
-.card,
-.empty-session {
-  opacity: 0; transform: translateY(12px);
-  transition: opacity .45s ease, transform .45s ease;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(37,99,235,.08), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(31,58,82,.08), transparent 45%);
 }
-.profile-banner.section-visible,
-.card.section-visible,
-.empty-session.section-visible { opacity: 1; transform: translateY(0); }
 
-/* LOADING */
-.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; }
-.spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { color: #6b7280; font-size: 14px; }
-.loading-inline { color: #9ca3af; font-size: 13px; padding: 12px 0; }
- 
-/* ERROR */
-.error-banner { display: flex; align-items: center; gap: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 18px; color: #991b1b; font-size: 14px; margin-bottom: 20px; }
-.btn-retry { margin-left: auto; background: #991b1b; color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
-.error-inline { color: #dc2626; font-size: 13px; padding: 8px 4px; }
-.empty-msg { color: #9ca3af; font-size: 13px; padding: 12px 0; }
- 
-/* BANNER */
-.profile-banner { background: #1f3a52; border-radius: 14px; padding: 26px 28px; display: flex; align-items: center; gap: 20px; margin-bottom: 18px; }
-.profile-avatar-wrap { flex-shrink: 0; }
-.avatar-initials { width: 64px; height: 64px; border-radius: 50%; background: #2d5f8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; }
+/* ═══ FONDO ═══ */
+.hero-banner{
+  background: linear-gradient(
+    135deg,
+    rgba(15,34,54,.92),
+    rgba(31,58,82,.88)
+  );
+}
+.bg-grid{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+
+  background-image:
+    linear-gradient(rgba(31,58,82,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31,58,82,0.06) 1px, transparent 1px);
+
+  background-size: 40px 40px;
+}
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb {
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: .13;
+  animation: orbDrift 12s ease-in-out infinite alternate;
+}
+.orb-1 { width: 420px; height: 420px; background: #1f3a52; top: -80px; right: -60px; animation-duration: 13s; }
+.orb-2 { width: 300px; height: 300px; background: #2563eb; bottom: 80px; left: -60px; animation-duration: 17s; animation-direction: alternate-reverse; }
+.orb-3 { width: 200px; height: 200px; background: #16a34a; top: 45%; right: 20%; animation-duration: 10s; }
+@keyframes orbDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(28px, 18px) scale(1.07); }
+}
+.bg-dots {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(circle, rgba(31,58,82,.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ═══ HERO HEADER ═══ */
+.hero-header {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 20px;
+  margin-bottom: 24px;
+  opacity: 0; transform: translateY(-14px);
+  transition: opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1);
+}
+.hero-header.hero-in { opacity: 1; transform: none; }
+
+.hero-icon-wrap {
+  position: relative; width: 56px; height: 56px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-icon-box {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg, #1f3a52, #2d5f8a);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(31,58,82,.35);
+  position: relative; z-index: 2;
+}
+.pulse-ring {
+  position: absolute; border-radius: 50%;
+  border: 2px solid rgba(31,58,82,.25);
+  animation: pulseExpand 2.8s ease-out infinite;
+}
+.ring-1 { width: 68px; height: 68px; animation-delay: 0s; }
+.ring-2 { width: 84px; height: 84px; animation-delay: .7s; }
+@keyframes pulseExpand {
+  0%   { transform: scale(.7); opacity: .7; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+.hero-text { flex: 1; }
+.hero-title {
+  font-size: 26px; font-weight: 800; color: #111827;
+  margin: 0 0 4px; display: flex; flex-wrap: wrap; gap: 0;
+}
+.title-char {
+  display: inline-block;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.title-char.char-visible { opacity: 1; transform: none; }
+.hero-sub { font-size: 13px; color: #9ca3af; margin: 0; }
+
+/* ═══ BANNER PERFIL ═══ */
+.profile-banner {
+  position: relative; z-index: 1; overflow: hidden;
+  background: linear-gradient(135deg, #111827 0%, #1f3a52 55%, #0f2236 100%);
+  border-radius: 20px; padding: 28px 30px;
+  display: flex; align-items: center; gap: 22px; margin-bottom: 20px;
+  opacity: 0; transform: translateY(22px) scale(.97);
+  transition: opacity .6s ease, transform .6s cubic-bezier(.34,1.56,.64,1);
+}
+.profile-banner.banner-in { opacity: 1; transform: none; }
+
+/* Engranajes */
+.gear-deco { position: absolute; pointer-events: none; }
+.gear-big  { width: 160px; height: 160px; right: -20px; top: -30px; }
+.gear-small { width: 80px; height: 80px; right: 110px; bottom: -20px; }
+.gear-big svg, .gear-small svg { width: 100%; height: 100%; }
+.gear-spin     { animation: gearTurn 20s linear infinite; }
+.gear-spin-rev { animation: gearTurn 14s linear infinite reverse; }
+.gear-big.gear-spin     { transform-origin: 80px 80px; }
+.gear-small.gear-spin-rev { transform-origin: 40px 40px; }
+@keyframes gearTurn { to { transform: rotate(360deg); } }
+
+/* Avatar */
+.avatar-wrap {
+  position: relative; width: 84px; height: 84px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(.4) rotate(-20deg);
+  transition: opacity .6s ease .1s, transform .7s cubic-bezier(.34,1.56,.64,1) .1s;
+}
+.avatar-wrap.avatar-in { opacity: 1; transform: none; }
+.avatar-hex-border { position: absolute; inset: -10px; width: calc(100% + 20px); height: calc(100% + 20px); }
+.avatar-circle {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, #2d5f8a, #4a90c8);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; position: relative; z-index: 2;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.1), 0 8px 24px rgba(0,0,0,.35);
+  letter-spacing: 1px;
+}
+
+/* Nombre letra a letra */
 .profile-info { flex: 1; }
-.profile-name { font-size: 18px; font-weight: 600; color: white; }
-.profile-role { font-size: 13px; color: #93c5fd; margin: 2px 0 8px; }
-.badge-active { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; }
-.badge-green { background: #dcfce7; color: #166534; }
-.badge-red   { background: #fee2e2; color: #991b1b; }
-.btn-edit { background: white; color: #1f3a52; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform .15s; }
-.btn-edit:hover { background: #f1f5f9; transform: translateY(-1px); }
- 
-/* CARDS */
-.card { background: white; border-radius: 12px; padding: 22px 24px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
-.activity-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 16px; }
- 
-/* STATS con card-visible */
-.stats-row { display: flex; gap: 0; }
-.stat-box {
-  flex: 1; text-align: center; padding: 8px 0; border-right: 1px solid #f3f4f6;
-  opacity: 0; transform: translateY(12px);
-  transition: opacity .4s ease, transform .4s ease;
+.profile-name {
+  font-size: 22px; font-weight: 800; color: white;
+  margin-bottom: 6px; display: flex; flex-wrap: wrap;
 }
-.stat-box:last-child { border-right: none; }
-.stat-box.card-visible { opacity: 1; transform: translateY(0); }
-.stat-number { font-size: 32px; font-weight: 700; color: #1f3a52; }
-.stat-label  { font-size: 12px; color: #6b7280; margin-top: 4px; }
- 
-/* CONTACTO */
-.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.contact-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.contact-value { font-size: 14px; color: #111827; }
- 
-/* ACTIVIDAD */
-.activity-list { display: flex; flex-direction: column; gap: 16px; }
-.activity-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border: 1px solid #eef2f7; border-radius: 14px; background: linear-gradient(180deg, #ffffff, #f8fbff); transition: box-shadow .2s, transform .2s; }
-.activity-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
-.activity-body { flex: 1; min-width: 0; }
-.activity-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-.activity-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
-.dot-green  { background: #22c55e; }
-.dot-blue   { background: #3b82f6; }
-.dot-yellow { background: #eab308; }
-.dot-red    { background: #ef4444; }
-.activity-name { font-size: 13px; font-weight: 600; color: #111827; }
-.activity-sub  { font-size: 12px; color: #6b7280; margin-top: 2px; }
-.activity-time { font-size: 11px; color: #9ca3af; margin-top: 8px; }
-.activity-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.name-char {
+  display: inline-block; opacity: 0; transform: translateY(6px);
+  animation: charReveal .3s ease both;
+}
+@keyframes charReveal { to { opacity:1; transform:none; } }
+
+.profile-role-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 8px; padding: 4px 10px;
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,.8);
+  margin-bottom: 10px;
+  animation: slideX .5s ease .4s both;
+}
+@keyframes slideX { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+  animation: popIn .4s ease .5s both;
+}
+@keyframes popIn { from{opacity:0;transform:scale(.7)} 60%{transform:scale(1.08)} to{opacity:1;transform:scale(1)} }
+.status-active   { background: #dcfce7; color: #166534; }
+.status-inactive { background: #fee2e2; color: #991b1b; }
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.btn-edit {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.1); color: white;
+  border: 1px solid rgba(255,255,255,.2); border-radius: 10px;
+  padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background .2s, transform .2s cubic-bezier(.34,1.56,.64,1);
+  animation: slideX .5s ease .3s both;
+}
+.btn-edit:hover { background: rgba(255,255,255,.2); transform: translateY(-2px); }
+
+/* ═══ STATS CARDS — mismo patrón que las vistas admin ═══ */
+.stats-row {
+  position: relative; z-index: 1;
+  display: flex; gap: 16px; margin-bottom: 20px;
+}
+.stat-card {
+  flex: 1; position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 16px;
+  background: white; border: 1px solid #e5e7eb; border-radius: 14px;
+  padding: 18px 20px;
+  opacity: 0; transform: translateY(18px) scale(.96);
+  animation: statIn .5s cubic-bezier(.34,1.56,.64,1) calc(var(--i, 0) * 90ms + 160ms) both;
+  transition: box-shadow .2s, transform .2s;
+}
+.stat-card:hover { box-shadow: 0 6px 22px rgba(0,0,0,.09); transform: translateY(-3px) !important; }
+@keyframes statIn { from{opacity:0;transform:translateY(18px) scale(.96)} 60%{transform:translateY(-3px)} to{opacity:1;transform:none} }
+
+/* Barra de acento lateral — igual que en las vistas admin */
+.stat-accent {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; border-radius: 14px 0 0 14px;
+}
+/* Ícono de fondo decorativo semitransparente */
+.stat-icon-bg {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  opacity: .07;
+}
+.stat-body { flex: 1; position: relative; z-index: 1; }
+.stat-value { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 13px; font-weight: 700; color: #111827; }
+.stat-sub   { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+/* ═══ CARDS GENÉRICAS ═══ */
+.card {
+  position: relative; z-index: 1;
+  background: white; border: 1px solid #e5e7eb; border-radius: 14px;
+  padding: 22px 24px; margin-bottom: 16px;
+  opacity: 0; transform: translateY(16px);
+  animation: slideUp .5s ease var(--d, 300ms) both;
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.07); }
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+
+.card-header {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 18px;
+}
+.ch-dot {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.card-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 9px;
+  background: #e0eaf2; color: #1f3a52; border-radius: 20px;
+}
+.card-line { flex: 1; height: 1px; background: linear-gradient(90deg, #e5e7eb, transparent); }
+
+/* ═══ CONTACTO ═══ */
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.contact-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 13px; border-radius: 10px; border: 1px solid #f3f4f6; background: #fafbfc;
+  opacity: 0; transform: translateY(8px);
+  animation: contactReveal .4s ease both;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.contact-item:hover { background: white; border-color: #e0eaf2; transform: translateY(-1px); }
+@keyframes contactReveal { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.contact-icon-wrap {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.contact-item:hover .contact-icon-wrap { transform: scale(1.15) rotate(-5deg); }
+.c-label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+.c-val   { font-size: 13px; font-weight: 600; color: #111827; }
+
+/* ═══ TIMELINE ═══ */
+.timeline { position: relative; padding-left: 24px; }
+.timeline-line {
+  position: absolute; left: 9px; top: 8px; bottom: 8px; width: 2px;
+  background: linear-gradient(180deg, #1f3a52, #e5e7eb);
+  border-radius: 999px; transform-origin: top;
+  transform: scaleY(0); transition: transform 1s ease .48s;
+}
+.timeline-line.line-grow { transform: scaleY(1); }
+
+.timeline-item {
+  position: relative; display: flex; gap: 14px; align-items: flex-start;
+  margin-bottom: 18px; padding-bottom: 18px;
+  border-bottom: 1px solid #f3f4f6;
+  opacity: 0; transform: translateX(-14px);
+  animation: tlIn .45s ease both;
+}
+.timeline-item:last-child { border-bottom: none; margin-bottom: 0; }
+@keyframes tlIn { from{opacity:0;transform:translateX(-14px)} to{opacity:1;transform:none} }
+
+/* Pill de número de orden — igual que en GestionClientes/Produccion */
+.tl-order-pill {
+  font-size: 11px; font-weight: 700; padding: 3px 10px;
+  background: #f3f4f6; color: #374151; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+  transition: background .2s, color .2s;
+}
+.timeline-item:hover .tl-order-pill { background: #1f3a52; color: white; }
+
+.tl-node {
+  position: absolute; left: -24px; top: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; z-index: 2; border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.timeline-item:hover .tl-node { transform: scale(1.2); }
+.node-green  { background: #16a34a; color: white; }
+.node-blue   { background: #2563eb; color: white; }
+.node-yellow { background: #d97706; color: white; }
+
+.tl-content { flex: 1; }
+.tl-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.tl-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
 .badge-completada { background: #dcfce7; color: #166534; }
-.badge-proceso { background: #dbeafe; color: #1d4ed8; }
-.badge-pausado { background: #fef3c7; color: #a16207; }
-.badge-cancelada { background: #fee2e2; color: #b91c1c; }
-.activity-progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; color: #475569; }
-.activity-progress-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
-.activity-progress-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
-.activity-progress-fill.badge-completada { background: linear-gradient(90deg, #22c55e, #16a34a); }
-.activity-progress-fill.badge-proceso { background: linear-gradient(90deg, #60a5fa, #2563eb); }
-.activity-progress-fill.badge-pausado { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
-.activity-progress-fill.badge-cancelada { background: linear-gradient(90deg, #fca5a5, #ef4444); }
- 
-/* MODAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal-container { background: white; border-radius: 16px; width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
-.modal-title { font-size: 17px; font-weight: 600; color: #111827; }
-.modal-close { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; transition: background .15s; }
-.modal-close:hover { background: #f3f4f6; }
- 
-.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 12px; font-weight: 600; color: #374151; }
-.form-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 14px; color: #111827; outline: none; transition: border-color 0.2s, box-shadow .2s; }
-.form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,.1); }
- 
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid #f3f4f6; }
-.btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; transition: background .15s; }
-.btn-cancelar:hover { background: #f3f4f6; }
-.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s, transform .15s; }
-.btn-guardar:hover:not(:disabled) { background: #2d5580; transform: translateY(-1px); }
-.btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
- 
-/* EMPTY SESSION */
-.empty-session { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 24px; gap: 12px; text-align: center; }
+.badge-proceso    { background: #dbeafe; color: #1d4ed8; }
+.badge-pausado    { background: #fef3c7; color: #92400e; }
+.tl-desc  { font-size: 13px; color: #374151; font-weight: 500; margin-bottom: 3px; }
+.tl-sub   { font-size: 12px; color: #9ca3af; margin-bottom: 8px; }
+.tl-fecha { font-size: 11px; color: #d1d5db; margin-top: 6px; }
+
+.tl-prog { display: flex; align-items: center; gap: 8px; }
+.tl-prog-bar { flex: 1; height: 5px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
+.tl-prog-fill { height: 100%; border-radius: 999px; }
+.tl-prog-fill.badge-completada { background: #16a34a; }
+.tl-prog-fill.badge-proceso    { background: #2563eb; }
+.tl-prog-fill.badge-pausado    { background: #d97706; }
+.tl-prog-txt { font-size: 11px; font-weight: 700; color: #374151; min-width: 30px; }
+
+/* ═══ LOADING / SKELETON ═══ */
+.loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 80px 0; gap: 18px; position: relative; z-index: 1; }
+.loader-ring {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid #e5e7eb; border-top-color: #1f3a52;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+.loading-text { font-size: 14px; color: #9ca3af; }
+
+.loading-inline { display: flex; flex-direction: column; gap: 10px; }
+.skeleton-row {
+  height: 60px; border-radius: 10px;
+  background: linear-gradient(90deg, #f3f4f6 0%, #fafafa 40%, #f3f4f6 80%);
+  background-size: 300% 100%;
+  animation: skeletonWave 1.6s ease-in-out infinite;
+}
+@keyframes skeletonWave { 0%{background-position:200% 0} 100%{background-position:-100% 0} }
+
+.empty-msg { font-size: 13px; color: #9ca3af; padding: 16px 0; }
+
+/* ═══ EMPTY SESSION ═══ */
+.empty-session { display: flex; flex-direction: column; align-items: center; padding: 80px 24px; gap: 12px; text-align: center; position: relative; z-index: 1; }
+.empty-icon-hex {
+  width: 72px; height: 72px; border-radius: 16px;
+  background: #f3f4f6; display: flex; align-items: center; justify-content: center;
+  animation: hexFloat 3s ease-in-out infinite;
+}
+@keyframes hexFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 .empty-title { font-size: 16px; font-weight: 600; color: #374151; }
-.empty-sub   { font-size: 13px; color: #9ca3af; max-width: 320px; line-height: 1.6; }
- 
-/* ── Transitions ── */
-.modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
+.empty-sub   { font-size: 13px; color: #9ca3af; max-width: 300px; }
 
-.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 200; }
-.toast-success { background: #166534; color: white; }
-.toast-danger  { background: #991b1b; color: white; }
-.toast-enter-active, .toast-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
+/* ═══ ERROR ═══ */
+.error-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 10px; padding: 14px 18px; color: #991b1b; font-size: 14px; margin-bottom: 20px;
+  position: relative; z-index: 1;
+}
+.btn-retry { margin-left: auto; background: #991b1b; color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
 
-.row-enter-active, .row-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.row-enter-from, .row-leave-to { opacity: 0; transform: translateY(8px); }
-
-.input-wrap { display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
-.input-wrap .form-input { flex: 1; border: none; outline: none; padding: 9px 12px; box-shadow: none !important; }
+/* ═══ MODAL ═══ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal-container { background: white; border-radius: 16px; width: 460px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.15); animation: modalIn .35s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes modalIn { from{opacity:0;transform:scale(.85) translateY(20px)} to{opacity:1;transform:none} }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+.modal-title  { font-size: 17px; font-weight: 600; color: #111827; }
+.modal-close  { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; transition: background .15s, transform .2s; }
+.modal-close:hover { background: #f3f4f6; transform: rotate(90deg); }
+.modal-body   { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.form-group   { display: flex; flex-direction: column; gap: 5px; }
+.form-label   { font-size: 12px; font-weight: 600; color: #374151; }
+.form-input   { border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #111827; outline: none; transition: border-color .2s, box-shadow .2s; }
+.form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,.1); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid #f3f4f6; }
+.btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; }
+.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.btn-guardar:hover:not(:disabled) { background: #2d5580; }
+.btn-guardar:disabled { opacity: .6; cursor: not-allowed; }
+.input-wrap { display: flex; align-items: center; border: 1.5px solid #e5e7eb; border-radius: 8px; background: #fff; }
+.input-wrap:focus-within { border-color: #1f3a52; }
+.input-wrap .form-input { flex: 1; border: none; outline: none; padding: 10px 12px; box-shadow: none !important; }
 .toggle-pass { background: none; border: none; cursor: pointer; padding: 0 10px; color: #9ca3af; transition: color .15s; }
 .toggle-pass:hover { color: #374151; }
+.error-inline { color: #dc2626; font-size: 13px; padding: 6px 24px; }
+
+/* ═══ TOAST ═══ */
+.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 2000; }
+.toast-success { background: #166534; color: white; }
+.toast-danger  { background: #991b1b; color: white; }
+.toast-enter-active { animation: toastIn .35s cubic-bezier(.34,1.56,.64,1) both; }
+.toast-leave-active { animation: toastOut .25s ease both; }
+@keyframes toastIn  { from{opacity:0;transform:translateY(14px) scale(.9)} to{opacity:1;transform:none} }
+@keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(8px)} }
+.modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
 </style>
