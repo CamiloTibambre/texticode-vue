@@ -3,11 +3,36 @@
     <AppSidebar rol="admin" />
 
     <main class="main">
-      <!-- HEADER -->
-      <div class="top-bar surface-panel" :class="{ visible: mounted }">
-        <div class="top-left">
-          <h1 class="page-title">Gestión de Producción</h1>
-          <p class="page-sub">{{ ordenes.length }} órdenes registradas</p>
+
+      <!-- FONDO DECORATIVO -->
+      <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="bg-grid"></div>
+      </div>
+
+      <!-- HERO HEADER -->
+      <div class="page-hero" :class="{ 'hero-visible': mounted }">
+        <div class="hero-left">
+          <div class="hero-icon-wrap">
+            <svg class="hero-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
+            </svg>
+            <div class="hero-icon-ring ring-1"></div>
+            <div class="hero-icon-ring ring-2"></div>
+          </div>
+          <div class="hero-text">
+            <h1 class="hero-title">
+              <span
+                v-for="(ch, i) in 'Gestión de Producción'"
+                :key="i"
+                class="title-char"
+                :style="{ animationDelay: mounted ? `${i * 35}ms` : '9999s' }"
+              >{{ ch === ' ' ? '\u00A0' : ch }}</span>
+            </h1>
+            <p class="hero-sub">{{ ordenes.length }} órdenes registradas</p>
+          </div>
         </div>
         <button class="btn-nueva" @click="abrirModal(null)">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -18,10 +43,21 @@
       </div>
 
       <!-- STATS -->
-      <div class="stats-grid" :class="{ visible: mounted }">
-        <div v-for="(s, i) in stats" :key="i" class="stat-card">
+      <div class="stats-grid" :class="{ 'stats-visible': mounted }">
+        <div
+          v-for="(s, i) in stats"
+          :key="i"
+          class="stat-card"
+          :style="{ transitionDelay: mounted ? `${i * 80}ms` : '0ms' }"
+        >
+          <div class="stat-accent" :style="{ background: s.accentColor }"></div>
+          <div class="stat-icon-bg" :style="{ color: s.accentColor }">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" :d="s.iconPath"/>
+            </svg>
+          </div>
           <div class="stat-lbl">{{ s.label }}</div>
-          <div class="stat-num" :class="s.color">{{ s.display }}</div>
+          <div class="stat-num" :style="{ color: s.accentColor }">{{ s.display }}</div>
         </div>
       </div>
 
@@ -32,7 +68,17 @@
       </div>
 
       <!-- TABLA -->
-      <div v-else class="table-wrap" :class="{ visible: mounted }">
+      <div v-else class="table-box" :class="{ 'box-visible': mounted }">
+        <div class="table-header-bar">
+          <div class="table-header-left">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
+            </svg>
+            Órdenes de Producción
+            <span class="count-badge">{{ ordenesFiltradas.length }}</span>
+          </div>
+        </div>
+
         <div v-if="ordenesFiltradas.length === 0" class="empty-state">
           <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
@@ -56,11 +102,18 @@
           </thead>
           <tbody>
             <TransitionGroup name="row">
-              <tr v-for="o in ordenesFiltradas" :key="o.Id_Orden" :class="{ 'row-eliminando': o._eliminando }">
-                <td class="td-id">#{{ o.Id_Orden }}</td>
+              <tr
+                v-for="(o, idx) in ordenesFiltradas"
+                :key="o.Id_Orden"
+                class="table-row"
+                :class="{ 'row-eliminando': o._eliminando }"
+                :style="{ animationDelay: `${idx * 40}ms` }"
+              >
+                <td>
+                  <span class="order-num-pill">#{{ o.Id_Orden }}</span>
+                </td>
                 <td>{{ o.Cliente || '—' }}</td>
                 <td>{{ o.Producto || '—' }}</td>
-                <!-- Materiales múltiples -->
                 <td>
                   <div class="materiales-chips">
                     <span
@@ -81,14 +134,21 @@
                 <td>{{ o.Cantidad }}</td>
                 <td>
                   <div class="acciones">
-                    <button class="btn-accion btn-ver"      @click="verDetalle(o)"        title="Ver detalle">
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                    <button class="action-btn btn-ver"      @click="verDetalle(o)"        title="Ver detalle">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                      </svg>
                     </button>
-                    <button class="btn-accion btn-editar"   @click="abrirModal(o)"        title="Editar">
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                    <button class="action-btn btn-editar"   @click="abrirModal(o)"        title="Editar">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+                      </svg>
                     </button>
-                    <button class="btn-accion btn-eliminar" @click="solicitarEliminar(o)" title="Eliminar">
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                    <button class="action-btn btn-eliminar" @click="solicitarEliminar(o)" title="Eliminar">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                      </svg>
                     </button>
                   </div>
                 </td>
@@ -111,7 +171,6 @@
           </div>
           <div class="modal-body">
 
-            <!-- Fila 1: Cliente -->
             <div class="form-group">
               <label class="form-label">Cliente <span class="req">*</span></label>
               <select v-model="form.Id_Cliente" class="form-input" :class="{ 'input-error': tocado && !form.Id_Cliente }">
@@ -123,14 +182,11 @@
               <span v-if="tocado && !form.Id_Cliente" class="error-msg">El cliente es requerido</span>
             </div>
 
-            <!-- ══ SELECTOR MÚLTIPLE DE MATERIALES ══ -->
             <div class="form-group">
               <label class="form-label">
                 Materiales <span class="req">*</span>
                 <span class="label-hint">— selecciona uno o más</span>
               </label>
-
-              <!-- Chips de materiales seleccionados -->
               <div v-if="form.materiales_seleccionados.length > 0" class="chips-wrap">
                 <div
                   v-for="(item, idx) in form.materiales_seleccionados"
@@ -155,8 +211,6 @@
                   </button>
                 </div>
               </div>
-
-              <!-- Dropdown para añadir materiales -->
               <div class="material-add-row">
                 <select
                   v-model="materialParaAgregar"
@@ -189,7 +243,6 @@
               </span>
             </div>
 
-            <!-- Operario -->
             <div class="form-group">
               <label class="form-label">Operario</label>
               <select v-model="form.Id_Operario" class="form-input">
@@ -200,20 +253,17 @@
               </select>
             </div>
 
-            <!-- Producto -->
             <div class="form-group">
               <label class="form-label">Producto</label>
               <input v-model="form.Producto" class="form-input" type="text" placeholder="Ej: Camiseta Polo Azul">
             </div>
 
-            <!-- Descripción -->
             <div class="form-group">
               <label class="form-label">Descripción <span class="req">*</span></label>
               <input v-model="form.Descripcion" class="form-input" :class="{ 'input-error': tocado && !form.Descripcion }" type="text" placeholder="Ej: Camisetas Polo Azules x 50">
               <span v-if="tocado && !form.Descripcion" class="error-msg">La descripción es requerida</span>
             </div>
 
-            <!-- Cantidad + Prioridad -->
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Cantidad <span class="req">*</span></label>
@@ -229,7 +279,6 @@
               </div>
             </div>
 
-            <!-- Fecha Límite -->
             <div class="form-group">
               <label class="form-label">Fecha Límite <span class="req">*</span></label>
               <input v-model="form.Fecha_Limite" class="form-input" type="date">
@@ -274,7 +323,6 @@
               <span class="detalle-label">Fecha Límite</span>
               <span :class="{ 'fecha-vencida': estaVencida(detalleOrden.Fecha_Limite) }">{{ formatFecha(detalleOrden.Fecha_Limite) }}</span>
             </div>
-            <!-- Materiales en detalle -->
             <div class="detalle-item detalle-full">
               <span class="detalle-label">Materiales utilizados</span>
               <div class="detalle-materiales">
@@ -365,9 +413,7 @@ const materiales  = ref([])
 const operarios   = ref([])
 const statsDisplay = ref({ total: 0, proceso: 0, completadas: 0, pausadas: 0 })
 
-// Para el selector múltiple de materiales
 const materialParaAgregar = ref('')
-
 const sortKey = ref('Id_Orden')
 const sortDir = ref(1)
 const statTimers = new Map()
@@ -382,31 +428,27 @@ const formVacio = () => ({
   Prioridad:                'Media',
   Estado:                   'En Proceso',
   Fecha_Limite:             '',
-  materiales_seleccionados: [],   // [{ Id_Material, Nombre_Material, cantidad }]
+  materiales_seleccionados: [],
 })
 
 const form = ref(formVacio())
 
-// ── Materiales disponibles (excluye los ya seleccionados) ──────
+// ── Materiales disponibles ──────────────────────────────────────
 const materialesDisponibles = computed(() => {
   const yaSeleccionados = new Set(form.value.materiales_seleccionados.map(m => m.Id_Material))
   return materiales.value.filter(m => !yaSeleccionados.has(m.Id_Material))
 })
 const materialesFiltrados = computed(() => {
   if (!form.value.Id_Cliente) return []
-
-  return materialesDisponibles.value.filter(m =>
-    m.Id_Cliente == form.value.Id_Cliente
-  )
+  return materialesDisponibles.value.filter(m => m.Id_Cliente == form.value.Id_Cliente)
 })
 
-// ── Agregar / quitar material del formulario ───────────────────
 function agregarMaterial() {
   if (!materialParaAgregar.value) return
   const mat = materiales.value.find(m => m.Id_Material == materialParaAgregar.value)
   if (!mat) return
   form.value.materiales_seleccionados.push({
-    Id_Material:    mat.Id_Material,
+    Id_Material:     mat.Id_Material,
     Nombre_Material: mat.Nombre_Material,
     cantidad:        1,
   })
@@ -431,7 +473,6 @@ async function cargarDatos() {
     operarios.value  = dataUsuarios.filter(u => (u.Rol || '').toLowerCase() === 'operario')
     materiales.value = dataMateriales
 
-    // Para cada orden, cargar también sus materiales de orden_material
     const ordenesConMat = await Promise.all(
       dataOrdenes.map(async o => {
         try {
@@ -456,6 +497,7 @@ onMounted(async () => {
   await cargarDatos()
   setTimeout(() => mounted.value = true, 50)
 })
+
 watch(() => form.value.Id_Cliente, () => {
   form.value.materiales_seleccionados = []
   materialParaAgregar.value = ''
@@ -466,12 +508,17 @@ onBeforeUnmount(() => {
   statTimers.clear()
 })
 
-// ── COMPUTED STATS ────────────────────────────────────────────
+// ── STATS ─────────────────────────────────────────────────────
+const ICON_LIST   = 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z'
+const ICON_PROC   = 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
+const ICON_CHECK  = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+const ICON_PAUSE  = 'M15.75 5.25v13.5m-7.5-13.5v13.5'
+
 const stats = computed(() => [
-  { label: 'Total Órdenes', display: statsDisplay.value.total,       color: 'stat-orange' },
-  { label: 'En Proceso',    display: statsDisplay.value.proceso,     color: 'stat-blue'   },
-  { label: 'Completadas',   display: statsDisplay.value.completadas, color: 'stat-green'  },
-  { label: 'Pausadas',      display: statsDisplay.value.pausadas,    color: 'stat-gray'   },
+  { label: 'Total Órdenes', display: statsDisplay.value.total,       accentColor: '#1f3a52', iconPath: ICON_LIST  },
+  { label: 'En Proceso',    display: statsDisplay.value.proceso,     accentColor: '#2563eb', iconPath: ICON_PROC  },
+  { label: 'Completadas',   display: statsDisplay.value.completadas, accentColor: '#16a34a', iconPath: ICON_CHECK },
+  { label: 'Pausadas',      display: statsDisplay.value.pausadas,    accentColor: '#d97706', iconPath: ICON_PAUSE },
 ])
 
 function animateCount(key, target) {
@@ -494,10 +541,10 @@ function animateCount(key, target) {
 }
 
 function animateStats() {
-  animateCount('total', ordenes.value.length)
-  animateCount('proceso', ordenes.value.filter(o => o.Estado === 'En Proceso').length)
+  animateCount('total',       ordenes.value.length)
+  animateCount('proceso',     ordenes.value.filter(o => o.Estado === 'En Proceso').length)
   animateCount('completadas', ordenes.value.filter(o => o.Estado === 'Completada').length)
-  animateCount('pausadas', ordenes.value.filter(o => o.Estado === 'Pausado').length)
+  animateCount('pausadas',    ordenes.value.filter(o => o.Estado === 'Pausado').length)
 }
 
 // ── FILTRADO / ORDENAMIENTO ───────────────────────────────────
@@ -545,7 +592,6 @@ async function abrirModal(o) {
   materialParaAgregar.value = ''
 
   if (o) {
-    // Cargar materiales actuales de la orden
     let matsActuales = []
     try {
       const mats = await getMaterialesDeOrden(o.Id_Orden)
@@ -581,7 +627,7 @@ function cerrarModal() {
   materialParaAgregar.value = ''
 }
 
-// ── GUARDAR (crear / editar orden + sincronizar orden_material) ──
+// ── GUARDAR ───────────────────────────────────────────────────
 async function guardar() {
   tocado.value = true
 
@@ -593,7 +639,6 @@ async function guardar() {
   guardando.value    = true
   errorGuardar.value = ''
 
-  // El primer material seleccionado se usa como Id_Material principal (mantiene compatibilidad con los JOINs)
   const idMaterialPrincipal = form.value.materiales_seleccionados[0].Id_Material
 
   const payload = {
@@ -618,22 +663,19 @@ async function guardar() {
       idOrden = res.Id_Orden
     }
 
-    // ── Sincronizar orden_material ──────────────────────────────
-    // 1. Borrar todos los materiales actuales de la orden
     try {
       const matsExistentes = await getMaterialesDeOrden(idOrden)
       for (const m of (matsExistentes || [])) {
         const idProd = m.Id_Material ?? m.Id_Producto
         await eliminarMaterialOrden(idOrden, idProd)
       }
-    } catch { /* si no hay materiales previos, continuar */ }
+    } catch { /* continuar */ }
 
-    // 2. Insertar los materiales seleccionados
     for (const mat of form.value.materiales_seleccionados) {
       try {
         await agregarMaterialOrden({
-          Id_Orden:      idOrden,
-          Id_Producto:   mat.Id_Material,
+          Id_Orden:       idOrden,
+          Id_Producto:    mat.Id_Material,
           Cantidad_Usada: mat.cantidad || 1,
         })
       } catch (e) {
@@ -682,62 +724,186 @@ function showToast(msg, type = 'toast-success') {
 </script>
 
 <style scoped>
-.layout { display: flex; min-height: 100vh; background: #f3f4f6; }
-.main   { flex: 1; padding: 28px 30px; overflow-y: auto; }
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
+.main   { flex: 1; padding: 28px 30px; overflow-y: auto; position: relative; z-index: 1; }
 
-/* TOP BAR */
-.top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; opacity: 0; transform: translateY(-8px); transition: opacity 0.4s, transform 0.4s; border-radius: 18px; padding: 22px 24px; }
-.top-bar.visible { opacity: 1; transform: none; }
-.page-title { font-size: 22px; font-weight: 700; color: #111827; }
-.page-sub   { font-size: 13px; color: #9ca3af; margin-top: 2px; }
-.btn-nueva { display: flex; align-items: center; gap: 6px; background: #1f3a52; color: white; border: none; border-radius: 9px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-.btn-nueva:hover { background: #162d42; }
+/* ── FONDO DECORATIVO ── */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.07; }
+.orb-1 {
+  width: 600px; height: 600px; background: #1f3a52;
+  top: -200px; right: -100px;
+  animation: orbDrift1 18s ease-in-out infinite alternate;
+}
+.orb-2 {
+  width: 400px; height: 400px; background: #2563eb;
+  bottom: -100px; left: 10%;
+  animation: orbDrift2 22s ease-in-out infinite alternate;
+}
+.orb-3 {
+  width: 300px; height: 300px; background: #16a34a;
+  top: 40%; right: 5%;
+  animation: orbDrift3 15s ease-in-out infinite alternate;
+}
+@keyframes orbDrift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px,40px) scale(1.1); } }
+@keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
+@keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
 
-/* STATS */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; opacity: 0; transform: translateY(-6px); transition: opacity 0.4s 0.1s, transform 0.4s 0.1s; }
-.stats-grid.visible { opacity: 1; transform: none; }
-.stat-card { background: white; border-radius: 12px; padding: 20px 24px; border: 1px solid #e5e7eb; }
-.stat-lbl  { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
-.stat-num  { font-size: 32px; font-weight: 700; color: #111827; }
-.stat-num.stat-orange { color: #111827; }
-.stat-num.stat-blue   { color: #2563eb; }
-.stat-num.stat-green  { color: #16a34a; }
-.stat-num.stat-gray   { color: #6b7280; }
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
 
-/* LOADING */
+/* ── HERO HEADER ── */
+.page-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+  opacity: 0; transform: translateY(-16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.page-hero.hero-visible { opacity: 1; transform: translateY(0); }
+
+.hero-left { display: flex; align-items: center; gap: 16px; }
+.hero-text { display: flex; flex-direction: column; }
+
+.hero-icon-wrap {
+  position: relative; width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  background: #1f3a52; border-radius: 14px; flex-shrink: 0;
+}
+.hero-icon { width: 26px; height: 26px; color: white; }
+.hero-icon-ring {
+  position: absolute; border-radius: 50%;
+  border: 1.5px solid #1f3a52; opacity: 0;
+  animation: iconPulse 3s ease-out infinite;
+}
+.ring-1 { width: 68px; height: 68px; animation-delay: 0s; }
+.ring-2 { width: 86px; height: 86px; animation-delay: 0.8s; }
+@keyframes iconPulse {
+  0%   { transform: scale(0.7); opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.hero-title {
+  font-size: 24px; font-weight: 700; color: #111827;
+  margin: 0; display: flex; flex-wrap: wrap;
+}
+.title-char {
+  display: inline-block; opacity: 0; transform: translateY(12px);
+  animation: charReveal 0.4s ease forwards;
+}
+@keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
+
+.hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
+
+.btn-nueva {
+  display: flex; align-items: center; gap: 6px;
+  background: #1f3a52; color: white; border: none;
+  border-radius: 10px; padding: 10px 18px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, transform 0.1s; flex-shrink: 0;
+}
+.btn-nueva:hover  { background: #162d42; transform: translateY(-1px); }
+.btn-nueva:active { transform: translateY(0); }
+
+/* ── STATS ── */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 18px; margin-bottom: 28px;
+}
+.stat-card {
+  background: white; border-radius: 14px; padding: 20px 20px 20px 24px;
+  border: 1px solid #e5e7eb; position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s;
+}
+.stats-visible .stat-card { opacity: 1; transform: translateY(0); }
+.stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.09); transform: translateY(-3px) !important; }
+
+.stat-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+.stat-icon-bg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); opacity: 0.07; }
+.stat-icon-bg svg { width: 52px; height: 52px; }
+
+.stat-lbl { font-size: 13px; color: #6b7280; font-weight: 500; margin-bottom: 10px; }
+.stat-num { font-size: 30px; font-weight: 800; line-height: 1; }
+
+/* ── CARGANDO ── */
 .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px; gap: 14px; color: #9ca3af; font-size: 14px; }
 .spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* TABLE */
-.table-wrap { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; opacity: 0; transform: translateY(8px); transition: opacity 0.4s 0.2s, transform 0.4s 0.2s; }
-.table-wrap.visible { opacity: 1; transform: none; }
+/* ── TABLA BOX ── */
+.table-box {
+  background: white; border-radius: 14px; border: 1px solid #e5e7eb;
+  overflow: hidden;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition-delay: 280ms;
+}
+.box-visible { opacity: 1; transform: translateY(0); }
+
+.table-header-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb;
+}
+.table-header-left {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: #374151;
+}
+.table-header-left svg { color: #1f3a52; }
+.count-badge {
+  background: #1f3a52; color: white;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 999px; line-height: 1.6;
+}
+
+/* ── TABLA ── */
 table { width: 100%; border-collapse: collapse; }
 thead tr { background: #f9fafb; }
-th { padding: 11px 14px; font-size: 11px; font-weight: 600; color: #6b7280; text-align: left; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
-th.th-sort { cursor: pointer; user-select: none; }
-th.th-sort:hover { color: #111827; }
+th { padding: 12px 14px; font-size: 11px; font-weight: 600; color: #6b7280; text-align: left; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
+th.th-sort { cursor: pointer; user-select: none; transition: color 0.15s; }
+th.th-sort:hover { color: #1f3a52; }
 td { padding: 12px 14px; font-size: 13px; color: #374151; border-bottom: 1px solid #f9fafb; }
-.td-id { font-weight: 700; color: #1f3a52; }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: #fafafa; }
+
+.table-row {
+  transition: background 0.18s;
+  animation: rowSlideIn 0.35s ease both;
+}
+.table-row:hover td { background: #f8fafc; }
+@keyframes rowSlideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 .row-eliminando { opacity: 0.4; pointer-events: none; transition: opacity 0.35s; }
-.fecha-vencida { color: #dc2626; font-weight: 600; }
+.fecha-vencida  { color: #dc2626; font-weight: 600; }
+
+/* Order pill */
+.order-num-pill {
+  display: inline-block; background: #f1f5f9;
+  color: #1f3a52; font-size: 12px; font-weight: 700;
+  padding: 3px 10px; border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  transition: background 0.15s;
+}
+tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 
 /* MATERIALES EN TABLA */
 .materiales-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 200px; }
 .chip-material {
   display: inline-flex; align-items: center; gap: 4px;
   background: #eff6ff; color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-  border-radius: 999px;
-  padding: 2px 10px;
-  font-size: 11px; font-weight: 600;
-  white-space: nowrap;
+  border: 1px solid #bfdbfe; border-radius: 999px;
+  padding: 2px 10px; font-size: 11px; font-weight: 600; white-space: nowrap;
 }
-.chip-qty { font-weight: 400; color: #60a5fa; }
+.chip-qty     { font-weight: 400; color: #60a5fa; }
 .chip-detalle { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-size: 12px; padding: 3px 12px; }
-.text-muted { font-size: 13px; color: #9ca3af; }
+.text-muted   { font-size: 13px; color: #9ca3af; }
 
 /* BADGES */
 .badge-estado, .badge-prioridad { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
@@ -748,23 +914,30 @@ tr:hover td { background: #fafafa; }
 .prio-media { background: #fef3c7; color: #92400e; }
 .prio-baja  { background: #f0fdf4; color: #166534; }
 
-/* ACCIONES */
-.acciones { display: flex; gap: 4px; }
-.btn-accion { border: none; border-radius: 6px; padding: 5px 7px; cursor: pointer; display: flex; align-items: center; transition: background 0.15s; }
-.btn-ver.btn-accion           { background: #eff6ff; color: #2563eb; }
-.btn-ver.btn-accion:hover     { background: #dbeafe; }
-.btn-editar.btn-accion        { background: #f0fdf4; color: #16a34a; }
-.btn-editar.btn-accion:hover  { background: #dcfce7; }
-.btn-eliminar.btn-accion      { background: #fef2f2; color: #dc2626; }
-.btn-eliminar.btn-accion:hover { background: #fee2e2; }
+/* ── ACCIONES ── */
+.acciones { display: flex; gap: 6px; align-items: center; }
+.action-btn {
+  width: 32px; height: 32px; border: none; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; color: white;
+  -webkit-font-smoothing: antialiased;
+}
+.action-btn svg { pointer-events: none; filter: drop-shadow(0 0 0.3px rgba(255,255,255,0.4)); }
+.btn-ver      { background: #1f3a52; }
+.btn-ver:hover      { background: #2d5580; transform: scale(1.07); }
+.btn-editar   { background: #1f3a52; }
+.btn-editar:hover   { background: #2d5580; transform: scale(1.07); }
+.btn-eliminar { background: #1f3a52; }
+.btn-eliminar:hover { background: #b91c1c; transform: scale(1.07); }
+
+/* ── EMPTY STATE ── */
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 10px; color: #9ca3af; font-size: 14px; }
 
-/* ══ MODAL ══ */
+/* ── MODAL ── */
 .modal-overlay   { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .modal-container {
   background: white; border-radius: 16px;
-  width: 560px; max-width: 95vw; max-height: 90vh;
-  overflow-y: auto;
+  width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
   box-shadow: 0 24px 60px rgba(0,0,0,0.18);
 }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
@@ -781,98 +954,52 @@ tr:hover td { background: #fafafa; }
 .label-hint { font-weight: 400; color: #9ca3af; font-size: 11px; }
 .req        { color: #dc2626; }
 .form-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #111827; outline: none; transition: border-color 0.2s; background: white; }
-.form-input:focus { border-color: #1f3a52; }
+.form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.08); }
 .input-error  { border-color: #ef4444; }
 .error-msg    { font-size: 11px; color: #dc2626; }
 .error-inline { color: #dc2626; font-size: 13px; padding: 4px 24px; }
-.btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; }
-.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+.btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
+.btn-cancelar:hover { background: #f3f4f6; }
+.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-guardar:hover:not(:disabled) { background: #162d42; }
 .btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ══ CHIPS SELECTOR MÚLTIPLE DE MATERIALES ══ */
+/* CHIPS MATERIALES */
 .chips-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 10px 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  min-height: 46px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 10px; padding: 10px 12px;
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 10px; min-height: 46px;
 }
-
 .chip-selected {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 999px;
-  padding: 5px 10px 5px 14px;
-  font-size: 12px;
-  color: #1d4ed8;
-  font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 999px; padding: 5px 10px 5px 14px;
+  font-size: 12px; color: #1d4ed8; font-weight: 600;
 }
-
 .chip-nombre { white-space: nowrap; }
-
 .chip-cantidad-wrap {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: white;
-  border: 1px solid #bfdbfe;
-  border-radius: 6px;
-  padding: 2px 6px;
+  display: flex; align-items: center; gap: 4px;
+  background: white; border: 1px solid #bfdbfe;
+  border-radius: 6px; padding: 2px 6px;
 }
-.chip-cant-lbl { font-size: 10px; color: #60a5fa; font-weight: 500; white-space: nowrap; }
-.chip-cant-input {
-  width: 44px;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 700;
-  color: #1d4ed8;
-  text-align: center;
-}
-
+.chip-cant-lbl   { font-size: 10px; color: #60a5fa; font-weight: 500; white-space: nowrap; }
+.chip-cant-input { width: 44px; border: none; outline: none; background: transparent; font-size: 12px; font-weight: 700; color: #1d4ed8; text-align: center; }
 .chip-remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #93c5fd;
-  display: flex;
-  align-items: center;
-  padding: 2px;
-  border-radius: 50%;
+  background: none; border: none; cursor: pointer; color: #93c5fd;
+  display: flex; align-items: center; padding: 2px; border-radius: 50%;
   transition: background 0.15s, color 0.15s;
 }
 .chip-remove:hover { background: #dbeafe; color: #1d4ed8; }
 
-/* Fila agregar material */
-.material-add-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.material-select { flex: 1; }
-
+.material-add-row { display: flex; gap: 8px; align-items: center; }
+.material-select  { flex: 1; }
 .btn-add-material {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  background: #1f3a52;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 14px; background: #1f3a52; color: white;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; transition: background 0.2s;
 }
 .btn-add-material:hover:not(:disabled) { background: #162d42; }
 .btn-add-material:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -890,10 +1017,11 @@ tr:hover td { background: #fafafa; }
 .confirm-box h3 { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 8px; }
 .confirm-box p  { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
 .confirm-btns   { display: flex; gap: 10px; }
-.btn-danger { flex: 1; background: #dc2626; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-danger { flex: 1; background: #dc2626; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-danger:hover { background: #b91c1c; }
 
 /* TOAST */
-.toast { position: fixed; bottom: 24px; right: 24px; display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 200; }
+.toast { position: fixed; bottom: 24px; right: 24px; display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .toast-success { background: #166534; color: white; }
 .toast-danger  { background: #991b1b; color: white; }
 
@@ -904,4 +1032,9 @@ tr:hover td { background: #fafafa; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 .row-enter-active, .row-leave-active { transition: opacity 0.3s; }
 .row-enter-from, .row-leave-to { opacity: 0; }
+
+@media (max-width: 960px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-hero  { flex-direction: column; align-items: flex-start; }
+}
 </style>
