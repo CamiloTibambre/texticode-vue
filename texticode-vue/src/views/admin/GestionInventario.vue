@@ -33,7 +33,7 @@
             <p class="hero-sub">Controla stock, niveles y alertas de materiales en tiempo real</p>
           </div>
         </div>
-        <div class="hero-search-wrap">
+        <div class="hero-controls-wrap">
           <div class="search-box" :class="{ 'search-focus': searchFocus }">
             <svg class="search-ico" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
@@ -46,6 +46,23 @@
               @blur="searchFocus = false"
             >
           </div>
+          <div class="select-wrapper">
+            <select v-model="categoriaFiltro" class="category-select">
+              <option value="">Todas las categorías</option>
+              <option>Telas</option>
+              <option>Hilos</option>
+              <option>Accesorios</option>
+            </select>
+            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+            </svg>
+          </div>
+          <button class="btn-primary" @click="abrirModal(null)">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+            Agregar Material
+          </button>
         </div>
       </div>
 
@@ -324,19 +341,19 @@ import AppSidebar from '../../components/AppSidebar.vue'
 
 // ── Datos ────────────────────────────────────────────────────
 const materiales = ref([])
-const clientes = ref([])
+const clientes   = ref([])
 
-const busqueda = ref('')
+const busqueda        = ref('')
 const categoriaFiltro = ref('')
-const modalVisible = ref(false)
-const editando = ref(false)
-const guardando = ref(false)
-const animVisible = ref(false) // mismo nombre que GestionClientes
-const searchFocus = ref(false) // mismo nombre que GestionClientes
-const cargandoVista = ref(true)
-const toastMsg = ref('')
-const toastType = ref('toast-success')
-const confirmItem = ref(null)
+const modalVisible    = ref(false)
+const editando        = ref(false)
+const guardando       = ref(false)
+const animVisible     = ref(false)  // mismo nombre que GestionClientes
+const searchFocus     = ref(false)  // mismo nombre que GestionClientes
+const cargandoVista   = ref(true)
+const toastMsg        = ref('')
+const toastType       = ref('toast-success')
+const confirmItem     = ref(null)
 
 const form = ref({
   id: null, nombre: '', categoria: '', stock: 0,
@@ -344,8 +361,8 @@ const form = ref({
 })
 
 // ── Contadores animados ──────────────────────────────────────
-const displayTotal = ref(0)
-const displayAlertas = ref(0)
+const displayTotal      = ref(0)
+const displayAlertas    = ref(0)
 const displayCategorias = ref(0)
 
 function animateCount(targetRef, target) {
@@ -361,22 +378,22 @@ function animateCount(targetRef, target) {
 // ── Stat cards como computed array — igual que GestionClientes ──
 const statCards = computed(() => [
   {
-    label: 'Total Materiales',
+    label:   'Total Materiales',
     display: displayTotal.value,
-    accent: '#1f3a52',
-    icon: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9',
+    accent:  '#1f3a52',
+    icon:    'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9',
   },
   {
-    label: 'Alertas de Stock',
+    label:   'Alertas de Stock',
     display: displayAlertas.value,
-    accent: '#dc2626',
-    icon: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z',
+    accent:  '#dc2626',
+    icon:    'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z',
   },
   {
-    label: 'Categorías',
+    label:   'Categorías',
     display: displayCategorias.value,
-    accent: '#2563eb',
-    icon: 'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z',
+    accent:  '#2563eb',
+    icon:    'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z',
   },
 ])
 
@@ -384,9 +401,9 @@ const statCards = computed(() => [
 const categorias = ['Telas', 'Hilos', 'Accesorios', 'Otros']
 
 function calcularEstado(m) {
-  if (m.stock === 0) return { estado: 'Agotado', estadoClass: 'danger' }
+  if (m.stock === 0)      return { estado: 'Agotado',    estadoClass: 'danger' }
   if (m.stock < m.minimo) return { estado: 'Stock Bajo', estadoClass: 'warning' }
-  return { estado: 'En Stock', estadoClass: 'success' }
+  return                         { estado: 'En Stock',   estadoClass: 'success' }
 }
 
 function estadoColor(cls) {
@@ -428,24 +445,24 @@ const materialesFiltrados = computed(() => {
 })
 
 const errores = computed(() => ({
-  nombre: !form.value.nombre.trim() ? 'El nombre es requerido' : '',
-  categoria: !form.value.categoria ? 'Selecciona una categoría' : '',
-  unidad: !form.value.unidad ? 'Selecciona una unidad' : '',
+  nombre:    !form.value.nombre.trim() ? 'El nombre es requerido' : '',
+  categoria: !form.value.categoria     ? 'Selecciona una categoría' : '',
+  unidad:    !form.value.unidad        ? 'Selecciona una unidad' : '',
 }))
 const formValido = computed(() => !errores.value.nombre && !errores.value.categoria && !errores.value.unidad)
 
 function mapearMaterial(m) {
   return {
-    id: m.Id_Material,
-    nombre: m.Nombre_Material,
-    categoria: m.Categoria,
-    stock: m.Stock_Actual,
-    unidad: m.Unidad,
-    minimo: m.Stock_Minimo,
-    maximo: m.Stock_Maximo,
-    fecha: m.Fecha ? m.Fecha.split('T')[0] : '',
-    cliente: m.Nombre_Cliente || '',
-    Id_Cliente: m.Id_Cliente || null,
+    id:         m.Id_Material,
+    nombre:     m.Nombre_Material,
+    categoria:  m.Categoria,
+    stock:      m.Stock_Actual,
+    unidad:     m.Unidad,
+    minimo:     m.Stock_Minimo,
+    maximo:     m.Stock_Maximo,
+    fecha:      m.Fecha ? m.Fecha.split('T')[0] : '',
+    cliente:    m.Nombre_Cliente || '',
+    Id_Cliente: m.Id_Cliente     || null,
     eliminando: false,
     ...calcularEstado({ stock: m.Stock_Actual, minimo: m.Stock_Minimo }),
   }
@@ -470,23 +487,23 @@ async function guardar() {
     if (editando.value) {
       await actualizarMaterial(form.value.id, {
         Nombre_Material: form.value.nombre,
-        Categoria: form.value.categoria,
-        Stock_Actual: form.value.stock,
-        Unidad: form.value.unidad,
-        Stock_Minimo: form.value.minimo,
-        Stock_Maximo: form.value.maximo,
-        Id_Cliente: form.value.Id_Cliente || null,
+        Categoria:       form.value.categoria,
+        Stock_Actual:    form.value.stock,
+        Unidad:          form.value.unidad,
+        Stock_Minimo:    form.value.minimo,
+        Stock_Maximo:    form.value.maximo,
+        Id_Cliente:      form.value.Id_Cliente || null,
       })
       showToast('Material actualizado correctamente', 'toast-success')
     } else {
       await crearMaterial({
         Nombre_Material: form.value.nombre,
-        Categoria: form.value.categoria,
-        Stock_Actual: form.value.stock,
-        Unidad: form.value.unidad,
-        Stock_Minimo: form.value.minimo,
-        Stock_Maximo: form.value.maximo,
-        Id_Cliente: form.value.Id_Cliente || null,
+        Categoria:       form.value.categoria,
+        Stock_Actual:    form.value.stock,
+        Unidad:          form.value.unidad,
+        Stock_Minimo:    form.value.minimo,
+        Stock_Maximo:    form.value.maximo,
+        Id_Cliente:      form.value.Id_Cliente || null,
       })
       showToast('Material agregado correctamente', 'toast-success')
     }
@@ -543,8 +560,8 @@ onMounted(async () => {
 
   setTimeout(() => {
     animVisible.value = true
-    animateCount(displayTotal, materiales.value.length)
-    animateCount(displayAlertas, alertas.value.length)
+    animateCount(displayTotal,      materiales.value.length)
+    animateCount(displayAlertas,    alertas.value.length)
     animateCount(displayCategorias, categorias.length)
   }, 80)
 })
@@ -552,7 +569,7 @@ onMounted(async () => {
 
 <style scoped>
 /* ── LAYOUT ── */
-.layout { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
+.layout  { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
 .content { flex: 1; padding: 28px 30px; position: relative; z-index: 1; }
 
 /* ── FONDO DECORATIVO ── */
@@ -605,8 +622,8 @@ onMounted(async () => {
 }
 .page-hero.hero-visible { opacity: 1; transform: translateY(0); }
 
-.hero-left { display: flex; align-items: center; gap: 16px; }
-.hero-text { display: flex; flex-direction: column; }
+.hero-left  { display: flex; align-items: center; gap: 16px; }
+.hero-text  { display: flex; flex-direction: column; }
 
 /* hero-icon-wrap ES la caja azul (sin div anidado) — igual que GestionClientes */
 .hero-icon-wrap {
@@ -630,7 +647,7 @@ onMounted(async () => {
 .ring-2 { width: 86px; height: 86px; animation-delay: 0.8s; }
 
 @keyframes iconPulse {
-  0% { transform: scale(0.7); opacity: 0.5; }
+  0%   { transform: scale(0.7); opacity: 0.5; }
   100% { transform: scale(1.4); opacity: 0; }
 }
 
@@ -650,8 +667,7 @@ onMounted(async () => {
 
 .hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
 
-/* Buscador hero — mismo patrón exacto que GestionClientes */
-.hero-search-wrap { flex-shrink: 0; }
+/* Buscador hero */
 .search-box {
   display: flex; align-items: center; gap: 8px;
   padding: 9px 14px;
@@ -659,7 +675,7 @@ onMounted(async () => {
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
   transition: border-color 0.2s, box-shadow 0.2s;
-  width: 280px;
+  width: 220px;
 }
 .search-box.search-focus {
   border-color: #1f3a52;
@@ -671,28 +687,29 @@ onMounted(async () => {
   font-size: 14px; color: #374151; background: transparent;
 }
 .search-box input::placeholder { color: #9ca3af; }
+/* ── HERO CONTROLS WRAP (search + select + button en una fila) ── */
+.hero-controls-wrap {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0;
+}
 
-/* ── TOP BAR (filtro + botón) ── */
-.top-bar {
-  display: flex; gap: 12px; align-items: center; margin-bottom: 28px;
-}
-.select-wrapper { position: relative; display: flex; align-items: center; }
+.select-wrapper  { position: relative; display: flex; align-items: center; }
 .category-select {
-  padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid #d1d5db;
+  padding: 9px 36px 9px 14px; border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
   outline: none; background: white; font-size: 14px; color: #374151;
-  appearance: none; cursor: pointer; min-width: 190px; transition: border-color .2s;
+  appearance: none; cursor: pointer; min-width: 170px; transition: border-color .2s;
 }
-.category-select:focus { border-color: #1f3a52; }
+.category-select:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
 .select-arrow { position: absolute; right: 10px; width: 14px; height: 14px; color: #6b7280; pointer-events: none; }
 
 .btn-primary {
-  margin-left: auto; padding: 10px 18px; background: #1f3a52; color: white;
-  border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;
+  padding: 10px 16px; background: #1f3a52; color: white;
+  border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500;
   display: flex; align-items: center; gap: 8px; white-space: nowrap;
-  transition: background .2s, transform .15s;
+  transition: background .2s, transform .1s; flex-shrink: 0;
 }
-.btn-primary:hover { background: #162b36; }
-.btn-primary:active { transform: scale(.97); }
+.btn-primary:hover    { background: #162b36; transform: translateY(-1px); }
+.btn-primary:active   { transform: scale(.97); }
 .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 
 /* ── STATS CARDS — .cards + .cards-visible + transitionDelay inline — igual que GestionClientes ── */
@@ -726,7 +743,7 @@ onMounted(async () => {
 .stat-icon-bg svg { width: 52px; height: 52px; }
 
 .stat-card h3 { font-size: 13px; color: #6b7280; font-weight: 500; margin: 0 0 10px 0; }
-.stat-card p { font-size: 30px; font-weight: 800; margin: 0; line-height: 1; }
+.stat-card p  { font-size: 30px; font-weight: 800; margin: 0; line-height: 1; }
 
 /* ── ALERTAS ── */
 .alert-box {
@@ -734,17 +751,17 @@ onMounted(async () => {
   margin-bottom: 25px; border: 1px solid #fed7aa;
 }
 .alert-box h3 { font-size: 15px; font-weight: 600; color: #9a3412; margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px; }
-.alert-icon { width: 20px; height: 20px; color: #ea580c; }
-.alert-count { background: #dc2626; color: white; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; }
+.alert-icon   { width: 20px; height: 20px; color: #ea580c; }
+.alert-count  { background: #dc2626; color: white; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; }
 @keyframes pulseFade { 0%,100%{opacity:1} 50%{opacity:.35} }
 .pulse { animation: pulseFade 2s ease infinite; }
 .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; color: #4b5563; }
 .alert-item + .alert-item { border-top: 1px solid #fed7aa; }
-.alert-item-left { display: flex; align-items: center; gap: 8px; }
+.alert-item-left  { display: flex; align-items: center; gap: 8px; }
 .alert-item-right { display: flex; align-items: center; gap: 10px; }
 .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .alert-dot.warning { background: #ca8a04; }
-.alert-dot.danger { background: #dc2626; }
+.alert-dot.danger  { background: #dc2626; }
 .alert-stock { font-size: 12px; color: #9ca3af; }
 
 /* ── TABLE BOX — .table-box + .box-visible — igual que GestionClientes ── */
@@ -781,8 +798,8 @@ onMounted(async () => {
 }
 
 /* ── TABLA ── */
-table { width: 100%; border-collapse: collapse; }
-thead { background: #f9fafb; }
+table  { width: 100%; border-collapse: collapse; }
+thead  { background: #f9fafb; }
 th {
   text-align: left; font-size: 12px; font-weight: 600;
   color: #6b7280; padding: 13px 18px;
@@ -803,7 +820,7 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
 
 @keyframes rowSlideIn {
   from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 /* Material cell */
@@ -817,33 +834,33 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
 }
 .table-row:hover .material-icon-bg { background: #e0f2fe; transform: scale(1.1); }
 
-.stock-cell { display: flex; align-items: center; gap: 6px; }
-.trend-icon { width: 15px; height: 15px; flex-shrink: 0; }
-.trend-up { color: #16a34a; }
+.stock-cell    { display: flex; align-items: center; gap: 6px; }
+.trend-icon    { width: 15px; height: 15px; flex-shrink: 0; }
+.trend-up      { color: #16a34a; }
 .trend-warning { color: #ca8a04; }
-.trend-down { color: #dc2626; }
-.minmax { color: #9ca3af; font-size: 13px; }
+.trend-down    { color: #dc2626; }
+.minmax        { color: #9ca3af; font-size: 13px; }
 
 /* ── BARRA DE NIVEL ── */
-.nivel-td { min-width: 110px; }
+.nivel-td       { min-width: 110px; }
 .nivel-bar-wrap { display: flex; align-items: center; gap: 6px; }
-.nivel-bar { flex: 1; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
-.nivel-fill { height: 100%; border-radius: 99px; transition: width .7s ease; }
+.nivel-bar      { flex: 1; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+.nivel-fill     { height: 100%; border-radius: 99px; transition: width .7s ease; }
 .nivel-fill.success { background: #16a34a; }
 .nivel-fill.warning { background: #ca8a04; }
-.nivel-fill.danger { background: #dc2626; }
-.nivel-pct { font-size: 11px; color: #9ca3af; white-space: nowrap; }
+.nivel-fill.danger  { background: #dc2626; }
+.nivel-pct      { font-size: 11px; color: #9ca3af; white-space: nowrap; }
 .modal-preview-bar { height: 10px; border-radius: 99px; background: #f3f4f6; overflow: hidden; margin-top: 6px; }
 
 /* ── BADGES / PILLS ── */
-.badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.badge   { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .success { background: #dcfce7; color: #15803d; }
 .warning { background: #fef9c3; color: #854d0e; }
-.danger { background: #fee2e2; color: #991b1b; }
+.danger  { background: #fee2e2; color: #991b1b; }
 .cat-pill { background: #eff6ff; color: #1d4ed8; font-size: 12px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
 
 /* ── ACCIONES — igual que GestionClientes ── */
-.actions { display: flex; gap: 8px; align-items: center; }
+.actions    { display: flex; gap: 8px; align-items: center; }
 .action-btn {
   width: 32px; height: 32px; border-radius: 7px; border: none;
   background: #1f3a52;
@@ -855,7 +872,7 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
   pointer-events: none;
   filter: drop-shadow(0 0 0.3px rgba(255,255,255,0.4));
 }
-.view-btn:hover { background: #2d5580; transform: scale(1.07); }
+.view-btn:hover     { background: #2d5580; transform: scale(1.07); }
 .download-btn:hover { background: #b91c1c; transform: scale(1.07); }
 
 .fecha { white-space: nowrap; color: #9ca3af; font-size: 13px; }
@@ -872,10 +889,10 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
-.sk-user { width: 72%; height: 16px; }
-.sk-tag { width: 88px; height: 14px; }
+.sk-user  { width: 72%; height: 16px; }
+.sk-tag   { width: 88px; height: 14px; }
 .sk-stock { width: 84px; height: 14px; }
-.sk-date { width: 70px; height: 14px; }
+.sk-date  { width: 70px; height: 14px; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* ── EMPTY STATE ── */
@@ -900,9 +917,9 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
 .close { cursor: pointer; font-size: 24px; color: #9ca3af; background: none; border: none; line-height: 1; }
 .close:hover { color: #374151; }
 
-.form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+.form-group       { display: flex; flex-direction: column; margin-bottom: 15px; }
 .form-group label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
-.form-row { display: flex; gap: 15px; }
+.form-row         { display: flex; gap: 15px; }
 .form-row .form-group { flex: 1; }
 
 .modal-body input,
@@ -914,7 +931,7 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
 .modal-body input:focus,
 .modal-body select:focus { border-color: #1f3a52; background: white; }
 .input-error { border-color: #dc2626 !important; }
-.error-msg { font-size: 12px; color: #dc2626; margin-top: 4px; }
+.error-msg   { font-size: 12px; color: #dc2626; margin-top: 4px; }
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .btn-secondary {
@@ -929,11 +946,11 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
   background: white; border-radius: 14px; padding: 32px 28px;
   width: 380px; max-width: 95%; box-shadow: 0 20px 50px rgba(0,0,0,.2); text-align: center;
 }
-.confirm-icon { margin-bottom: 12px; }
+.confirm-icon   { margin-bottom: 12px; }
 .confirm-box h3 { font-size: 18px; font-weight: 600; color: #111827; margin: 0 0 8px; }
-.confirm-box p { font-size: 14px; color: #6b7280; margin: 0 0 24px; }
-.confirm-btns { display: flex; gap: 10px; justify-content: center; }
-.btn-danger { padding: 10px 18px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background .2s; }
+.confirm-box p  { font-size: 14px; color: #6b7280; margin: 0 0 24px; }
+.confirm-btns   { display: flex; gap: 10px; justify-content: center; }
+.btn-danger     { padding: 10px 18px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background .2s; }
 .btn-danger:hover { background: #b91c1c; }
 
 /* ── TOAST ── */
@@ -944,24 +961,26 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
   box-shadow: 0 4px 20px rgba(0,0,0,.2); z-index: 2000;
 }
 .toast-success { background: #111827; }
-.toast-danger { background: #dc2626; }
+.toast-danger  { background: #dc2626; }
 
 /* ── TRANSITIONS ── */
 .modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from, .modal-leave-to       { opacity: 0; }
 
 .toast-enter-active, .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
+.toast-enter-from, .toast-leave-to       { opacity: 0; transform: translateY(12px); }
 
 .slide-down-enter-active, .slide-down-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.slide-down-enter-from, .slide-down-leave-to { opacity: 0; transform: translateY(-8px); }
+.slide-down-enter-from, .slide-down-leave-to       { opacity: 0; transform: translateY(-8px); }
 
 .row-enter-active, .row-leave-active { transition: opacity .3s ease; }
-.row-enter-from, .row-leave-to { opacity: 0; }
+.row-enter-from, .row-leave-to       { opacity: 0; }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .page-hero { flex-direction: column; align-items: flex-start; }
+  .hero-controls-wrap { width: 100%; }
   .search-box { width: 100%; }
+  .category-select { min-width: 0; flex: 1; }
   .cards { flex-direction: column; }
   .table-skeleton-row { grid-template-columns: 1fr 0.8fr; }
   .sk-stock, .sk-date { display: none; }
