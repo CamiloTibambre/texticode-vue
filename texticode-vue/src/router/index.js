@@ -2,7 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const routes = [
-  { path: '/', name: 'Login', component: () => import('../views/LoginView.vue') },
+  // LANDING — primera vista
+  { path: '/',      name: 'Landing', component: () => import('../views/LandingView.vue') },
+
+  // LOGIN
+  { path: '/login', name: 'Login',   component: () => import('../views/LoginView.vue') },
 
   // ADMINISTRADOR
   { path: '/admin/usuarios',   name: 'AdminUsuarios',   component: () => import('../views/admin/GestionUsuarios.vue'),   meta: { rol: 'admin' } },
@@ -28,7 +32,8 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior() {
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
     return { top: 0, behavior: 'smooth' }
   },
 })
@@ -44,12 +49,14 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   const rol  = normalizarRol(auth.rol)
 
+  // Rutas protegidas por rol
   if (to.meta.rol) {
     if (!auth.estaLogueado) return { name: 'Login' }
     if (rol !== to.meta.rol) return { name: 'Login' }
   }
 
-  if (to.name === 'Login' && auth.estaLogueado) {
+  // Si está logueado y va al login o landing, redirigir a su panel
+  if ((to.name === 'Login' || to.name === 'Landing') && auth.estaLogueado) {
     if (rol === 'admin')    return { name: 'AdminUsuarios' }
     if (rol === 'operario') return { name: 'OperarioCuenta' }
     if (rol === 'cliente')  return { name: 'ClienteCuenta' }
