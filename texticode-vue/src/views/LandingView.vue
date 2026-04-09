@@ -23,12 +23,13 @@
           <a href="#alcances" @click.prevent="scrollTo('alcances')">Alcances</a>
           <a href="#equipo" @click.prevent="scrollTo('equipo')">Equipo</a>
         </div>
-        <RouterLink to="/" class="nav-cta">
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
-          </svg>
-          Ingresar al Sistema
-        </RouterLink>
+<RouterLink to="/login" class="nav-cta">
+  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+  </svg>
+  Ingresar al Sistema
+</RouterLink>
+
       </div>
     </nav>
 
