@@ -86,7 +86,6 @@
             <div class="select-wrapper">
               <select v-model="filtroRol" class="select">
                 <option value="">Todos los roles</option>
-                <option value="administrador">Administrador</option>
                 <option value="operador">Operario</option>
                 <option value="cliente">Cliente</option>
               </select>
@@ -129,14 +128,37 @@
         </div>
       </div>
 
+      <!-- CARD PERFIL DEL ADMIN LOGUEADO -->
+      <div class="admin-profile-card" :class="{ 'card-visible': animVisible }" style="transition-delay: 200ms">
+        <div class="apc-left">
+          <div class="apc-avatar" :style="{ background: avatarBg(adminPerfil.nombre), color: avatarColor(adminPerfil.nombre) }">
+            {{ adminPerfil.iniciales }}
+          </div>
+          <div class="apc-info">
+            <div class="apc-name">{{ adminPerfil.nombre }}</div>
+            <div class="apc-meta">
+              <span class="apc-badge">Administrador</span>
+              <span class="apc-email">{{ adminPerfil.email }}</span>
+              <span class="apc-tel" v-if="adminPerfil.telefono">· {{ adminPerfil.telefono }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-edit-admin" @click="abrirModalAdmin">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+          </svg>
+          Editar mi perfil
+        </button>
+      </div>
+
       <!-- TABLA -->
-      <div class="table-box" :class="{ 'box-visible': animVisible }">
+      <div class="table-box" :class="{ 'box-visible': animVisible }" style="transition-delay: 320ms">
         <div class="table-header-bar">
           <div class="table-header-left">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
             </svg>
-            Lista de Usuarios
+            Operarios y Clientes
             <span class="count-badge">{{ usuariosFiltrados.length }}</span>
           </div>
         </div>
@@ -155,14 +177,53 @@
           <thead>
             <tr>
               <th class="th-sortable" @click="sortBy('nombre')">
-                Usuario <span class="sort-icon">{{ sortIcon('nombre') }}</span>
+                <span class="th-inner">
+                  Usuario
+                  <span class="sort-arrows" :class="{ 'sort-active': sortKey === 'nombre' }">
+                    <svg v-if="sortKey !== 'nombre'" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-neutral">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                    </svg>
+                    <svg v-else-if="sortDir === 1" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-up">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>
+                    </svg>
+                    <svg v-else width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-down">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                  </span>
+                </span>
               </th>
               <th class="th-sortable" @click="sortBy('rol')">
-                Rol <span class="sort-icon">{{ sortIcon('rol') }}</span>
+                <span class="th-inner">
+                  Rol
+                  <span class="sort-arrows" :class="{ 'sort-active': sortKey === 'rol' }">
+                    <svg v-if="sortKey !== 'rol'" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-neutral">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                    </svg>
+                    <svg v-else-if="sortDir === 1" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-up">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>
+                    </svg>
+                    <svg v-else width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-down">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                  </span>
+                </span>
               </th>
               <th>Teléfono</th>
               <th class="th-sortable" @click="sortBy('fechaRegistro')">
-                Fecha Registro <span class="sort-icon">{{ sortIcon('fechaRegistro') }}</span>
+                <span class="th-inner">
+                  Fecha Registro
+                  <span class="sort-arrows" :class="{ 'sort-active': sortKey === 'fechaRegistro' }">
+                    <svg v-if="sortKey !== 'fechaRegistro'" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-neutral">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                    </svg>
+                    <svg v-else-if="sortDir === 1" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-up">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>
+                    </svg>
+                    <svg v-else width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-down">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                  </span>
+                </span>
               </th>
               <th>Acciones</th>
             </tr>
@@ -215,7 +276,6 @@
                 </td>
               </tr>
             </TransitionGroup>
-            <!-- Estado vacío -->
             <tr v-if="usuariosOrdenados.length === 0">
               <td colspan="5" class="empty-state">
                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
@@ -229,7 +289,7 @@
       </div>
     </main>
 
-    <!-- MODAL -->
+    <!-- MODAL CREAR/EDITAR USUARIO (operario/cliente) -->
     <Transition name="modal">
       <div v-if="modalVisible" class="modal" @click.self="cerrarModal">
         <div class="modal-content">
@@ -237,62 +297,37 @@
           <span class="close" @click="cerrarModal">×</span>
 
           <label>Nombre Completo</label>
-          <input
-            v-model="form.nombre"
-            type="text"
-            placeholder="Nombre completo"
-            :class="{ 'input-error': errores.nombre && formTouched }"
-            @blur="formTouched = true"
-          >
+          <input v-model="form.nombre" type="text" placeholder="Nombre completo"
+            :class="{ 'input-error': errores.nombre && formTouched }" @blur="formTouched = true">
           <span v-if="errores.nombre && formTouched" class="error-msg">{{ errores.nombre }}</span>
 
           <label>Nombre de Usuario</label>
-          <input
-            v-model="form.nombreUsuario"
-            type="text"
-            placeholder="usuario123 (se genera automáticamente si lo dejas vacío)"
-          >
+          <input v-model="form.nombreUsuario" type="text" placeholder="usuario123">
 
           <label>Correo Electrónico</label>
-          <input
-            v-model="form.email"
-            type="email"
-            placeholder="correo@ejemplo.com"
-            :class="{ 'input-error': errores.email && formTouched }"
-            @blur="formTouched = true"
-          >
+          <input v-model="form.email" type="email" placeholder="correo@ejemplo.com"
+            :class="{ 'input-error': errores.email && formTouched }" @blur="formTouched = true">
           <span v-if="errores.email && formTouched" class="error-msg">{{ errores.email }}</span>
 
           <label>Teléfono</label>
-          <input
-            v-model="form.telefono"
-            type="tel"
-            placeholder="+57 300 000 0000"
-            :class="{ 'input-error': errores.telefono && formTouched }"
-            @blur="formTouched = true"
-          >
+          <input v-model="form.telefono" type="tel" placeholder="+57 300 000 0000"
+            :class="{ 'input-error': errores.telefono && formTouched }" @blur="formTouched = true">
           <span v-if="errores.telefono && formTouched" class="error-msg">{{ errores.telefono }}</span>
 
           <label>Rol</label>
           <select v-model="form.Id_Rol" :class="{ 'input-error': errores.Id_Rol && formTouched }">
             <option value="" disabled>Selecciona un rol</option>
-            <option v-for="r in roles" :key="r.Id_Rol" :value="r.Id_Rol">{{ r.Nombre_Rol }}</option>
+            <option v-for="r in rolesNoAdmin" :key="r.Id_Rol" :value="r.Id_Rol">{{ r.Nombre_Rol }}</option>
           </select>
           <span v-if="errores.Id_Rol && formTouched" class="error-msg">{{ errores.Id_Rol }}</span>
 
           <template v-if="!editando">
             <label>Contraseña</label>
-            <input
-              v-model="form.contrasena"
-              type="password"
-              placeholder="Contraseña del usuario"
-              :class="{ 'input-error': errores.contrasena && formTouched }"
-              @blur="formTouched = true"
-            >
+            <input v-model="form.contrasena" type="password" placeholder="Contraseña del usuario"
+              :class="{ 'input-error': errores.contrasena && formTouched }" @blur="formTouched = true">
             <span v-if="errores.contrasena && formTouched" class="error-msg">{{ errores.contrasena }}</span>
           </template>
 
-          <!-- Preview del usuario -->
           <div v-if="form.nombre" class="user-preview">
             <div class="avatar" :style="{ background: avatarBg(form.nombre), color: avatarColor(form.nombre) }">
               {{ form.nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase() }}
@@ -312,45 +347,85 @@
         </div>
       </div>
     </Transition>
+
+    <!-- MODAL EDITAR PERFIL ADMIN -->
+    <Transition name="modal">
+      <div v-if="modalAdminVisible" class="modal" @click.self="cerrarModalAdmin">
+        <div class="modal-content">
+          <h2>Editar mi Perfil</h2>
+          <span class="close" @click="cerrarModalAdmin">×</span>
+
+          <label>Nombre Completo</label>
+          <input v-model="formAdmin.nombre" type="text" placeholder="Nombre completo">
+
+          <label>Correo Electrónico</label>
+          <input v-model="formAdmin.email" type="email" placeholder="correo@ejemplo.com">
+
+          <label>Teléfono</label>
+          <input v-model="formAdmin.telefono" type="tel" placeholder="+57 300 000 0000">
+
+          <label>Nueva Contraseña <span style="color:#9ca3af;font-weight:400;font-size:12px">(dejar vacío para no cambiar)</span></label>
+          <input v-model="formAdmin.contrasena" type="password" placeholder="••••••••">
+
+          <div class="modal-buttons">
+            <button class="btn-cancel" @click="cerrarModalAdmin">Cancelar</button>
+            <button class="btn-submit" @click="guardarPerfilAdmin" :disabled="guardandoAdmin">
+              {{ guardandoAdmin ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
+import { useAuthStore } from '../../stores/auth'
 import {
-  getUsuarios, getRoles, crearUsuario, actualizarUsuario
+  getUsuarios, getRoles, crearUsuario, actualizarUsuario, getUsuario
 } from '../../services/api.js'
+
+const auth = useAuthStore()
 
 // ── ESTADO ──
 const animVisible = ref(false)
-const cargando = ref(true)
-const guardando = ref(false)
+const cargando    = ref(true)
+const guardando   = ref(false)
+const guardandoAdmin = ref(false)
 const searchFocus = ref(false)
-const busqueda = ref('')
-const filtroRol = ref('')
-const modalVisible = ref(false)
-const editando = ref(false)
+const busqueda    = ref('')
+const filtroRol   = ref('')
+const modalVisible      = ref(false)
+const modalAdminVisible = ref(false)
+const editando    = ref(false)
 const formTouched = ref(false)
-const roles = ref([])
-const usuarios = ref([])
+const roles       = ref([])
+const usuarios    = ref([])
 
 const confirmDialog = ref({ visible: false, id: null })
-const toast = ref({ visible: false, msg: '', type: 'success' })
+const toast         = ref({ visible: false, msg: '', type: 'success' })
+
+// Perfil del admin logueado
+const adminPerfil = ref({ nombre: '', email: '', telefono: '', iniciales: '' })
+const formAdmin   = ref({ nombre: '', email: '', telefono: '', contrasena: '' })
 
 // ── ROL HELPERS ──
-const ROL_NORM = { 'administrador': 'administrador', 'admin': 'administrador', 'operario': 'operador', 'operador': 'operador', 'cliente': 'cliente' }
+const ROL_NORM  = { 'administrador': 'administrador', 'admin': 'administrador', 'operario': 'operador', 'operador': 'operador', 'cliente': 'cliente' }
 const ROL_LABEL = { administrador: 'Administrador', operador: 'Operario', cliente: 'Cliente' }
 function normRol(nombreRol) { return ROL_NORM[(nombreRol || '').toLowerCase()] || 'operador' }
 
-// ── MAPEO BD → vista ──
+// Roles filtrados (sin admin)
+const rolesNoAdmin = computed(() =>
+  roles.value.filter(r => !['administrador','admin'].includes((r.Nombre_Rol || '').toLowerCase()))
+)
+
 function mapear(u) {
   const rolNombreRaw = u.Rol || u.Nombre_Rol || ''
   const rol = normRol(rolNombreRaw)
   const nombre = u.Nombre_Completo || u.Nombre_Usuario || ''
-  const rolObj = roles.value.find(r =>
-    (r.Nombre_Rol || '').toLowerCase() === rolNombreRaw.toLowerCase()
-  )
+  const rolObj = roles.value.find(r => (r.Nombre_Rol || '').toLowerCase() === rolNombreRaw.toLowerCase())
   return {
     id: u.Id_Usuario,
     nombre,
@@ -374,7 +449,25 @@ async function cargarDatos() {
   try {
     const [dataU, dataR] = await Promise.all([getUsuarios(), getRoles()])
     roles.value = dataR
-    usuarios.value = dataU.filter(u => u.Estado === 'activo').map(mapear)
+
+    // Todos los usuarios activos NO administradores
+    usuarios.value = dataU
+      .filter(u => u.Estado === 'activo' && normRol(u.Rol || u.Nombre_Rol || '') !== 'administrador')
+      .map(mapear)
+
+    // Perfil del admin logueado
+    if (auth.idUsuario) {
+      const adminData = await getUsuario(auth.idUsuario)
+      const nombre = adminData.Nombre_Completo || adminData.Nombre_Usuario || ''
+      adminPerfil.value = {
+        nombre,
+        email: adminData.Correo || '',
+        telefono: adminData.Telefono || '',
+        iniciales: nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase(),
+        Id_Rol: adminData.Id_Rol,
+        nombreUsuario: adminData.Nombre_Usuario || '',
+      }
+    }
   } catch (e) {
     mostrarToast('Error al cargar usuarios', 'danger')
   } finally {
@@ -427,8 +520,7 @@ async function confirmarEliminar() {
 const statsDisplay = ref({ total: 0, activos: 0, operarios: 0, clientes: 0 })
 function animateCount(key, target) {
   let val = 0
-  const steps = 80
-  const duration = 2000
+  const steps = 80; const duration = 2000
   const intervalMs = Math.round(duration / steps)
   const step = Math.max(0.1, target / steps)
   const iv = setInterval(() => {
@@ -438,22 +530,22 @@ function animateCount(key, target) {
   }, intervalMs)
 }
 function animateStats() {
-  animateCount('total', usuarios.value.length)
-  animateCount('activos', usuarios.value.filter(u => u.estado === 'active').length)
-  animateCount('operarios', usuarios.value.filter(u => u.rol === 'operador').length)
+  animateCount('total',    usuarios.value.length)
+  animateCount('activos',  usuarios.value.filter(u => u.estado === 'active').length)
+  animateCount('operarios',usuarios.value.filter(u => u.rol === 'operador').length)
   animateCount('clientes', usuarios.value.filter(u => u.rol === 'cliente').length)
 }
 
-const ICON_USERS = 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
-const ICON_CHECK = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+const ICON_USERS  = 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
+const ICON_CHECK  = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
 const ICON_WRENCH = 'M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z'
 const ICON_CLIENT = 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z'
 
 const statsCards = computed(() => [
-  { label: 'Total Usuarios', display: statsDisplay.value.total, accentColor: '#1f3a52', iconPath: ICON_USERS },
-  { label: 'Activos', display: statsDisplay.value.activos, accentColor: '#16a34a', iconPath: ICON_CHECK },
-  { label: 'Operarios', display: statsDisplay.value.operarios, accentColor: '#2563eb', iconPath: ICON_WRENCH },
-  { label: 'Clientes', display: statsDisplay.value.clientes, accentColor: '#d97706', iconPath: ICON_CLIENT },
+  { label: 'Total Usuarios', display: statsDisplay.value.total,    accentColor: '#1f3a52', iconPath: ICON_USERS  },
+  { label: 'Activos',        display: statsDisplay.value.activos,  accentColor: '#16a34a', iconPath: ICON_CHECK  },
+  { label: 'Operarios',      display: statsDisplay.value.operarios,accentColor: '#2563eb', iconPath: ICON_WRENCH },
+  { label: 'Clientes',       display: statsDisplay.value.clientes, accentColor: '#d97706', iconPath: ICON_CLIENT },
 ])
 
 // ── AVATAR COLORS ──
@@ -462,16 +554,14 @@ const PALETTES = [
   { bg: '#d1fae5', color: '#065f46' }, { bg: '#fef9c3', color: '#92400e' },
   { bg: '#ede9fe', color: '#5b21b6' }, { bg: '#fee2e2', color: '#991b1b' },
 ]
-function avatarBg(n) { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].bg }
+function avatarBg(n)    { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].bg }
 function avatarColor(n) { return PALETTES[(n?.charCodeAt(0)||0) % PALETTES.length].color }
 
 // ── ORDENAMIENTO ──
 const sortKey = ref('nombre')
 const sortDir = ref(1)
 function sortBy(key) { sortKey.value === key ? sortDir.value *= -1 : (sortKey.value = key, sortDir.value = 1) }
-function sortIcon(key) { return sortKey.value !== key ? '⇅' : sortDir.value === 1 ? '↑' : '↓' }
 
-// ── FILTRADO ──
 const usuariosFiltrados = computed(() =>
   usuarios.value.filter(u => {
     const q = busqueda.value.toLowerCase()
@@ -497,7 +587,7 @@ const errores = computed(() => ({
 }))
 const tieneErrores = computed(() => Object.values(errores.value).some(e => e !== ''))
 
-// ── MODAL ──
+// ── MODAL USUARIO ──
 function abrirModal(usuario) {
   formTouched.value = false
   if (usuario) {
@@ -514,7 +604,7 @@ function abrirModal(usuario) {
     }
   } else {
     editando.value = false
-    form.value = { id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: roles.value[0]?.Id_Rol || '', estado: 'activo', contrasena: '' }
+    form.value = { id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: rolesNoAdmin.value[0]?.Id_Rol || '', estado: 'activo', contrasena: '' }
   }
   modalVisible.value = true
 }
@@ -524,7 +614,6 @@ async function guardarUsuario() {
   formTouched.value = true
   if (tieneErrores.value) return
   guardando.value = true
-
   const payload = {
     Nombre_Completo: form.value.nombre,
     Nombre_Usuario: form.value.nombreUsuario || form.value.nombre.toLowerCase().replace(/\s+/g, '.'),
@@ -534,7 +623,6 @@ async function guardarUsuario() {
     Estado: form.value.estado,
     ...(form.value.contrasena.trim() ? { Contrasena: form.value.contrasena.trim() } : {}),
   }
-
   try {
     if (editando.value) {
       await actualizarUsuario(form.value.id, payload)
@@ -552,6 +640,49 @@ async function guardarUsuario() {
     guardando.value = false
   }
 }
+
+// ── MODAL PERFIL ADMIN ──
+function abrirModalAdmin() {
+  formAdmin.value = {
+    nombre: adminPerfil.value.nombre,
+    email: adminPerfil.value.email,
+    telefono: adminPerfil.value.telefono,
+    contrasena: '',
+  }
+  modalAdminVisible.value = true
+}
+function cerrarModalAdmin() { modalAdminVisible.value = false }
+
+async function guardarPerfilAdmin() {
+  guardandoAdmin.value = true
+  try {
+    const payload = {
+      Nombre_Completo: formAdmin.value.nombre,
+      Nombre_Usuario: adminPerfil.value.nombreUsuario,
+      Correo: formAdmin.value.email,
+      Telefono: formAdmin.value.telefono || null,
+      Id_Rol: adminPerfil.value.Id_Rol,
+      Estado: 'activo',
+      ...(formAdmin.value.contrasena.trim() ? { Contrasena: formAdmin.value.contrasena.trim() } : {}),
+    }
+    await actualizarUsuario(auth.idUsuario, payload)
+    const nombre = formAdmin.value.nombre
+    adminPerfil.value = {
+      ...adminPerfil.value,
+      nombre,
+      email: formAdmin.value.email,
+      telefono: formAdmin.value.telefono,
+      iniciales: nombre.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase(),
+    }
+    if (auth.usuario) auth.usuario.Nombre_Completo = formAdmin.value.nombre
+    cerrarModalAdmin()
+    mostrarToast('Perfil actualizado correctamente', 'success')
+  } catch (e) {
+    mostrarToast(e.message || 'Error al guardar', 'danger')
+  } finally {
+    guardandoAdmin.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -559,38 +690,18 @@ async function guardarUsuario() {
 .layout { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
 .main { flex: 1; padding: 28px 30px; position: relative; z-index: 1; }
 
-/* ── FONDO DECORATIVO ── */
+/* ── FONDO ── */
 .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.07; }
-.orb-1 {
-  width: 600px; height: 600px; background: #1f3a52;
-  top: -200px; right: -100px;
-  animation: orbDrift1 18s ease-in-out infinite alternate;
-}
-.orb-2 {
-  width: 400px; height: 400px; background: #2563eb;
-  bottom: -100px; left: 10%;
-  animation: orbDrift2 22s ease-in-out infinite alternate;
-}
-.orb-3 {
-  width: 300px; height: 300px; background: #16a34a;
-  top: 40%; right: 5%;
-  animation: orbDrift3 15s ease-in-out infinite alternate;
-}
-
+.orb-1 { width: 600px; height: 600px; background: #1f3a52; top: -200px; right: -100px; animation: orbDrift1 18s ease-in-out infinite alternate; }
+.orb-2 { width: 400px; height: 400px; background: #2563eb; bottom: -100px; left: 10%; animation: orbDrift2 22s ease-in-out infinite alternate; }
+.orb-3 { width: 300px; height: 300px; background: #16a34a; top: 40%; right: 5%; animation: orbDrift3 15s ease-in-out infinite alternate; }
 @keyframes orbDrift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px,40px) scale(1.1); } }
 @keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
 @keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px); background-size: 40px 40px; }
 
-.bg-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* ── HERO HEADER ── */
+/* ── HERO ── */
 .page-hero {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
@@ -598,47 +709,24 @@ async function guardarUsuario() {
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .page-hero.hero-visible { opacity: 1; transform: translateY(0); }
-
 .hero-left { display: flex; align-items: center; gap: 16px; }
 .hero-text { display: flex; flex-direction: column; }
-
 .hero-icon-wrap {
   position: relative; width: 52px; height: 52px;
   display: flex; align-items: center; justify-content: center;
   background: #1f3a52; border-radius: 14px; flex-shrink: 0;
 }
 .hero-icon { width: 26px; height: 26px; color: white; }
-.hero-icon-ring {
-  position: absolute; border-radius: 50%;
-  border: 1.5px solid #1f3a52; opacity: 0;
-  animation: iconPulse 3s ease-out infinite;
-}
+.hero-icon-ring { position: absolute; border-radius: 50%; border: 1.5px solid #1f3a52; opacity: 0; animation: iconPulse 3s ease-out infinite; }
 .ring-1 { width: 68px; height: 68px; animation-delay: 0s; }
 .ring-2 { width: 86px; height: 86px; animation-delay: 0.8s; }
-
-@keyframes iconPulse {
-  0% { transform: scale(0.7); opacity: 0.5; }
-  100% { transform: scale(1.4); opacity: 0; }
-}
-
-.hero-title {
-  font-size: 24px; font-weight: 700; color: #111827;
-  margin: 0; display: flex; flex-wrap: wrap;
-}
-.title-char {
-  display: inline-block;
-  opacity: 0; transform: translateY(12px);
-  animation: charReveal 0.4s ease forwards;
-}
+@keyframes iconPulse { 0% { transform: scale(0.7); opacity: 0.5; } 100% { transform: scale(1.4); opacity: 0; } }
+.hero-title { font-size: 24px; font-weight: 700; color: #111827; margin: 0; display: flex; flex-wrap: wrap; }
+.title-char { display: inline-block; opacity: 0; transform: translateY(12px); animation: charReveal 0.4s ease forwards; }
 @keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
-
 .hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
-
-.hero-actions-wrap {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0;
-}
+.hero-actions-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-
 .search-box {
   display: flex; align-items: center; gap: 8px;
   padding: 9px 14px; background: white;
@@ -649,97 +737,100 @@ async function guardarUsuario() {
 .search-ico { width: 16px; height: 16px; color: #9ca3af; flex-shrink: 0; }
 .search-box input { border: none; outline: none; width: 100%; font-size: 14px; color: #374151; background: transparent; }
 .search-box input::placeholder { color: #9ca3af; }
-
 .select-wrapper { position: relative; display: inline-flex; align-items: center; }
-.select {
-  padding: 9px 32px 9px 12px; border-radius: 10px;
-  border: 1.5px solid #e5e7eb; font-size: 14px; background: white;
-  appearance: none; -webkit-appearance: none; outline: none; cursor: pointer;
-  transition: border-color 0.2s;
-}
+.select { padding: 9px 32px 9px 12px; border-radius: 10px; border: 1.5px solid #e5e7eb; font-size: 14px; background: white; appearance: none; -webkit-appearance: none; outline: none; cursor: pointer; transition: border-color 0.2s; }
 .select:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
 .select-arrow { position: absolute; right: 10px; width: 14px; height: 14px; color: #6b7280; pointer-events: none; }
-
-.btn {
-  display: flex; align-items: center; gap: 8px;
-  background: #1f3a52; color: white; border: none;
-  padding: 10px 16px; border-radius: 10px;
-  font-size: 14px; font-weight: 500; cursor: pointer;
-  white-space: nowrap; transition: background 0.2s, transform 0.1s; flex-shrink: 0;
-}
+.btn { display: flex; align-items: center; gap: 8px; background: #1f3a52; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.1s; flex-shrink: 0; }
 .btn:hover { background: #162b3c; transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
 .btn-icon { width: 18px; height: 18px; }
 
 /* ── STATS ── */
-.stats { display: flex; gap: 18px; margin-bottom: 28px; }
-.stat-card {
-  background: white; flex: 1; padding: 20px 20px 20px 24px;
-  border-radius: 14px; border: 1px solid #e5e7eb;
-  position: relative; overflow: hidden;
-  opacity: 0; transform: translateY(20px);
-  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s;
-}
+.stats { display: flex; gap: 18px; margin-bottom: 24px; }
+.stat-card { background: white; flex: 1; padding: 20px 20px 20px 24px; border-radius: 14px; border: 1px solid #e5e7eb; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s; }
 .stats-visible .stat-card { opacity: 1; transform: translateY(0); }
 .stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.09); transform: translateY(-3px) !important; }
-
 .stat-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
 .stat-icon-bg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); opacity: 0.07; }
 .stat-icon-bg svg { width: 52px; height: 52px; }
-
 .stat-card h3 { font-size: 13px; color: #6b7280; font-weight: 500; margin: 0 0 10px 0; }
 .stat-card p { font-size: 30px; font-weight: 800; margin: 0; line-height: 1; }
-
 .skeleton-card { pointer-events: none; min-height: 90px; }
 .skeleton-line { display: block; border-radius: 999px; background: #e5e7eb; }
 .skeleton-sm { width: 45%; height: 12px; margin-bottom: 16px; }
 .skeleton-lg { width: 70%; height: 30px; }
 
-/* ── TABLA BOX ── */
-.table-box {
-  background: white; border-radius: 14px; border: 1px solid #e5e7eb;
-  overflow: hidden;
-  opacity: 0; transform: translateY(16px);
+/* ── CARD PERFIL ADMIN ── */
+.admin-profile-card {
+  background: linear-gradient(135deg, #1f3a52 0%, #2d5f8a 100%);
+  border-radius: 14px; padding: 20px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 20px;
+  opacity: 0; transform: translateY(14px);
   transition: opacity 0.45s ease, transform 0.45s ease;
-  transition-delay: 280ms;
+  box-shadow: 0 4px 20px rgba(31,58,82,0.25);
 }
-.box-visible { opacity: 1; transform: translateY(0); }
+.admin-profile-card.card-visible { opacity: 1; transform: translateY(0); }
+.apc-left { display: flex; align-items: center; gap: 16px; }
+.apc-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+.apc-info { display: flex; flex-direction: column; gap: 5px; }
+.apc-name { font-size: 17px; font-weight: 700; color: white; }
+.apc-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.apc-badge { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
+.apc-email { font-size: 13px; color: rgba(255,255,255,0.65); }
+.apc-tel   { font-size: 13px; color: rgba(255,255,255,0.5); }
+.btn-edit-admin {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.12); color: white;
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 9px;
+  padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(8px);
+}
+.btn-edit-admin:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
 
-.table-header-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb;
-}
-.table-header-left {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 14px; font-weight: 600; color: #374151;
-}
+/* ── TABLA BOX ── */
+.table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; transition-delay: 320ms; }
+.box-visible { opacity: 1; transform: translateY(0); }
+.table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; }
+.table-header-left { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #374151; }
 .table-header-left svg { color: #1f3a52; }
-.count-badge {
-  background: #1f3a52; color: white;
-  font-size: 11px; font-weight: 600;
-  padding: 2px 8px; border-radius: 999px; line-height: 1.6;
-}
+.count-badge { background: #1f3a52; color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; line-height: 1.6; }
 
 /* ── TABLA ── */
 table { width: 100%; border-collapse: collapse; }
 thead { background: #f9fafb; }
 th { font-size: 12px; font-weight: 600; color: #6b7280; padding: 14px 18px; text-align: left; }
-.th-sortable { cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.15s; }
+
+/* ── SORT ANIMADO (igual que GestionClientes) ── */
+.th-sortable { cursor: pointer; user-select: none; transition: color 0.15s; }
 .th-sortable:hover { color: #1f3a52; }
-.sort-icon { font-size: 11px; margin-left: 4px; opacity: 0.6; }
+.th-sortable:hover .sort-neutral { opacity: 0.5; }
+.th-inner { display: inline-flex; align-items: center; gap: 6px; }
+
+.sort-arrows { display: inline-flex; align-items: center; transition: all 0.2s ease; }
+.sort-neutral { opacity: 0.35; color: #9ca3af; transition: opacity 0.2s, transform 0.2s; }
+.sort-up, .sort-down { color: #1f3a52; animation: sortIconPop 0.25s cubic-bezier(0.34,1.56,0.64,1) both; }
+.sort-active .sort-up,
+.sort-active .sort-down { color: #1f3a52; }
+
+@keyframes sortIconPop {
+  from { transform: scale(0.6) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
 td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
-
-.table-row {
-  transition: background 0.18s;
-  animation: rowSlideIn 0.35s ease both;
-}
+.table-row { transition: background 0.18s; animation: rowSlideIn 0.35s ease both; }
 .table-row:hover td { background: #f8fafc; }
-
-@keyframes rowSlideIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
+@keyframes rowSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
 .row-flash td { background: #f0fdf4 !important; }
 .row-eliminating { opacity: 0 !important; transform: translateX(20px) !important; transition: all 0.35s ease !important; }
 .row-enter-active { transition: all 0.3s ease; }
@@ -749,26 +840,17 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 
 /* ── SKELETON TABLA ── */
 .table-skeleton { padding: 18px; display: grid; gap: 12px; }
-.table-skeleton-row {
-  display: grid;
-  grid-template-columns: 34px 1.6fr 0.8fr 1fr 0.8fr;
-  align-items: center; gap: 16px; padding: 14px 10px;
-  border-radius: 16px; background: rgba(255,255,255,0.72);
-}
+.table-skeleton-row { display: grid; grid-template-columns: 34px 1.6fr 0.8fr 1fr 0.8fr; align-items: center; gap: 16px; padding: 14px 10px; border-radius: 16px; background: rgba(255,255,255,0.72); }
 .skeleton-avatar { display: block; width: 34px; height: 34px; border-radius: 999px; background: #e5e7eb; }
-.skeleton-user { width: 72%; height: 16px; }
-.skeleton-tag { width: 90px; height: 14px; }
+.skeleton-user  { width: 72%; height: 16px; }
+.skeleton-tag   { width: 90px; height: 14px; }
 .skeleton-phone { width: 120px; height: 14px; }
-.skeleton-date { width: 80px; height: 14px; }
+.skeleton-date  { width: 80px; height: 14px; }
 
 /* ── USER ── */
 .user { display: flex; align-items: center; gap: 10px; }
 .avatar-wrap { position: relative; flex-shrink: 0; }
-.avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; transition: transform 0.2s;
-}
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; transition: transform 0.2s; }
 .avatar:hover { transform: scale(1.1); }
 .user-info { display: flex; flex-direction: column; }
 .user-name { font-weight: 600; font-size: 14px; color: #111827; }
@@ -779,7 +861,7 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .badge-role { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .badge-role.administrador { background: #f3f4f6; color: #374151; }
 .badge-role.operador { background: #e0ecff; color: #2563eb; }
-.badge-role.cliente { background: #fef9c3; color: #92400e; }
+.badge-role.cliente  { background: #fef9c3; color: #92400e; }
 
 /* ── ACCIONES ── */
 .actions { display: flex; gap: 8px; align-items: center; }
@@ -790,86 +872,48 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
   -webkit-font-smoothing: antialiased;
 }
 .action-btn svg { pointer-events: none; filter: drop-shadow(0 0 0.3px rgba(255,255,255,0.4)); }
-.edit-btn:hover { background: #2d5580; transform: scale(1.07); }
+.edit-btn:hover   { background: #2d5580; transform: scale(1.07); }
 .delete-btn:hover { background: #dc2626; transform: scale(1.07); }
 
-/* ── EMPTY STATE ── */
+/* ── EMPTY ── */
 .empty-state { text-align: center; padding: 48px 20px; color: #9ca3af; }
 .empty-state svg { margin: 0 auto 12px; display: block; opacity: 0.4; }
 .empty-state p { font-size: 14px; margin: 0; }
 
 /* ── MODAL ── */
-.modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 1000; padding: 20px;
-}
-.modal-content {
-  background: white; width: 100%; max-width: 500px; max-height: 90vh;
-  overflow-y: auto; padding: 30px; border-radius: 14px; position: relative;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+.modal-content { background: white; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 14px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
 .modal-content h2 { font-size: 18px; font-weight: 600; margin: 0 0 20px 0; }
-.close { position: absolute; top: 16px; right: 20px; font-size: 22px; cursor: pointer; color: #9ca3af; transition: color 0.15s; }
+.close { position: absolute; top: 16px; right: 20px; font-size: 22px; cursor: pointer; color: #9ca3af; transition: color 0.15s; background: none; border: none; }
 .close:hover { color: #374151; }
 .modal-content label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; margin-top: 14px; }
-.modal-content input, .modal-content select {
-  width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb;
-  border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.modal-content input:focus, .modal-content select:focus {
-  border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1);
-}
+.modal-content input, .modal-content select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+.modal-content input:focus, .modal-content select:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
 .input-error { border-color: #f87171 !important; }
-.input-error:focus { box-shadow: 0 0 0 3px rgba(248,113,113,0.15) !important; }
 .error-msg { font-size: 12px; color: #dc2626; margin-top: 4px; display: block; }
-
-.user-preview {
-  display: flex; align-items: center; gap: 12px;
-  margin-top: 18px; padding: 12px 14px;
-  background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb;
-}
-
+.user-preview { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb; }
 .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb; background: white; font-size: 14px; cursor: pointer; transition: background 0.15s; }
 .btn-cancel:hover { background: #f3f4f6; }
-.btn-submit {
-  padding: 10px 20px; border-radius: 8px; border: none;
-  background: #1f3a52; font-size: 14px; font-weight: 500; color: white;
-  cursor: pointer; transition: background 0.2s, opacity 0.2s;
-}
+.btn-submit { padding: 10px 20px; border-radius: 8px; border: none; background: #1f3a52; font-size: 14px; font-weight: 500; color: white; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
 .btn-submit:hover:not(:disabled) { background: #162b3c; }
 .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* ── CONFIRM DIALOG ── */
-.confirm-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-  display: flex; justify-content: center; align-items: center; z-index: 1100;
-}
-.confirm-box {
-  background: white; border-radius: 14px; padding: 28px 32px;
-  max-width: 360px; width: 90%; text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
+/* ── CONFIRM ── */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; justify-content: center; align-items: center; z-index: 1100; }
+.confirm-box { background: white; border-radius: 14px; padding: 28px 32px; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
 .confirm-icon { color: #f59e0b; margin-bottom: 14px; }
 .confirm-title { font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 6px; }
-.confirm-sub { font-size: 14px; color: #6b7280; margin: 0 0 20px; }
-.confirm-btns { display: flex; gap: 10px; justify-content: center; }
-.btn-danger { padding: 10px 20px; border-radius: 8px; border: none; background: #dc2626; color: white; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.confirm-sub   { font-size: 14px; color: #6b7280; margin: 0 0 20px; }
+.confirm-btns  { display: flex; gap: 10px; justify-content: center; }
+.btn-danger    { padding: 10px 20px; border-radius: 8px; border: none; background: #dc2626; color: white; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
 .btn-danger:hover { background: #b91c1c; }
 
 /* ── TOAST ── */
-.toast {
-  position: fixed; bottom: 24px; right: 24px; z-index: 2000;
-  display: flex; align-items: center; gap: 8px;
-  padding: 12px 18px; border-radius: 10px;
-  font-size: 14px; font-weight: 500; color: white;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-}
+.toast { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .toast.success { background: #16a34a; }
-.toast.danger { background: #dc2626; }
-.toast.info { background: #2563eb; }
+.toast.danger  { background: #dc2626; }
+.toast.info    { background: #2563eb; }
 
 /* ── TRANSICIONES ── */
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
@@ -877,12 +921,11 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .toast-enter-active { transition: all 0.3s ease; }
 .toast-leave-active { transition: all 0.25s ease; }
 .toast-enter-from { opacity: 0; transform: translateY(12px); }
-.toast-leave-to { opacity: 0; transform: translateY(12px); }
+.toast-leave-to   { opacity: 0; transform: translateY(12px); }
 
 @media (max-width: 960px) {
   .page-hero { flex-direction: column; align-items: flex-start; }
   .hero-actions-wrap { width: 100%; }
-  .table-skeleton-row { grid-template-columns: 28px 1fr; }
-  .skeleton-tag, .skeleton-phone, .skeleton-date { display: none; }
+  .admin-profile-card { flex-direction: column; align-items: flex-start; }
 }
 </style>
