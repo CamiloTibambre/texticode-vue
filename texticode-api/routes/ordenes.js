@@ -138,7 +138,7 @@ router.put('/:id', async (req, res) => {
   const {
     Id_Cliente, Id_Material, Id_Operario, Producto, Descripcion,
     Cantidad, Prioridad, Fecha_Limite, Estado,
-    Unidades, Unidades_Realizadas   // ← agregar estos dos
+    Unidades, Unidades_Realizadas   
   } = req.body
 
   try {
@@ -152,7 +152,7 @@ router.put('/:id', async (req, res) => {
       Id_Cliente, Id_Material, Id_Operario || null,
       Producto || null, Descripcion, Cantidad, Prioridad,
       Fecha_Limite, Estado,
-      Unidades ?? null, Unidades_Realizadas ?? null,   // ← agregar estos dos
+      Unidades ?? null, Unidades_Realizadas ?? null,   
       req.params.id,
     ])
 
