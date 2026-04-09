@@ -31,36 +31,36 @@ export const actualizarMaterial  = (id, body) => request(`/materiales/${id}`, { 
 export const eliminarMaterial    = (id)       => request(`/materiales/${id}`, { method: 'DELETE' })
 
 // ── ÓRDENES DE PRODUCCIÓN ─────────────────────────────────
-export const getOrdenes         = ()         => request('/ordenes')
-export const getOrden           = (id)       => request(`/ordenes/${id}`)
-export const getOrdenesByEstado = (estado)   => request(`/ordenes/estado/${encodeURIComponent(estado)}`)
-export const getOrdenesDeOperario = (id)     => request(`/ordenes/operario/${id}`)
-export const getOrdenesDeCliente  = (id)     => request(`/ordenes/cliente/${id}`)
-export const crearOrden         = (body)     => request('/ordenes', { method: 'POST', body: JSON.stringify(body) })
-export const actualizarOrden    = (id, body) => request(`/ordenes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
-export const eliminarOrden      = (id)       => request(`/ordenes/${id}`, { method: 'DELETE' })
+export const getOrdenes           = ()         => request('/ordenes')
+export const getOrden             = (id)       => request(`/ordenes/${id}`)
+export const getOrdenesByEstado   = (estado)   => request(`/ordenes/estado/${encodeURIComponent(estado)}`)
+export const getOrdenesDeOperario = (id)       => request(`/ordenes/operario/${id}`)
+export const getOrdenesDeCliente  = (id)       => request(`/ordenes/cliente/${id}`)
+export const crearOrden           = (body)     => request('/ordenes', { method: 'POST', body: JSON.stringify(body) })
+export const actualizarOrden      = (id, body) => request(`/ordenes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+export const eliminarOrden        = (id)       => request(`/ordenes/${id}`, { method: 'DELETE' })
 
 // ── COMPROBANTES ──────────────────────────────────────────
-export const getComprobantes           = ()         => request('/comprobantes')
-export const getComprobantesPorCliente = (idCliente)=> request(`/comprobantes/cliente/${idCliente}`)
-export const getComprobante            = (id)       => request(`/comprobantes/${id}`)
-export const crearComprobante          = (body)     => request('/comprobantes', { method: 'POST', body: JSON.stringify(body) })
-export const actualizarComprobante     = (id, body) => request(`/comprobantes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
-export const eliminarComprobante       = (id)       => request(`/comprobantes/${id}`, { method: 'DELETE' })
- 
+export const getComprobantes           = ()          => request('/comprobantes')
+export const getComprobantesPorCliente = (idCliente) => request(`/comprobantes/cliente/${idCliente}`)
+export const getComprobante            = (id)        => request(`/comprobantes/${id}`)
+export const crearComprobante          = (body)      => request('/comprobantes', { method: 'POST', body: JSON.stringify(body) })
+export const actualizarComprobante     = (id, body)  => request(`/comprobantes/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+export const eliminarComprobante       = (id)        => request(`/comprobantes/${id}`, { method: 'DELETE' })
+
 // ── ROLES ─────────────────────────────────────────────────
-export const getRoles   = ()         => request('/roles')
-export const getRol     = (id)       => request(`/roles/${id}`)
-export const crearRol   = (body)     => request('/roles', { method: 'POST', body: JSON.stringify(body) })
-export const eliminarRol= (id)       => request(`/roles/${id}`, { method: 'DELETE' })
+export const getRoles    = ()         => request('/roles')
+export const getRol      = (id)       => request(`/roles/${id}`)
+export const crearRol    = (body)     => request('/roles', { method: 'POST', body: JSON.stringify(body) })
+export const eliminarRol = (id)       => request(`/roles/${id}`, { method: 'DELETE' })
 
 // ── ORDEN MATERIAL ────────────────────────────────────────
-export const getMaterialesDeOrden = (idOrden)              => request(`/orden-material/orden/${idOrden}`)
-export const agregarMaterialOrden = (body)                 => request('/orden-material', { method: 'POST', body: JSON.stringify(body) })
-export const eliminarMaterialOrden= (idOrden, idProducto) => request(`/orden-material/${idOrden}/${idProducto}`, { method: 'DELETE' })
+export const getMaterialesDeOrden  = (idOrden)              => request(`/orden-material/orden/${idOrden}`)
+export const agregarMaterialOrden  = (body)                 => request('/orden-material', { method: 'POST', body: JSON.stringify(body) })
+export const eliminarMaterialOrden = (idOrden, idProducto)  => request(`/orden-material/${idOrden}/${idProducto}`, { method: 'DELETE' })
 
 // ── USUARIO ORDEN ─────────────────────────────────────────
-export const getUsuariosDeOrden   = (idOrden)            => request(`/usuario-orden/orden/${idOrden}`)
-export const getOrdenesDeUsuario  = (idUsuario)          => request(`/usuario-orden/usuario/${idUsuario}`)
-export const asignarUsuarioOrden  = (body)               => request('/usuario-orden', { method: 'POST', body: JSON.stringify(body) })
-export const desasignarUsuarioOrden=(idUsuario, idOrden) => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })
+export const getUsuariosDeOrden    = (idOrden)             => request(`/usuario-orden/orden/${idOrden}`)
+export const getOrdenesDeUsuario   = (idUsuario)           => request(`/usuario-orden/usuario/${idUsuario}`)
+export const asignarUsuarioOrden   = (body)                => request('/usuario-orden', { method: 'POST', body: JSON.stringify(body) })
+export const desasignarUsuarioOrden= (idUsuario, idOrden)  => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })

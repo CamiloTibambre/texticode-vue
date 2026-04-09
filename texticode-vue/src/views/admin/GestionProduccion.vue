@@ -264,6 +264,29 @@
               <span v-if="tocado && !form.Descripcion" class="error-msg">La descripción es requerida</span>
             </div>
 
+            <!-- ── FECHA DE CREACIÓN (solo lectura al editar, editable al crear) ── -->
+            <div class="form-group">
+              <label class="form-label">
+                Fecha de Creación
+                <span class="label-hint" v-if="!editando">— se registrará automáticamente al guardar</span>
+                <span class="label-hint" v-else>— fecha en que se registró la orden</span>
+              </label>
+              <input
+                v-if="editando"
+                :value="formatFechaInput(form.Fecha_Creacion)"
+                type="text"
+                class="form-input form-input--readonly"
+                readonly
+                title="La fecha de creación no puede modificarse"
+              >
+              <div v-else class="fecha-creacion-preview">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                Se asignará automáticamente: <strong>{{ fechaHoyFormateada }}</strong>
+              </div>
+            </div>
+
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Cantidad <span class="req">*</span></label>
@@ -318,6 +341,16 @@
             <div class="detalle-item">
               <span class="detalle-label">Prioridad</span>
               <span class="badge-prioridad" :class="clasePrioridad(detalleOrden.Prioridad)">{{ detalleOrden.Prioridad }}</span>
+            </div>
+            <!-- ── FECHA DE CREACIÓN en detalle ── -->
+            <div class="detalle-item detalle-fecha-creacion">
+              <span class="detalle-label">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:inline;margin-right:4px;vertical-align:-1px">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                Fecha de Creación
+              </span>
+              <span class="fecha-creacion-valor">{{ formatFechaDetalle(detalleOrden.Fecha_Creacion) }}</span>
             </div>
             <div class="detalle-item">
               <span class="detalle-label">Fecha Límite</span>
@@ -389,10 +422,15 @@ import AppSidebar from '../../components/AppSidebar.vue'
 import {
   getOrdenes, crearOrden, actualizarOrden, eliminarOrden,
   getUsuarios, getMateriales,
-  getMaterialesDeOrden, agregarMaterialOrden, eliminarMaterialOrden
+  getMaterialesDeOrden, agregarMaterialOrden, eliminarMaterialOrden,
+  crearComprobante
 } from '../../services/api'
+import { useAuthStore } from '../../stores/auth'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+
+// ── AUTH (para saber quién crea el comprobante) ─────────────
+const auth = useAuthStore()
 
 // ── ESTADO ────────────────────────────────────────────────────
 const mounted       = ref(false)
@@ -418,6 +456,14 @@ const sortKey = ref('Id_Orden')
 const sortDir = ref(1)
 const statTimers = new Map()
 
+// Fecha de hoy formateada para mostrar en el formulario de creación
+const fechaHoyFormateada = computed(() => {
+  return new Date().toLocaleDateString('es-CO', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  })
+})
+
 const formVacio = () => ({
   Id_Orden:                 null,
   Id_Cliente:               '',
@@ -428,6 +474,7 @@ const formVacio = () => ({
   Prioridad:                'Media',
   Estado:                   'En Proceso',
   Fecha_Limite:             '',
+  Fecha_Creacion:           null,   // solo se muestra, no se envía al backend
   materiales_seleccionados: [],
 })
 
@@ -568,11 +615,36 @@ function sIcon(key) {
   return sortDir.value === 1 ? '↑' : '↓'
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
+// ── HELPERS DE FECHA ──────────────────────────────────────────
 function formatFecha(fecha) {
   if (!fecha) return '—'
-  return new Date(fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
+  return new Date(fecha).toLocaleDateString('es-CO', {
+    year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'
+  })
 }
+
+/** Para el campo readonly en el modal de edición */
+function formatFechaInput(fecha) {
+  if (!fecha) return '—'
+  try {
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    })
+  } catch { return '—' }
+}
+
+/** Para mostrar en el detalle con hora completa */
+function formatFechaDetalle(fecha) {
+  if (!fecha) return '—'
+  try {
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      weekday: 'long', year: 'numeric', month: 'long',
+      day: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+  } catch { return '—' }
+}
+
 function estaVencida(fecha) {
   if (!fecha) return false
   return new Date(fecha) < new Date()
@@ -612,6 +684,7 @@ async function abrirModal(o) {
       Prioridad:                o.Prioridad,
       Estado:                   o.Estado,
       Fecha_Limite:             o.Fecha_Limite?.split('T')[0] || o.Fecha_Limite || '',
+      Fecha_Creacion:           o.Fecha_Creacion || null,
       materiales_seleccionados: matsActuales,
     }
   } else {
@@ -659,10 +732,26 @@ async function guardar() {
     if (editando.value) {
       await actualizarOrden(idOrden, payload)
     } else {
+      // Crear la orden
       const res = await crearOrden(payload)
       idOrden = res.Id_Orden
+
+      // ── CREAR COMPROBANTE AUTOMÁTICAMENTE ──────────────────
+      // Se crea con estado "Pendiente" y fecha_limite igual a la de la orden
+      try {
+        await crearComprobante({
+          Id_Usuario:   auth.idUsuario,   // admin que crea la orden
+          Id_Orden:     idOrden,
+          Estado:       'Pendiente',
+          Fecha_Limite: form.value.Fecha_Limite,
+        })
+      } catch (compErr) {
+        // No bloqueamos la creación de la orden si falla el comprobante
+        console.warn('No se pudo crear el comprobante automáticamente:', compErr.message)
+      }
     }
 
+    // Gestionar materiales de la orden
     try {
       const matsExistentes = await getMaterialesDeOrden(idOrden)
       for (const m of (matsExistentes || [])) {
@@ -683,7 +772,7 @@ async function guardar() {
       }
     }
 
-    showToast(editando.value ? 'Orden actualizada correctamente' : 'Orden creada correctamente', 'toast-success')
+    showToast(editando.value ? 'Orden actualizada correctamente' : 'Orden creada y comprobante generado', 'toast-success')
     await cargarDatos()
     cerrarModal()
   } catch (e) {
@@ -719,7 +808,7 @@ async function confirmarEliminar() {
 function showToast(msg, type = 'toast-success') {
   toastMsg.value  = msg
   toastType.value = type
-  setTimeout(() => { toastMsg.value = '' }, 3000)
+  setTimeout(() => { toastMsg.value = '' }, 3500)
 }
 </script>
 
@@ -883,7 +972,6 @@ tr:last-child td { border-bottom: none; }
 .row-eliminando { opacity: 0.4; pointer-events: none; transition: opacity 0.35s; }
 .fecha-vencida  { color: #dc2626; font-weight: 600; }
 
-/* Order pill */
 .order-num-pill {
   display: inline-block; background: #f1f5f9;
   color: #1f3a52; font-size: 12px; font-weight: 700;
@@ -955,9 +1043,23 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .req        { color: #dc2626; }
 .form-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #111827; outline: none; transition: border-color 0.2s; background: white; }
 .form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.08); }
+.form-input--readonly {
+  background: #f9fafb; color: #6b7280; cursor: not-allowed;
+  border-color: #e5e7eb !important; box-shadow: none !important;
+}
 .input-error  { border-color: #ef4444; }
 .error-msg    { font-size: 11px; color: #dc2626; }
 .error-inline { color: #dc2626; font-size: 13px; padding: 4px 24px; }
+
+/* Fecha de creación preview (solo en formulario de creación) */
+.fecha-creacion-preview {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 12px; border: 1px solid #e0eaf2;
+  border-radius: 8px; background: #f0f7ff;
+  font-size: 13px; color: #374151;
+}
+.fecha-creacion-preview svg { color: #2563eb; flex-shrink: 0; }
+.fecha-creacion-preview strong { color: #1f3a52; }
 
 .btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
 .btn-cancelar:hover { background: #f3f4f6; }
@@ -1010,6 +1112,15 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .detalle-full  { grid-column: 1 / -1; }
 .detalle-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
 .detalle-materiales { margin-top: 6px; }
+
+/* Fecha de creación en el detalle */
+.detalle-fecha-creacion { grid-column: 1 / -1; }
+.fecha-creacion-valor {
+  font-size: 14px; font-weight: 600; color: #1f3a52;
+  background: #f0f7ff; border: 1px solid #bfdbfe;
+  border-radius: 8px; padding: 8px 14px; margin-top: 4px;
+  display: inline-block;
+}
 
 /* CONFIRM */
 .confirm-box  { background: white; border-radius: 16px; width: 380px; max-width: 95vw; padding: 28px 24px; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
