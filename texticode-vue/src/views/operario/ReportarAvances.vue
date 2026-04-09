@@ -1,17 +1,43 @@
 <template>
-  <div style="display:flex;min-height:100vh;background:#f3f4f6">
+  <div class="layout">
     <AppSidebar rol="operario" />
 
     <main class="main">
-      <div class="page-header" :class="{ 'fade-in': mounted }">
-        <div>
-          <div class="page-title">Reportar Avances</div>
-          <div class="page-sub">Actualiza el progreso de tus órdenes asignadas</div>
+
+      <!-- FONDO DECORATIVO -->
+      <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="bg-grid"></div>
+      </div>
+
+      <!-- HERO HEADER -->
+      <div class="page-hero" :class="{ 'hero-visible': mounted }">
+        <div class="hero-left">
+          <div class="hero-icon-wrap">
+            <svg class="hero-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
+            </svg>
+            <div class="hero-icon-ring ring-1"></div>
+            <div class="hero-icon-ring ring-2"></div>
+          </div>
+          <div class="hero-text">
+            <h1 class="hero-title">
+              <span
+                v-for="(ch, i) in 'Reportar Avances'"
+                :key="i"
+                class="title-char"
+                :style="{ animationDelay: mounted ? `${i * 35}ms` : '9999s' }"
+              >{{ ch === ' ' ? '\u00A0' : ch }}</span>
+            </h1>
+            <p class="hero-sub">Actualiza el progreso de tus órdenes asignadas</p>
+          </div>
         </div>
       </div>
 
       <!-- TABS -->
-      <div class="tabs-wrapper" :class="{ 'section-visible': mounted }" style="transition-delay: 1s">
+      <div class="tabs-wrapper" :class="{ 'section-visible': mounted }" style="transition-delay: 80ms">
         <button class="tab-btn" :class="{ active: tabActivo === 'activas' }" @click="tabActivo = 'activas'">
           <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
@@ -55,7 +81,6 @@
               class="order-card"
               :class="{ 'card-pausada': o.estado === 'pausado' }"
             >
-              <!-- Cabecera con color -->
               <div class="oc-header" :class="o.estado">
                 <div class="oc-header-left">
                   <span class="oc-id">{{ o.id }}</span>
@@ -99,7 +124,6 @@
                   </div>
                 </div>
 
-                <!-- Barra progreso -->
                 <div class="oc-progress">
                   <div class="oc-progress-row">
                     <span class="oc-progress-lbl">Progreso de fabricación</span>
@@ -124,7 +148,6 @@
                   </div>
                 </div>
 
-                <!-- Botón reportar -->
                 <button
                   class="btn-reportar"
                   :disabled="o.estado === 'completado'"
@@ -152,17 +175,16 @@
         </div>
 
         <div v-else class="historial-list">
-          <!-- Resumen rápido con contadores animados -->
           <div class="hist-summary" :class="{ 'section-visible': mounted }" style="transition-delay: 200ms">
-            <div class="hist-sum-item card-visible-item" :class="{ 'card-visible': mounted }" style="transition-delay: 200ms">
+            <div class="hist-sum-item" :class="{ 'card-visible': mounted }" style="transition-delay: 200ms">
               <span class="hist-sum-num">{{ historial.length }}</span>
               <span class="hist-sum-lbl">Reportes enviados</span>
             </div>
-            <div class="hist-sum-item card-visible-item" :class="{ 'card-visible': mounted }" style="transition-delay: 280ms">
+            <div class="hist-sum-item" :class="{ 'card-visible': mounted }" style="transition-delay: 280ms">
               <span class="hist-sum-num">{{ totalUnidadesReportadas }}</span>
               <span class="hist-sum-lbl">Prendas reportadas</span>
             </div>
-            <div class="hist-sum-item card-visible-item" :class="{ 'card-visible': mounted }" style="transition-delay: 360ms">
+            <div class="hist-sum-item" :class="{ 'card-visible': mounted }" style="transition-delay: 360ms">
               <span class="hist-sum-num">{{ ordenesUnicas }}</span>
               <span class="hist-sum-lbl">Órdenes trabajadas</span>
             </div>
@@ -200,7 +222,7 @@
       </div>
     </main>
 
-    <!-- ── MODAL REPORTAR PROGRESO con Transition ── -->
+    <!-- ── MODAL REPORTAR PROGRESO ── -->
     <Transition name="modal">
       <div v-if="modalVisible" class="modal-overlay" @click.self="cerrarModal">
         <div class="modal">
@@ -216,7 +238,6 @@
             </button>
           </div>
 
-          <!-- Info actual -->
           <div class="modal-estado" v-if="ordenActual">
             <div class="modal-estado-item">
               <span class="modal-estado-lbl">Prendas hechas</span>
@@ -293,7 +314,7 @@ const ordenes   = ref([])
 const reporte = ref({ nuevas: 0, nota: '' })
 const historialStorageKey = computed(() => `historial-avances-operario-${auth.idUsuario || 'anon'}`)
 
-// ── Helpers ────────────────────────────────────────────────
+// ── Helpers ──
 function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '' }
 
 function estaVencida(fechaStr) {
@@ -305,7 +326,7 @@ function estadoLabel(estado) {
   return { 'en-proceso': 'En Proceso', 'completado': 'Completado', 'pausado': 'Pausado' }[estado] || estado
 }
 
-// ── Carga ──────────────────────────────────────────────────
+// ── Carga ──
 onMounted(async () => {
   if (!auth.idUsuario) { cargando.value = false; setTimeout(() => { mounted.value = true }, 80); return }
 
@@ -353,14 +374,13 @@ onMounted(async () => {
   }
 })
 
-// ── Computed ───────────────────────────────────────────────
-const ordenesActivas    = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
-const ordenesCompletadas = computed(() => ordenes.value.filter(o => o.estado === 'completado'))
-const historialOrdenado = computed(() => [...historial.value].reverse())
+// ── Computed ──
+const ordenesActivas     = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
+const historialOrdenado  = computed(() => [...historial.value].reverse())
 const totalUnidadesReportadas = computed(() => historial.value.reduce((acc, h) => acc + h.nuevas, 0))
 const ordenesUnicas = computed(() => new Set(historial.value.map(h => h.ordenId)).size)
 
-// ── Modal ──────────────────────────────────────────────────
+// ── Modal ──
 function abrirModal(o) {
   ordenActual.value = o
   reporte.value = { nuevas: 0, nota: '' }
@@ -381,7 +401,7 @@ function guardarHistorialLocal() {
   localStorage.setItem(historialStorageKey.value, JSON.stringify(historial.value))
 }
 
-// ── Toggle pausa ───────────────────────────────────────────
+// ── Toggle pausa ──
 async function togglePausa(o) {
   const siguienteEstado = o.estado === 'pausado' ? 'En Proceso' : 'Pausado'
 
@@ -419,7 +439,7 @@ async function togglePausa(o) {
   }
 }
 
-// ── Enviar reporte ─────────────────────────────────────────
+// ── Enviar reporte ──
 async function enviarReporte() {
   if (!reporte.value.nuevas || reporte.value.nuevas <= 0) return
 
@@ -477,7 +497,7 @@ async function enviarReporte() {
   }
 }
 
-// ── Toast ──────────────────────────────────────────────────
+// ── Toast ──
 function showToast(msg, type = 'toast-success') {
   toastMsg.value  = msg
   toastType.value = type
@@ -486,23 +506,67 @@ function showToast(msg, type = 'toast-success') {
 </script>
 
 <style scoped>
-.main { flex: 1; padding: 28px 30px; overflow-y: auto; }
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
+.main   { flex: 1; padding: 28px 30px; overflow-y: auto; position: relative; z-index: 1; }
 
-/* ── HEADER con fade-in ── */
-.page-header {
-  display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap;
-  opacity: 0; transform: translateY(-10px);
-  transition: opacity .4s ease, transform .4s ease;
+/* ── FONDO DECORATIVO ── */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.07; }
+.orb-1 { width: 600px; height: 600px; background: #1f3a52; top: -200px; right: -100px; animation: orbDrift1 18s ease-in-out infinite alternate; }
+.orb-2 { width: 400px; height: 400px; background: #2563eb; bottom: -100px; left: 10%; animation: orbDrift2 22s ease-in-out infinite alternate; }
+.orb-3 { width: 300px; height: 300px; background: #16a34a; top: 40%; right: 5%; animation: orbDrift3 15s ease-in-out infinite alternate; }
+@keyframes orbDrift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px,40px) scale(1.1); } }
+@keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
+@keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px); background-size: 40px 40px; }
+
+/* ── HERO HEADER ── */
+.page-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+  opacity: 0; transform: translateY(-16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-.page-header.fade-in { opacity: 1; transform: translateY(0); }
-.page-title  { font-size: 22px; font-weight: 700; color: #111827; }
-.page-sub    { font-size: 13px; color: #9ca3af; margin-top: 3px; }
+.page-hero.hero-visible { opacity: 1; transform: translateY(0); }
+.hero-left { display: flex; align-items: center; gap: 16px; }
+.hero-text { display: flex; flex-direction: column; }
 
-/* ── TABS con slide-up ── */
+.hero-icon-wrap {
+  position: relative; width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  background: #1f3a52; border-radius: 14px; flex-shrink: 0;
+}
+.hero-icon { width: 26px; height: 26px; color: white; }
+.hero-icon-ring {
+  position: absolute; border-radius: 50%;
+  border: 1.5px solid #1f3a52; opacity: 0;
+  animation: iconPulse 3s ease-out infinite;
+}
+.ring-1 { width: 68px; height: 68px; animation-delay: 0s; }
+.ring-2 { width: 86px; height: 86px; animation-delay: 0.8s; }
+@keyframes iconPulse {
+  0%   { transform: scale(0.7); opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.hero-title {
+  font-size: 24px; font-weight: 700; color: #111827;
+  margin: 0; display: flex; flex-wrap: wrap;
+}
+.title-char {
+  display: inline-block; opacity: 0; transform: translateY(12px);
+  animation: charReveal 0.4s ease forwards;
+}
+@keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
+.hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
+
+/* ── TABS ── */
 .tabs-wrapper {
-  display: flex; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 5px; margin-bottom: 22px; gap: 4px;
+  display: flex; background: white; border: 1px solid #e5e7eb;
+  border-radius: 12px; padding: 5px; margin-bottom: 22px; gap: 4px;
   opacity: 0; transform: translateY(12px);
-  transition: opacity .4s ease, transform .4s ease;
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 .tabs-wrapper.section-visible { opacity: 1; transform: translateY(0); }
 .tab-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.18s; }
@@ -520,7 +584,7 @@ function showToast(msg, type = 'toast-success') {
 .empty-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; gap: 12px; color: #9ca3af; font-size: 14px; background: white; border: 1px solid #e5e7eb; border-radius: 14px; }
 .empty-hint { font-size: 12px; color: #d1d5db; }
 
-/* ── GRID ÓRDENES con section-visible ── */
+/* ── GRID ÓRDENES ── */
 .orders-grid {
   display: flex; flex-direction: column; gap: 16px;
   opacity: 0; transform: translateY(12px);
@@ -535,7 +599,6 @@ function showToast(msg, type = 'toast-success') {
 .order-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.07); transform: translateY(-2px); }
 .order-card.card-pausada { border-color: #fde68a; background: #fffef7; opacity: 0.9; }
 
-/* Cabecera */
 .oc-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 12px; border-bottom: 1px solid #f3f4f6; }
 .oc-header.en-proceso { background: linear-gradient(90deg, #eff6ff, transparent); border-bottom-color: #dbeafe; }
 .oc-header.pausado    { background: linear-gradient(90deg, #fffbeb, transparent); border-bottom-color: #fde68a; }
@@ -543,12 +606,10 @@ function showToast(msg, type = 'toast-success') {
 
 .oc-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .oc-id   { font-size: 13px; font-weight: 700; color: #1f3a52; }
-
 .oc-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
 .oc-badge.en-proceso { background: #dbeafe; color: #1d4ed8; }
 .oc-badge.completado  { background: #dcfce7; color: #15803d; }
 .oc-badge.pausado     { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-
 .oc-prio { padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .oc-prio.alta  { background: #fee2e2; color: #991b1b; }
 .oc-prio.media { background: #fef3c7; color: #92400e; }
@@ -562,7 +623,6 @@ function showToast(msg, type = 'toast-success') {
 
 .oc-body    { padding: 16px 18px; }
 .oc-nombre  { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 14px; }
-
 .oc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 16px; }
 .oc-meta-item { display: flex; flex-direction: column; gap: 3px; }
 .oc-meta-lbl  { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -579,12 +639,10 @@ function showToast(msg, type = 'toast-success') {
 .oc-progress-pct { font-size: 14px; font-weight: 700; color: #374151; }
 .pct-verde   { color: #16a34a !important; }
 .pct-naranja { color: #f59e0b !important; }
-
 .oc-bar { width: 100%; height: 10px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
 .oc-bar-fill { height: 100%; background: #1f3a52; border-radius: 999px; transition: width 0.6s ease; }
 .oc-bar-fill.fill-completado { background: #16a34a; }
 .oc-bar-fill.fill-pausado    { background: #f59e0b; }
-
 .oc-bar-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: #d1d5db; }
 
 .btn-reportar {
@@ -625,13 +683,11 @@ function showToast(msg, type = 'toast-success') {
   transition: box-shadow 0.2s, transform 0.2s;
 }
 .hist-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-1px); }
-
 .hist-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0; }
 .hist-icon { width: 38px; height: 38px; flex-shrink: 0; background: #f0fdf4; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #16a34a; }
 .hist-info  { flex: 1; min-width: 0; }
 .hist-orden { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hist-nota  { font-size: 12px; color: #6b7280; background: #f9fafb; border-radius: 6px; padding: 5px 8px; margin-top: 4px; border: 1px solid #f3f4f6; }
-
 .hist-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
 .hist-unidades { display: flex; align-items: baseline; gap: 4px; }
 .hist-uni-num  { font-size: 22px; font-weight: 700; color: #16a34a; }
@@ -642,7 +698,7 @@ function showToast(msg, type = 'toast-success') {
 .hist-pct-txt  { font-size: 12px; font-weight: 600; color: #374151; min-width: 34px; text-align: right; }
 .hist-fecha    { font-size: 11px; color: #9ca3af; }
 
-/* ── MODAL con Transition ── */
+/* ── MODAL ── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
 .modal { background: white; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
 .modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 24px 14px; border-bottom: 1px solid #f1f5f9; }
@@ -650,13 +706,11 @@ function showToast(msg, type = 'toast-success') {
 .modal-subtitle { font-size: 13px; color: #6b7280; margin-top: 2px; }
 .modal-close { background: none; border: none; color: #9ca3af; cursor: pointer; padding: 2px; border-radius: 6px; transition: background .15s; }
 .modal-close:hover { background: #f3f4f6; color: #374151; }
-
 .modal-estado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #f3f4f6; border-bottom: 1px solid #f1f5f9; }
 .modal-estado-item { background: white; padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
 .modal-estado-lbl { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; }
 .modal-estado-val { font-size: 16px; font-weight: 700; color: #111827; }
 .modal-estado-val.orange { color: #ea580c; }
-
 .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
 .form-group   { display: flex; flex-direction: column; gap: 6px; }
 .form-label   { font-size: 13px; font-weight: 600; color: #374151; }
@@ -667,7 +721,6 @@ function showToast(msg, type = 'toast-success') {
 .form-hint  { font-size: 12px; color: #6b7280; padding: 4px 8px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb; }
 .form-textarea { padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; resize: vertical; font-family: inherit; transition: border-color 0.2s; }
 .form-textarea:focus { border-color: #1f3a52; }
-
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px 20px; border-top: 1px solid #f1f5f9; }
 .btn-cancelar { padding: 10px 20px; border: 1px solid #e5e7eb; background: white; border-radius: 8px; font-size: 14px; cursor: pointer; transition: background .15s; }
 .btn-cancelar:hover { background: #f3f4f6; }
@@ -675,21 +728,22 @@ function showToast(msg, type = 'toast-success') {
 .btn-enviar:hover:not(:disabled) { background: #2d5580; transform: translateY(-1px); }
 .btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ── Transitions ── */
-.modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-
+/* ── TOAST ── */
 .toast { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .toast-success { background: #166534; }
 .toast-error   { background: #991b1b; }
+
+/* ── Transitions ── */
+.modal-enter-active, .modal-leave-active { transition: opacity .25s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
 .toast-enter-active, .toast-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
-
 .row-enter-active, .row-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .row-enter-from, .row-leave-to { opacity: 0; transform: translateY(8px); }
 
 @media (max-width: 900px) {
   .main { padding: 20px 16px; }
   .hist-summary { grid-template-columns: 1fr 1fr; }
+  .page-hero { flex-direction: column; align-items: flex-start; }
 }
 </style>
