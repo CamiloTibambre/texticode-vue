@@ -53,10 +53,19 @@
           <span class="user-role-text">{{ roleLabel }}</span>
         </div>
       </div>
-      <button class="logout" @click="pedirCerrarSesion" title="Cerrar sesión">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
-        </svg>
+      <button
+        class="logout"
+        @click="pedirCerrarSesion"
+        @mouseenter="logoutHovered = true"
+        @mouseleave="logoutHovered = false"
+        title="Cerrar sesión"
+      >
+        <Transition name="logout-swap" mode="out-in">
+          <svg v-if="!logoutHovered" key="icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+          </svg>
+          <span v-else key="text" class="logout-text">Cerrar sesión</span>
+        </Transition>
       </button>
     </div>
 
@@ -91,9 +100,10 @@ const router = useRouter()
 const auth   = useAuthStore()
 
 // ── ANIMACIÓN DE ENTRADA ──
-const animVisible  = ref(false)
-const hoveredItem  = ref(null)
+const animVisible   = ref(false)
+const hoveredItem   = ref(null)
 const confirmLogout = ref(false)
+const logoutHovered = ref(false)
 
 onMounted(() => {
   setTimeout(() => animVisible.value = true, 30)
@@ -360,7 +370,16 @@ function cerrarSesion() {
 .fade-leave-active { transition: all 0.15s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(6px); }
 
-/* ── ANILLO LOGO ── */
+/* ── LOGOUT SWAP (icono ↔ texto) ── */
+.logout-text {
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.logout-swap-enter-active,
+.logout-swap-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.logout-swap-enter-from   { opacity: 0; transform: scale(0.8); }
+.logout-swap-leave-to     { opacity: 0; transform: scale(0.8); }
+
+
 .logo-ring-wrap {
   position: relative;
   display: inline-block;
