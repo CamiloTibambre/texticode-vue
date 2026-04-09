@@ -99,7 +99,7 @@ router.get('/estado/:estado', async (req, res) => {
   }
 })
 
-// POST crear orden
+// POST crear orden — Fecha_Creacion se asigna automáticamente por DEFAULT current_timestamp()
 router.post('/', async (req, res) => {
   const {
     Id_Cliente, Id_Material, Id_Operario,
@@ -127,6 +127,7 @@ router.post('/', async (req, res) => {
       Fecha_Limite,
       Estado       || 'En Proceso',
     ])
+    // Devolvemos también el insertId para que el frontend cree el comprobante
     res.status(201).json({ mensaje: 'Orden creada', Id_Orden: result.insertId })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -177,4 +178,4 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
-export default router
+export default router 
