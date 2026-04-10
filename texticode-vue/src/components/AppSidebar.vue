@@ -162,7 +162,6 @@ const MENU_GAP = 4
 
 const panelLabel  = computed(() => menuConfig[props.rol]?.label     || "")
 const menuItems   = computed(() => menuConfig[props.rol]?.items     || [])
-const roleLabel   = computed(() => menuConfig[props.rol]?.roleLabel || "")
 const activeIndex = computed(() => Math.max(0, menuItems.value.findIndex(item => item.to === route.path)))
 const railStyle   = computed(() => ({
   transform: `translateY(${activeIndex.value * (MENU_ITEM_HEIGHT + MENU_GAP)}px)`,
@@ -172,6 +171,9 @@ const railStyle   = computed(() => ({
 // Nombre real del usuario logueado desde el store
 const userName    = computed(() => auth.usuario?.Nombre_Completo || auth.usuario?.Nombre_Usuario || "")
 const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || "?")
+
+// Nombre de usuario (el que usó para registrarse) en vez del rol estático
+const roleLabel   = computed(() => auth.usuario?.Nombre_Usuario || menuConfig[props.rol]?.roleLabel || "")
 
 // Color del badge según rol
 const rolClass = computed(() => ({
