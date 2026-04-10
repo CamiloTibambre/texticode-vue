@@ -289,7 +289,7 @@
       </div>
     </main>
 
-    <!-- MODAL CREAR/EDITAR USUARIO (operario/cliente) -->
+    <!-- MODAL CREAR/EDITAR USUARIO -->
     <Transition name="modal">
       <div v-if="modalVisible" class="modal" @click.self="cerrarModal">
         <div class="modal-content">
@@ -317,7 +317,8 @@
           <label>Rol</label>
           <select v-model="form.Id_Rol" :class="{ 'input-error': errores.Id_Rol && formTouched }">
             <option value="" disabled>Selecciona un rol</option>
-            <option v-for="r in rolesNoAdmin" :key="r.Id_Rol" :value="r.Id_Rol">{{ r.Nombre_Rol }}</option>
+            <!-- ✅ CORRECCIÓN: se usa todosLosRoles para permitir crear administradores -->
+            <option v-for="r in todosLosRoles" :key="r.Id_Rol" :value="r.Id_Rol">{{ r.Nombre_Rol }}</option>
           </select>
           <span v-if="errores.Id_Rol && formTouched" class="error-msg">{{ errores.Id_Rol }}</span>
 
@@ -416,7 +417,12 @@ const ROL_NORM  = { 'administrador': 'administrador', 'admin': 'administrador', 
 const ROL_LABEL = { administrador: 'Administrador', operador: 'Operario', cliente: 'Cliente' }
 function normRol(nombreRol) { return ROL_NORM[(nombreRol || '').toLowerCase()] || 'operador' }
 
-// Roles filtrados (sin admin)
+// ── COMPUTED DE ROLES ──
+
+// Todos los roles incluyendo administrador (para el modal de creación/edición)
+const todosLosRoles = computed(() => roles.value)
+
+// Solo roles sin admin (ya no se usa en el modal, queda disponible si se necesita en otro lado)
 const rolesNoAdmin = computed(() =>
   roles.value.filter(r => !['administrador','admin'].includes((r.Nombre_Rol || '').toLowerCase()))
 )
@@ -450,7 +456,7 @@ async function cargarDatos() {
     const [dataU, dataR] = await Promise.all([getUsuarios(), getRoles()])
     roles.value = dataR
 
-    // Todos los usuarios activos NO administradores
+    // Solo muestra en tabla a operarios y clientes activos (NO administradores)
     usuarios.value = dataU
       .filter(u => u.Estado === 'activo' && normRol(u.Rol || u.Nombre_Rol || '') !== 'administrador')
       .map(mapear)
@@ -604,7 +610,7 @@ function abrirModal(usuario) {
     }
   } else {
     editando.value = false
-    form.value = { id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: rolesNoAdmin.value[0]?.Id_Rol || '', estado: 'activo', contrasena: '' }
+    form.value = { id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: roles.value[0]?.Id_Rol || '', estado: 'activo', contrasena: '' }
   }
   modalVisible.value = true
 }
@@ -810,7 +816,7 @@ table { width: 100%; border-collapse: collapse; }
 thead { background: #f9fafb; }
 th { font-size: 12px; font-weight: 600; color: #6b7280; padding: 14px 18px; text-align: left; }
 
-/* ── SORT ANIMADO (igual que GestionClientes) ── */
+/* ── SORT ANIMADO ── */
 .th-sortable { cursor: pointer; user-select: none; transition: color 0.15s; }
 .th-sortable:hover { color: #1f3a52; }
 .th-sortable:hover .sort-neutral { opacity: 0.5; }
