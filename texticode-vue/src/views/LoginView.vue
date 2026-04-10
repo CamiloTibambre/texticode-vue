@@ -35,42 +35,6 @@
       <div class="orb orb-3"></div>
     </div>
 
-    <!-- ══ PANEL IZQUIERDO (desktop) ══ -->
-    <div class="side-panel" :class="{ 'side-in': cardVisible }">
-      <div class="side-content">
-
-        <div class="side-tag">
-          <span class="side-tag-dot"></span>
-          Sistema de gestión
-        </div>
-
-        <h2 class="side-title">Tejiendo el<br>futuro textil</h2>
-        <p class="side-desc">Administra producción, inventario y clientes desde un solo lugar, en tiempo real.</p>
-
-        <!-- Muestra de hilos / colores textiles -->
-        <div class="thread-palette">
-          <span v-for="n in 8" :key="n" class="thread-line"
-            :style="`background: hsl(${200 + n*10}, ${35+n*4}%, ${30+n*4}%); animation-delay:${n*0.1}s`"/>
-        </div>
-
-        <div class="feature-stack">
-          <div class="feature-card">
-            <strong>Operación centralizada</strong>
-            <span>Producción, inventario y seguimiento conectados en una sola experiencia.</span>
-          </div>
-          <div class="feature-card">
-            <strong>Interfaz enfocada</strong>
-            <span>Accede más rápido a tu panel sin ruido visual ni métricas decorativas.</span>
-          </div>
-          <div class="feature-card online-feature">
-            <span class="online-dot"></span>
-            Acceso seguro disponible
-          </div>
-        </div>
-
-      </div>
-    </div>
-
     <!-- ══ CARD DE LOGIN ══ -->
     <div class="login-card" :class="{ 'card-visible': cardVisible, 'card-error': shakeError }">
 
@@ -162,6 +126,15 @@
             Verificando...
           </span>
         </button>
+      </div>
+
+      <div class="back-landing-wrap" :class="{ visible: cardVisible }">
+        <RouterLink to="/" class="back-landing-btn">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+          </svg>
+          Volver al inicio
+        </RouterLink>
       </div>
 
       <p class="card-footer" :class="{ visible: cardVisible }">
@@ -354,95 +327,6 @@ onUnmounted(() => {
 .orb-3 { width: 280px; height: 280px; background: radial-gradient(circle, rgba(29,78,120,0.15) 0%, transparent 65%); top: 50%; right: 30%; animation: floatorb 15s ease-in-out infinite alternate; animation-delay: -5s; }
 @keyframes floatorb { from { transform: translate(0,0) scale(1); } to { transform: translate(22px,-28px) scale(1.08); } }
 
-/* ══════════════════════════════════════
-   PANEL LATERAL
-══════════════════════════════════════ */
-.side-panel {
-  display: none; position: relative; z-index: 1;
-  width: 360px; padding: 60px 48px; color: white; flex-shrink: 0;
-  opacity: 0; transform: translateX(-20px);
-  transition: opacity 0.6s ease 0.15s, transform 0.6s cubic-bezier(0.22,1,0.36,1) 0.15s;
-}
-.side-panel.side-in { opacity: 1; transform: none; }
-@media (min-width: 960px) {
-  .side-panel { display: flex; align-items: center; }
-  .login-page { gap: 48px; }
-}
-.side-content { max-width: 260px; }
-
-/* Tag superior */
-.side-tag {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-  color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.12);
-  padding: 5px 13px; border-radius: 20px; margin-bottom: 24px;
-}
-.side-tag-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #2d6a9f;
-  box-shadow: 0 0 6px rgba(45,106,159,0.8);
-  animation: tagdotpulse 2.2s ease-in-out infinite;
-}
-@keyframes tagdotpulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
-
-.side-title {
-  font-size: 36px; font-weight: 700; line-height: 1.15;
-  letter-spacing: -0.04em; color: white; margin-bottom: 14px;
-}
-.side-desc {
-  font-size: 13.5px; color: rgba(255,255,255,0.42);
-  line-height: 1.7; margin-bottom: 30px;
-}
-
-/* Paleta de hilos textiles */
-.thread-palette {
-  display: flex; gap: 5px; margin-bottom: 30px;
-}
-.thread-line {
-  height: 28px; flex: 1; border-radius: 3px;
-  opacity: 0; transform: scaleY(0);
-  animation: threadIn 0.4s ease forwards;
-  transform-origin: bottom;
-}
-@keyframes threadIn { to { opacity: 1; transform: scaleY(1); } }
-
-.feature-stack {
-  display: grid;
-  gap: 14px;
-}
-.feature-card {
-  display: grid;
-  gap: 6px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-}
-.feature-card strong {
-  color: white;
-  font-size: 14px;
-}
-.feature-card span {
-  color: rgba(255,255,255,0.6);
-  font-size: 12.5px;
-  line-height: 1.6;
-}
-.online-feature {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.online-feature span:last-child,
-.online-feature {
-  color: rgba(255,255,255,0.82);
-  font-weight: 600;
-}
-.online-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.7);
-  animation: tagdotpulse 2s ease-in-out infinite;
-}
 
 /* ══════════════════════════════════════
    CARD
@@ -654,9 +538,34 @@ h1.visible { opacity: 1; transform: none; }
 /* ══════════════════════════════════════
    FOOTER
 ══════════════════════════════════════ */
+.back-landing-wrap {
+  display: flex; justify-content: center;
+  margin-top: 18px;
+  opacity: 0; transition: opacity 0.4s ease 0.52s;
+}
+.back-landing-wrap.visible { opacity: 1; }
+
+.back-landing-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; color: #6b7280;
+  text-decoration: none;
+  padding: 7px 16px; border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+.back-landing-btn svg { transition: transform 0.2s ease; color: #9ca3af; }
+.back-landing-btn:hover {
+  color: #1f3a52;
+  border-color: #1f3a52;
+  background: #f0f5fa;
+  box-shadow: 0 2px 8px rgba(31,58,82,0.1);
+}
+.back-landing-btn:hover svg { transform: translateX(-3px); color: #1f3a52; }
+
 .card-footer {
   text-align: center; font-size: 11px; color: #c4c9d4;
-  margin-top: 20px; opacity: 0; transition: opacity 0.4s ease 0.62s;
+  margin-top: 14px; opacity: 0; transition: opacity 0.4s ease 0.62s;
 }
 .card-footer.visible { opacity: 1; }
 

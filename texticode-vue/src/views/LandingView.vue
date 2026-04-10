@@ -8,6 +8,13 @@
       <div class="orb orb-a"></div>
       <div class="orb orb-b"></div>
       <div class="orb orb-c"></div>
+      <!-- Partículas flotantes -->
+      <div class="particle p1"></div>
+      <div class="particle p2"></div>
+      <div class="particle p3"></div>
+      <div class="particle p4"></div>
+      <div class="particle p5"></div>
+      <div class="particle p6"></div>
     </div>
 
     <!-- ══ NAVBAR ══ -->
@@ -17,19 +24,24 @@
           <img src="/img/LogoTexticode.png" alt="Texticode" class="nav-logo-img">
           <span class="nav-brand">TEXTICODE</span>
         </div>
-        <div class="nav-links">
-          <a href="#nosotros" @click.prevent="scrollTo('nosotros')">Nosotros</a>
-          <a href="#funcionalidades" @click.prevent="scrollTo('funcionalidades')">Funcionalidades</a>
-          <a href="#alcances" @click.prevent="scrollTo('alcances')">Alcances</a>
-          <a href="#equipo" @click.prevent="scrollTo('equipo')">Equipo</a>
-        </div>
-<RouterLink to="/login" class="nav-cta">
-  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
-  </svg>
-  Ingresar al Sistema
-</RouterLink>
 
+        <div class="nav-links">
+          <a v-for="link in navLinks" :key="link.id"
+            :href="'#' + link.id"
+            @click.prevent="scrollTo(link.id)"
+            class="nav-link"
+            :class="{ 'nav-link-active': activeSection === link.id }">
+            {{ link.label }}
+            <span class="nav-link-bar"></span>
+          </a>
+        </div>
+
+        <RouterLink to="/login" class="nav-cta">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+          </svg>
+          <span>Ingresar al Sistema</span>
+        </RouterLink>
       </div>
     </nav>
 
@@ -51,7 +63,7 @@
       </p>
 
       <div class="hero-actions" :class="{ 'actions-in': heroVisible }">
-        <RouterLink to="/" class="btn-hero-primary">
+        <RouterLink to="/login" class="btn-hero-primary">
           Acceder al Sistema
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
@@ -97,7 +109,7 @@
         </div>
 
         <div class="nosotros-grid">
-          <div class="nosotros-left reveal-item">
+          <div class="nosotros-left reveal-item reveal-left">
             <h2 class="section-title">¿Qué es <span class="accent">Texticode</span>?</h2>
             <p class="section-desc">
               Texticode es un aplicativo web desarrollado para digitalizar los procesos de gestión de inventario y producción en empresas de confecciones, eliminando el control manual que genera retrasos, errores en registros y desorden en la distribución de tareas.
@@ -134,7 +146,7 @@
             </div>
           </div>
 
-          <div class="nosotros-right reveal-item">
+          <div class="nosotros-right reveal-item reveal-right">
             <!-- Problema y solución -->
             <div class="prob-sol-card">
               <div class="ps-section ps-problem">
@@ -270,12 +282,12 @@
         </div>
 
         <div class="alcances-grid">
-          <div class="alcances-left reveal-item">
+          <div class="alcances-left reveal-item reveal-left">
             <h2 class="section-title">Lo que <span class="accent">Texticode</span> hace</h2>
             <p class="section-desc">El sistema cubre los procesos core de la operación textil, con foco en digitalización, trazabilidad y control.</p>
 
             <div class="alcances-list">
-              <div v-for="item in alcancesSi" :key="item" class="alcance-item alcance-si">
+              <div v-for="(item, i) in alcancesSi" :key="item" class="alcance-item alcance-si reveal-item" :style="{ transitionDelay: (i * 60) + 'ms' }">
                 <div class="alc-icon">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
@@ -286,27 +298,7 @@
             </div>
           </div>
 
-          <div class="alcances-right reveal-item">
-            <h2 class="section-title">Fuera del <span class="accent">alcance</span> actual</h2>
-            <p class="section-desc">Esta versión no contempla funcionalidades externas a la gestión de producción e inventario.</p>
 
-            <div class="alcances-list">
-              <div v-for="item in alcancesNo" :key="item" class="alcance-item alcance-no">
-                <div class="alc-icon alc-icon-no">
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </div>
-                {{ item }}
-              </div>
-            </div>
-
-            <!-- Objetivo general -->
-            <div class="objetivo-card reveal-item">
-              <div class="obj-label">Objetivo General</div>
-              <p>Desarrollar un aplicativo web que apoye la gestión de inventario y producción en la empresa de confecciones, optimizando tiempos, reduciendo errores y mejorando el control de recursos.</p>
-            </div>
-          </div>
         </div>
 
         <!-- Objetivos específicos en timeline -->
@@ -411,7 +403,15 @@ import { RouterLink } from 'vue-router'
 
 const fabricCanvas = ref(null)
 const heroVisible = ref(false)
-const scrolled = ref(false)
+const scrolled      = ref(false)
+const activeSection = ref('')
+
+const navLinks = [
+  { id: 'nosotros',        label: 'Nosotros' },
+  { id: 'funcionalidades', label: 'Funcionalidades' },
+  { id: 'alcances',        label: 'Alcances' },
+  { id: 'equipo',          label: 'Equipo' },
+]
 const activeRole = ref('admin')
 let ctx, animFrame
 
@@ -461,6 +461,13 @@ function drawFabric(t) {
 function onScroll() {
   scrolled.value = window.scrollY > 60
   revealOnScroll()
+  const ids = ['nosotros', 'funcionalidades', 'alcances', 'equipo']
+  let current = ''
+  for (const id of ids) {
+    const el = document.getElementById(id)
+    if (el && window.scrollY >= el.offsetTop - 140) current = id
+  }
+  activeSection.value = current
 }
 
 function revealOnScroll() {
@@ -562,12 +569,7 @@ const alcancesSi = [
   'Alertas de stock bajo para materiales críticos',
 ]
 
-const alcancesNo = [
-  'Módulo de ventas ni facturación electrónica',
-  'Gestión de nómina ni contabilidad',
-  'Integración con plataformas externas (en esta versión)',
-  'Comercio electrónico o tienda online',
-]
+
 
 const objetivosEspecificos = [
   'Controlar y registrar las fechas de inicio, avance y entrega de producción, asegurando un flujo organizado.',
@@ -640,20 +642,79 @@ onUnmounted(() => {
 @keyframes orbFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(20px,-25px) scale(1.06); } }
 
 /* ── NAVBAR ── */
-.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; transition: background 0.3s, backdrop-filter 0.3s, box-shadow 0.3s; }
-.navbar-scrolled { background: rgba(9,22,42,0.88); backdrop-filter: blur(16px); box-shadow: 0 1px 0 rgba(255,255,255,0.06); }
-.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; gap: 32px; }
-.nav-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.nav-logo-img { width: 36px; filter: brightness(0) invert(1); }
-.nav-brand { font-size: 17px; font-weight: 800; color: white; letter-spacing: 2px; }
-.nav-links { flex: 1; display: flex; gap: 28px; justify-content: center; }
-.nav-links a { color: rgba(255,255,255,0.65); font-size: 14px; font-weight: 500; text-decoration: none; transition: color 0.18s; }
-.nav-links a:hover { color: white; }
-.nav-cta { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.12); color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 9px 18px; font-size: 14px; font-weight: 600; transition: background 0.2s, transform 0.15s; flex-shrink: 0; }
-.nav-cta:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 0; transition: all 0.35s ease;
+}
+.navbar::before {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(9,22,42,0); backdrop-filter: blur(0px);
+  border-bottom: 1px solid transparent;
+  transition: all 0.35s ease;
+}
+.navbar-scrolled::before {
+  background: rgba(8,18,32,0.88);
+  backdrop-filter: blur(24px) saturate(1.5);
+  border-bottom-color: rgba(255,255,255,0.09);
+}
+
+.nav-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 0 48px; height: 90px;
+  display: flex; align-items: center;
+  position: relative; z-index: 1;
+}
+
+/* Logo */
+.nav-logo { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.nav-logo-img { width: 68px; filter: brightness(0) invert(1); drop-shadow: 0 0 18px rgba(74,143,204,0.35); }
+.nav-brand {
+  font-size: 26px; font-weight: 900; color: white;
+  letter-spacing: 4px;
+  text-shadow: 0 0 40px rgba(74,143,204,0.4);
+}
+
+/* Links */
+.nav-links { flex: 1; display: flex; gap: 6px; justify-content: center; }
+.nav-link {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  color: rgba(255,255,255,0.55); font-size: 14.5px; font-weight: 500;
+  text-decoration: none; padding: 10px 20px; border-radius: 10px;
+  letter-spacing: 0.01em;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-link:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.07); }
+.nav-link-active { color: white !important; }
+.nav-link-bar {
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 2px; border-radius: 99px;
+  background: var(--accent); transition: width 0.25s ease;
+}
+.nav-link-active .nav-link-bar { width: 22px; }
+.nav-link:hover .nav-link-bar { width: 14px; }
+
+/* CTA button */
+.nav-cta {
+  display: flex; align-items: center; gap: 9px;
+  background: linear-gradient(135deg, rgba(45,106,159,0.75), rgba(31,58,82,0.85));
+  color: white; text-decoration: none;
+  border: 1px solid rgba(74,143,204,0.45);
+  border-radius: 12px; padding: 12px 24px;
+  font-size: 14px; font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  transition: all 0.22s ease;
+}
+.nav-cta svg { flex-shrink: 0; opacity: 0.85; }
+.nav-cta:hover {
+  background: linear-gradient(135deg, rgba(74,143,204,0.8), rgba(45,106,159,0.9));
+  border-color: rgba(74,143,204,0.65);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(45,106,159,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+}
 
 /* ── HERO ── */
-.hero { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 32px 80px; }
+.hero { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 140px 32px 80px; }
 .hero-tag { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.07); border-radius: 999px; padding: 6px 18px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 28px; opacity: 0; transform: translateY(-12px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .hero-tag.tag-in { opacity: 1; transform: none; }
 .hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: dotPulse 2s ease-in-out infinite; }
@@ -716,7 +777,20 @@ onUnmounted(() => {
 .ps-problem { background: #fff5f5; }
 .ps-solution { background: #f0fdf4; }
 .ps-header { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 10px; }
-.ps-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ps-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  animation: iconFloat 5s ease-in-out infinite;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+  cursor: default;
+}
+.ps-icon:hover {
+  transform: scale(1.25) translateY(-2px) !important;
+  animation-play-state: paused;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.14);
+}
+.ps-problem .ps-icon { animation-delay: 0s; }
+.ps-solution .ps-icon { animation-delay: -2.5s; }
 .ps-icon-red   { background: #fee2e2; color: #dc2626; }
 .ps-icon-green { background: #dcfce7; color: #16a34a; }
 .ps-section p  { font-size: 14px; color: #4b5563; line-height: 1.65; margin: 0; }
@@ -749,7 +823,24 @@ onUnmounted(() => {
 .role-desc  { font-size: 14px; color: #6b7280; line-height: 1.7; margin-bottom: 24px; }
 .role-modules { display: flex; flex-direction: column; gap: 14px; }
 .role-module { display: flex; gap: 14px; align-items: flex-start; }
-.rm-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rm-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: visible;
+  animation: iconFloat 4s ease-in-out infinite;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+  cursor: default;
+}
+.rm-icon svg { overflow: visible; display: block; }
+.rm-icon:hover {
+  transform: scale(1.22) translateY(-2px) !important;
+  animation-play-state: paused;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+}
+.role-module:nth-child(1) .rm-icon { animation-delay: 0s; }
+.role-module:nth-child(2) .rm-icon { animation-delay: -1.3s; }
+.role-module:nth-child(3) .rm-icon { animation-delay: -2.6s; }
+.role-module:nth-child(4) .rm-icon { animation-delay: -0.7s; }
 .rm-name { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 2px; }
 .rm-desc { font-size: 12px; color: #6b7280; }
 
@@ -763,7 +854,25 @@ onUnmounted(() => {
 .modules-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
 .mod-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 22px 18px; transition: box-shadow 0.2s, transform 0.2s; }
 .mod-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.07); transform: translateY(-3px); }
-.mod-icon-wrap { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.mod-icon-wrap {
+  width: 46px; height: 46px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px; overflow: visible;
+  animation: iconFloat 4.5s ease-in-out infinite;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+  cursor: default;
+}
+.mod-icon-wrap svg { overflow: visible; display: block; }
+.mod-icon-wrap:hover {
+  transform: scale(1.2) translateY(-3px) !important;
+  animation-play-state: paused;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.mod-card:nth-child(1) .mod-icon-wrap { animation-delay: 0s; }
+.mod-card:nth-child(2) .mod-icon-wrap { animation-delay: -0.9s; }
+.mod-card:nth-child(3) .mod-icon-wrap { animation-delay: -1.8s; }
+.mod-card:nth-child(4) .mod-icon-wrap { animation-delay: -2.7s; }
+.mod-card:nth-child(5) .mod-icon-wrap { animation-delay: -3.6s; }
 .mod-card h4 { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 8px; }
 .mod-card p  { font-size: 13px; color: #6b7280; line-height: 1.6; margin-bottom: 12px; }
 .mod-tags { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -771,12 +880,30 @@ onUnmounted(() => {
 
 /* ── ALCANCES ── */
 .section-alcances { background: white; }
-.alcances-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 32px; margin-bottom: 56px; }
-.alcances-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.alcances-grid { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 32px; margin-bottom: 56px; }
+.alcances-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
 .alcance-item { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #374151; font-weight: 500; padding: 10px 14px; border-radius: 10px; }
 .alcance-si { background: #f0fdf4; border: 1px solid #bbf7d0; }
 .alcance-no { background: #fef2f2; border: 1px solid #fecaca; }
-.alc-icon { width: 24px; height: 24px; border-radius: 50%; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.alc-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #dcfce7; color: #15803d;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  animation: iconFloat 4.2s ease-in-out infinite;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+  cursor: default;
+}
+.alc-icon:hover {
+  transform: scale(1.3) translateY(-2px) !important;
+  animation-play-state: paused;
+  box-shadow: 0 5px 14px rgba(21,128,61,0.25);
+}
+.alcance-item:nth-child(1) .alc-icon { animation-delay: 0s; }
+.alcance-item:nth-child(2) .alc-icon { animation-delay: -0.7s; }
+.alcance-item:nth-child(3) .alc-icon { animation-delay: -1.4s; }
+.alcance-item:nth-child(4) .alc-icon { animation-delay: -2.1s; }
+.alcance-item:nth-child(5) .alc-icon { animation-delay: -2.8s; }
+.alcance-item:nth-child(6) .alc-icon { animation-delay: -3.5s; }
 .alc-icon-no { background: #fee2e2; color: #dc2626; }
 
 .objetivo-card { background: linear-gradient(135deg, var(--deep), #1a4a6e); border-radius: 14px; padding: 22px 24px; margin-top: 24px; }
@@ -840,7 +967,7 @@ onUnmounted(() => {
   .modules-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 960px) {
-  .nosotros-grid, .alcances-grid, .role-content { grid-template-columns: 1fr; gap: 32px; }
+  .nosotros-grid, .role-content { grid-template-columns: 1fr; gap: 32px; }
   .stack-grid, .team-grid { grid-template-columns: repeat(2, 1fr); }
   .modules-grid { grid-template-columns: repeat(2, 1fr); }
   .obj-items { grid-template-columns: repeat(2, 1fr); }
@@ -855,5 +982,68 @@ onUnmounted(() => {
   .role-tabs { flex-wrap: wrap; }
   .cta-inner { padding: 48px 28px; }
   .obj-items { grid-template-columns: 1fr; }
+}
+
+/* ── PARTÍCULAS FLOTANTES ── */
+.particle {
+  position: absolute; border-radius: 50%;
+  background: rgba(74,143,204,0.18);
+  pointer-events: none;
+}
+.p1 { width: 6px;  height: 6px;  top: 18%; left: 12%;  animation: floatP 9s ease-in-out infinite; }
+.p2 { width: 4px;  height: 4px;  top: 35%; left: 78%;  animation: floatP 12s ease-in-out infinite reverse; animation-delay: -3s; }
+.p3 { width: 8px;  height: 8px;  top: 60%; left: 22%;  animation: floatP 14s ease-in-out infinite; animation-delay: -6s; }
+.p4 { width: 5px;  height: 5px;  top: 75%; left: 65%;  animation: floatP 10s ease-in-out infinite reverse; animation-delay: -2s; }
+.p5 { width: 10px; height: 10px; top: 25%; left: 90%;  animation: floatP 16s ease-in-out infinite; animation-delay: -8s; background: rgba(45,106,159,0.14); }
+.p6 { width: 5px;  height: 5px;  top: 85%; left: 40%;  animation: floatP 11s ease-in-out infinite reverse; animation-delay: -4s; }
+@keyframes floatP {
+  0%,100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  33%     { transform: translate(18px, -24px) scale(1.2); opacity: 1; }
+  66%     { transform: translate(-12px, 16px) scale(0.85); opacity: 0.4; }
+}
+
+/* ── DIRECTIONAL REVEALS ── */
+.reveal-left  { transform: translateX(-32px) !important; }
+.reveal-right { transform: translateX(32px) !important; }
+.reveal-left.is-visible,
+.reveal-right.is-visible { transform: translateX(0) !important; }
+
+/* ── STAT CARD HOVER LIFT ── */
+.hero-stat { cursor: default; transition: transform 0.22s ease; }
+.hero-stat:hover { transform: translateY(-4px); }
+.hero-stat-num { transition: color 0.2s; }
+.hero-stat:hover .hero-stat-num { color: #60b4f2; }
+
+/* ── TECH CARD HOVER LIFT ── */
+.tech-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
+.tech-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,0.1); }
+
+/* ── ALCANCE ITEM HOVER ── */
+.alcance-item { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.alcance-si:hover { transform: translateX(4px); box-shadow: 0 4px 14px rgba(21,128,61,0.1); }
+
+/* ── FEATURE CARD HOVER (nosotros) ── */
+.prob-sol-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.prob-sol-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+/* ── SECTION LABEL GLOW ── */
+.section-label-dot { animation: dotPulse 2.5s ease-in-out infinite; }
+
+/* ── HERO TAG SHIMMER ── */
+.hero-tag::after {
+  content: ''; position: absolute; inset: 0; border-radius: 999px;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%);
+  background-size: 200% 100%;
+  animation: tagShim 3s ease-in-out infinite;
+}
+@keyframes tagShim { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.hero-tag { position: relative; overflow: hidden; }
+
+/* ── ICON FLOAT & HOVER SCALE ── */
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  30%       { transform: translateY(-4px) rotate(1deg); }
+  60%       { transform: translateY(-2px) rotate(-0.5deg); }
+  80%       { transform: translateY(-5px) rotate(0.8deg); }
 }
 </style>
