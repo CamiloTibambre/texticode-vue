@@ -278,11 +278,15 @@ const displayEnProceso   = ref(0)
 const displayTotal       = ref(0)
 
 function animateCount(targetRef, target) {
-  let val = 0; const step = Math.max(1, Math.ceil(target / 40))
+  let val = 0
+  const steps = 80; const duration = 2000
+  const intervalMs = Math.round(duration / steps)
+  const step = Math.max(0.1, target / steps)
   const id = setInterval(() => {
     val += step
-    if (val >= target) { targetRef.value = target; clearInterval(id) } else targetRef.value = val
-  }, 20)
+    if (val >= target) { targetRef.value = target; clearInterval(id) }
+    else targetRef.value = Math.floor(val)
+  }, intervalMs)
 }
 
 const mounted         = ref(false)
