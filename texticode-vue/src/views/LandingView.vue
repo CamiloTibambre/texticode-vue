@@ -82,7 +82,7 @@
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
-          <div class="hero-stat-num">38+</div>
+          <div class="hero-stat-num">41</div>
           <div class="hero-stat-label">Requisitos funcionales</div>
         </div>
         <div class="hero-stat-divider"></div>
@@ -119,36 +119,36 @@
             </p>
 
             <div class="nosotros-pills">
-              <div class="n-pill">
-                <span class="pill-icon-wrap pill-green">
-                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <div class="n-pill n-pill--green">
+                <div class="n-pill-icon-wrap n-pill-icon-wrap--green">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
                   </svg>
-                </span>
+                </div>
                 Reduce errores operativos
               </div>
-              <div class="n-pill">
-                <span class="pill-icon-wrap pill-blue">
-                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <div class="n-pill n-pill--blue">
+                <div class="n-pill-icon-wrap n-pill-icon-wrap--blue">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
                   </svg>
-                </span>
+                </div>
                 Ahorra tiempo en gestión
               </div>
-              <div class="n-pill">
-                <span class="pill-icon-wrap pill-indigo">
-                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125m0 5.625c0 2.278 3.694 4.125 8.25 4.125s8.25-1.847 8.25-4.125"/>
+              <div class="n-pill n-pill--purple">
+                <div class="n-pill-icon-wrap n-pill-icon-wrap--purple">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/>
                   </svg>
-                </span>
+                </div>
                 Centraliza la información
               </div>
-              <div class="n-pill">
-                <span class="pill-icon-wrap pill-amber">
-                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+              <div class="n-pill n-pill--amber">
+                <div class="n-pill-icon-wrap n-pill-icon-wrap--amber">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
                   </svg>
-                </span>
+                </div>
                 Acceso seguro por roles
               </div>
             </div>
@@ -310,10 +310,10 @@
         </div>
 
         <!-- Objetivos específicos en timeline -->
-        <div class="obj-timeline reveal-item">
+        <div class="obj-timeline">
           <div class="obj-timeline-title">Objetivos Específicos</div>
           <div class="obj-items">
-            <div v-for="(obj, i) in objetivosEspecificos" :key="i" class="obj-item">
+            <div v-for="(obj, i) in objetivosEspecificos" :key="i" class="obj-item reveal-item" :style="{ transitionDelay: `${i * 80}ms` }">
               <div class="obj-num">{{ String(i+1).padStart(2,'0') }}</div>
               <p>{{ obj }}</p>
             </div>
@@ -335,8 +335,8 @@
         <h2 class="section-title text-center reveal-item">Tecnologías utilizadas</h2>
 
         <div class="stack-grid reveal-item">
-          <div v-for="tech in techStack" :key="tech.name" class="tech-card">
-            <div class="tech-icon-wrap" :style="{ background: tech.bg }">
+          <div v-for="(tech, i) in techStack" :key="tech.name" class="tech-card">
+            <div class="tech-icon-wrap anim-icon" :style="{ background: tech.bg, animationDelay: `${i * 0.25}s` }">
               <span class="tech-icon-text" :style="{ color: tech.color }">{{ tech.abbr }}</span>
             </div>
             <div class="tech-name">{{ tech.name }}</div>
@@ -361,7 +361,7 @@
 
         <div class="team-grid">
           <div v-for="(member, i) in teamMembers" :key="member.name" class="team-card reveal-item" :style="{ transitionDelay: `${i * 80}ms` }">
-            <div class="team-avatar" :style="{ background: member.bg, color: member.color }">
+            <div class="team-avatar anim-icon" :style="{ background: member.bg, color: member.color, animationDelay: `${i * 0.4}s` }">
               {{ member.initials }}
             </div>
             <div class="team-name">{{ member.name }}</div>
@@ -563,7 +563,7 @@ const mainModules = [
   { title: 'Control de Inventario', desc: 'Registro de materiales con stock actual, mínimo y máximo. Alertas automáticas para stock bajo o agotado.', icon: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9', bg: '#e0f0ff', color: '#2563eb', tags: ['Alertas', 'Stock', 'Categorías'] },
   { title: 'Gestión de Producción', desc: 'Órdenes de producción con seguimiento en tiempo real, asignación de operarios y control de avances.', icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z', bg: '#f0fdf4', color: '#16a34a', tags: ['Órdenes', 'Avances', 'Comprobantes'] },
   { title: 'Reportes y Análisis', desc: 'Generación automática de reportes en PDF y Excel con estadísticas de producción, inventario y clientes.', icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625z', bg: '#fef9c3', color: '#d97706', tags: ['PDF', 'Excel', 'Gráficas'] },
-  { title: 'Panel del Cliente', desc: 'Vista dedicada con seguimiento de pedidos, descarga de comprobantes y centro de soporte.', icon: 'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124', bg: '#ede9fe', color: '#7c3aed', tags: ['Pedidos', 'Entregas', 'Soporte'] },
+  { title: 'Panel del Cliente', desc: 'Vista dedicada con seguimiento de pedidos, descarga de comprobantes y centro de soporte.', icon: 'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12', bg: '#ede9fe', color: '#7c3aed', tags: ['Pedidos', 'Entregas', 'Soporte'] },
 ]
 
 const alcancesSi = [
@@ -777,38 +777,50 @@ onUnmounted(() => {
 .section-nosotros { background: white; }
 .nosotros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: flex-start; margin-top: 32px; }
 .nosotros-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+
 .n-pill {
   display: flex; align-items: center; gap: 9px;
-  background: #f1f5f9; border: 1px solid #e2e8f0;
+  background: #f8fafc; border: 1px solid #e2e8f0;
   border-radius: 999px; padding: 7px 16px 7px 7px;
   font-size: 13px; font-weight: 600; color: var(--deep);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
-  cursor: default; overflow: visible;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: default;
 }
-.n-pill:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 18px rgba(31,58,82,0.12);
-  background: #e8eef6;
-}
-.pill-icon-wrap {
-  width: 26px; height: 26px; border-radius: 50%;
+.n-pill:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 18px rgba(0,0,0,0.09); }
+
+/* Icon wrapper base */
+.n-pill-icon-wrap {
+  width: 28px; height: 28px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   animation: iconFloat 4s ease-in-out infinite;
-  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
 }
-.n-pill:nth-child(1) .pill-icon-wrap { animation-delay: 0s; }
-.n-pill:nth-child(2) .pill-icon-wrap { animation-delay: -1s; }
-.n-pill:nth-child(3) .pill-icon-wrap { animation-delay: -2s; }
-.n-pill:nth-child(4) .pill-icon-wrap { animation-delay: -3s; }
-.n-pill:hover .pill-icon-wrap {
-  transform: scale(1.25) rotate(-8deg);
+.n-pill:hover .n-pill-icon-wrap {
   animation-play-state: paused;
+  transform: scale(1.18) rotate(-8deg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-.pill-green  { background: #dcfce7; color: #16a34a; }
-.pill-blue   { background: #dbeafe; color: #2563eb; }
-.pill-indigo { background: #e0e7ff; color: #4338ca; }
-.pill-amber  { background: #fef3c7; color: #d97706; }
+
+/* Green — errores */
+.n-pill--green { border-color: #bbf7d0; }
+.n-pill--green:hover { border-color: #86efac; box-shadow: 0 6px 18px rgba(22,163,74,0.12); }
+.n-pill-icon-wrap--green { background: #dcfce7; color: #16a34a; animation-delay: 0s; }
+
+/* Blue — tiempo */
+.n-pill--blue { border-color: #bfdbfe; }
+.n-pill--blue:hover { border-color: #93c5fd; box-shadow: 0 6px 18px rgba(37,99,235,0.12); }
+.n-pill-icon-wrap--blue { background: #dbeafe; color: #2563eb; animation-delay: -1s; }
+
+/* Purple — centraliza */
+.n-pill--purple { border-color: #e9d5ff; }
+.n-pill--purple:hover { border-color: #c4b5fd; box-shadow: 0 6px 18px rgba(109,40,217,0.12); }
+.n-pill-icon-wrap--purple { background: #f3e8ff; color: #7c3aed; animation-delay: -2s; }
+
+/* Amber — acceso */
+.n-pill--amber { border-color: #fde68a; }
+.n-pill--amber:hover { border-color: #fbbf24; box-shadow: 0 6px 18px rgba(217,119,6,0.12); }
+.n-pill-icon-wrap--amber { background: #fef3c7; color: #d97706; animation-delay: -3s; }
 
 .prob-sol-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
 .ps-section { padding: 22px 24px; }
@@ -840,7 +852,7 @@ onUnmounted(() => {
 
 /* ── FUNCIONALIDADES ── */
 .section-func { background: #f8fafc; }
-.section-head-row { display: flex; flex-direction: column; margin-bottom: 32px; }
+.section-head-row { display: flex; flex-direction: column; margin-bottom: 32px; align-items: center; text-align: center; }
 
 .role-tabs { display: flex; gap: 10px; margin-bottom: 32px; }
 .role-tab { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; border: 1.5px solid #e5e7eb; background: white; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; transition: all 0.2s; }
@@ -950,62 +962,17 @@ onUnmounted(() => {
 
 .obj-timeline-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 24px; }
 .obj-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.obj-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow 0.2s, transform 0.2s; }
+.obj-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-2px); }
 .obj-num { font-size: 22px; font-weight: 800; color: #e0eaf2; letter-spacing: -0.03em; }
 .obj-item p { font-size: 13px; color: #4b5563; line-height: 1.65; margin: 0; }
-.obj-item {
-  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;
-  padding: 18px; display: flex; flex-direction: column; gap: 10px;
-  animation: objFloat 5s ease-in-out infinite;
-  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1), border-color 0.25s ease;
-  cursor: default;
-}
-.obj-item:nth-child(1) { animation-delay: 0s; }
-.obj-item:nth-child(2) { animation-delay: -0.8s; }
-.obj-item:nth-child(3) { animation-delay: -1.6s; }
-.obj-item:nth-child(4) { animation-delay: -2.4s; }
-.obj-item:nth-child(5) { animation-delay: -3.2s; }
-.obj-item:nth-child(6) { animation-delay: -4s; }
-.obj-item:hover {
-  box-shadow: 0 8px 24px rgba(31,58,82,0.12);
-  transform: translateY(-6px) scale(1.02) !important;
-  border-color: #c8d8e8;
-  animation-play-state: paused;
-}
-@keyframes objFloat {
-  0%, 100% { transform: translateY(0px); }
-  40%       { transform: translateY(-5px); }
-  70%       { transform: translateY(-3px); }
-}
 
 /* ── STACK ── */
 .section-stack { background: #f8fafc; }
 .stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
-.tech-card {
-  background: white; border: 1px solid #e5e7eb; border-radius: 14px;
-  padding: 22px 18px; text-align: center;
-  animation: cardBob 5s ease-in-out infinite;
-  transition: box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1), border-color 0.28s ease;
-  cursor: default;
-}
-.tech-card:nth-child(1) { animation-delay: 0s; }
-.tech-card:nth-child(2) { animation-delay: -1.25s; }
-.tech-card:nth-child(3) { animation-delay: -2.5s; }
-.tech-card:nth-child(4) { animation-delay: -3.75s; }
-.tech-card:hover {
-  box-shadow: 0 14px 36px rgba(31,58,82,0.14);
-  transform: translateY(-8px) scale(1.03) !important;
-  border-color: #c8d8e8;
-  animation-play-state: paused;
-}
-.tech-icon-wrap {
-  width: 52px; height: 52px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 12px;
-  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
-}
-.tech-card:hover .tech-icon-wrap {
-  transform: scale(1.18) rotate(-5deg);
-}
+.tech-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 22px 18px; text-align: center; transition: box-shadow 0.2s, transform 0.2s; }
+.tech-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-3px); }
+.tech-icon-wrap { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
 .tech-icon-text { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; }
 .tech-name { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 4px; }
 .tech-role { font-size: 12px; color: #9ca3af; }
@@ -1013,33 +980,9 @@ onUnmounted(() => {
 /* ── EQUIPO ── */
 .section-equipo { background: white; }
 .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px; }
-.team-card {
-  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px;
-  padding: 28px 20px; text-align: center;
-  animation: cardBob 5.5s ease-in-out infinite;
-  transition: box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1), border-color 0.28s ease;
-  cursor: default;
-}
-.team-card:nth-child(1) { animation-delay: 0s; }
-.team-card:nth-child(2) { animation-delay: -1.375s; }
-.team-card:nth-child(3) { animation-delay: -2.75s; }
-.team-card:nth-child(4) { animation-delay: -4.125s; }
-.team-card:hover {
-  box-shadow: 0 14px 36px rgba(0,0,0,0.1);
-  transform: translateY(-8px) scale(1.03) !important;
-  border-color: #d1d5db;
-  animation-play-state: paused;
-}
-.team-avatar {
-  width: 64px; height: 64px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 800; margin: 0 auto 16px;
-  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
-}
-.team-card:hover .team-avatar {
-  transform: scale(1.15) translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.14);
-}
+.team-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px; padding: 28px 20px; text-align: center; transition: box-shadow 0.2s, transform 0.2s; }
+.team-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); transform: translateY(-3px); }
+.team-avatar { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; margin: 0 auto 16px; }
 .team-name { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 6px; }
 .team-role { font-size: 12px; color: #9ca3af; }
 
@@ -1153,9 +1096,42 @@ onUnmounted(() => {
   60%       { transform: translateY(-2px) rotate(-0.5deg); }
   80%       { transform: translateY(-5px) rotate(0.8deg); }
 }
-@keyframes cardBob {
-  0%, 100% { transform: translateY(0px); }
-  40%       { transform: translateY(-6px); }
-  70%       { transform: translateY(-3px); }
+
+/* Clase reutilizable de animación flotante para avatares e iconos */
+.anim-icon {
+  animation: iconFloat 4s ease-in-out infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.team-card:hover .anim-icon,
+.tech-card:hover .anim-icon {
+  animation-play-state: paused;
+  transform: scale(1.12) translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* ── OBJETIVOS ESPECÍFICOS ── */
+.obj-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s, background 0.2s;
+}
+.obj-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.obj-item:hover {
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(31,58,82,0.1);
+  transform: translateY(-3px) !important;
+  border-color: #c7d9f0;
+}
+.obj-num {
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #c7dff0, #e0eaf2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
 }
 </style>
