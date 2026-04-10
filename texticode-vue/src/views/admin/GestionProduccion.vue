@@ -570,20 +570,15 @@ const stats = computed(() => [
 
 function animateCount(key, target) {
   clearInterval(statTimers.get(key))
-  const initial = statsDisplay.value[key] || 0
-  const steps = 28
-  const delta = target - initial
-  if (delta === 0) { statsDisplay.value[key] = target; return }
-  let currentStep = 0
+  let val = 0
+  const steps = 80; const duration = 2000
+  const intervalMs = Math.round(duration / steps)
+  const step = Math.max(0.1, target / steps)
   const timer = setInterval(() => {
-    currentStep++
-    statsDisplay.value[key] = Math.round(initial + delta * (currentStep / steps))
-    if (currentStep >= steps) {
-      statsDisplay.value[key] = target
-      clearInterval(timer)
-      statTimers.delete(key)
-    }
-  }, 18)
+    val += step
+    if (val >= target) { statsDisplay.value[key] = target; clearInterval(timer); statTimers.delete(key) }
+    else statsDisplay.value[key] = Math.floor(val)
+  }, intervalMs)
   statTimers.set(key, timer)
 }
 
