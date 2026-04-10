@@ -143,63 +143,42 @@
           </svg>
         </div>
 
-        <!-- Avatar -->
-        <div class="apc-avatar" :style="{ background: avatarBg(adminPerfil.nombre), color: avatarColor(adminPerfil.nombre) }">
-          {{ adminPerfil.iniciales }}
+        <!-- Cabecera: avatar + nombre + botón editar -->
+        <div class="pc-header">
+          <div class="pc-avatar-wrap" :class="{ 'avatar-in': animVisible }">
+            <div class="pc-avatar" :style="{ background: avatarBg(adminPerfil.nombre), color: avatarColor(adminPerfil.nombre) }">
+              {{ adminPerfil.iniciales }}
+            </div>
+          </div>
+          <div class="pc-identity">
+            <div class="pc-name">{{ adminPerfil.nombre }}</div>
+          </div>
+          <button class="pc-edit-btn" @click="abrirModalAdmin">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+            </svg>
+            Editar mi perfil
+          </button>
         </div>
 
-        <!-- Info principal -->
-        <div class="apc-info">
-          <!-- Fila única: nombre + separador + datos en línea -->
-          <div class="apc-main-row">
-            <div class="apc-name">{{ adminPerfil.nombre }}</div>
+        <!-- Divisor -->
+        <div class="pc-divider"></div>
 
-            <div class="apc-vsep"></div>
-
-            <!-- Usuario de BD -->
-            <div class="apc-data-item">
-              <div class="apc-data-icon">
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:block">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0"/>
-                </svg>
-              </div>
-              <span class="apc-data-val">{{ adminPerfil.nombreUsuario }}</span>
+        <!-- Grid de contacto -->
+        <div class="pc-contact-grid">
+          <div class="pc-contact-item" v-for="(item, i) in adminContactItems" :key="item.label"
+            :style="{ animationDelay: animVisible ? `${200 + i * 65}ms` : '9999s' }">
+            <div class="pc-contact-icon">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:block">
+                <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon"/>
+              </svg>
             </div>
-
-            <div class="apc-vsep"></div>
-
-            <!-- Correo -->
-            <div class="apc-data-item">
-              <div class="apc-data-icon">
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:block">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
-                </svg>
-              </div>
-              <span class="apc-data-val">{{ adminPerfil.email }}</span>
-            </div>
-
-            <div class="apc-vsep"></div>
-
-            <!-- Teléfono -->
-            <div class="apc-data-item">
-              <div class="apc-data-icon">
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:block">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/>
-                </svg>
-              </div>
-              <span class="apc-data-val" :class="{ 'apc-data-empty': !adminPerfil.telefono }">
-                {{ adminPerfil.telefono || 'Sin teléfono' }}
-              </span>
+            <div class="pc-contact-info">
+              <span class="pc-contact-label">{{ item.label }}</span>
+              <span class="pc-contact-value" :class="{ 'pc-contact-empty': !item.raw }">{{ item.value }}</span>
             </div>
           </div>
         </div>
-
-        <button class="btn-edit-admin" @click="abrirModalAdmin">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
-          </svg>
-          Editar mi perfil
-        </button>
       </div>
 
       <!-- TABLA -->
@@ -467,6 +446,12 @@ const toast         = ref({ visible: false, msg: '', type: 'success' })
 
 // Perfil del admin logueado
 const adminPerfil = ref({ nombre: '', email: '', telefono: '', iniciales: '' })
+
+const adminContactItems = computed(() => [
+  { label: 'Email',    value: adminPerfil.value.email         || '—', raw: adminPerfil.value.email,         icon: 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75' },
+  { label: 'Teléfono', value: adminPerfil.value.telefono      || '—', raw: adminPerfil.value.telefono,      icon: 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z' },
+  { label: 'Usuario',  value: adminPerfil.value.nombreUsuario  || '—', raw: adminPerfil.value.nombreUsuario,  icon: 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0' },
+])
 const formAdmin   = ref({ nombre: '', nombreUsuario: '', email: '', telefono: '', contrasena: '' })
 
 // ── ROL HELPERS ──
@@ -832,16 +817,18 @@ async function guardarPerfilAdmin() {
 
 /* ── CARD PERFIL ADMIN ── */
 .admin-profile-card {
-  position: relative; overflow: hidden;
   background: linear-gradient(135deg, #111827 0%, #1f3a52 55%, #0f2236 100%);
-  border-radius: 16px; padding: 22px 26px;
-  display: flex; align-items: center; gap: 20px;
+  border-radius: 18px;
+  padding: 26px 28px;
   margin-bottom: 20px;
-  opacity: 0; transform: translateY(14px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
-  box-shadow: 0 4px 24px rgba(31,58,82,0.35);
+  opacity: 0;
+  transform: translateY(22px) scale(0.97);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(15, 34, 54, 0.3);
+  position: relative;
+  overflow: hidden;
 }
-.admin-profile-card.card-visible { opacity: 1; transform: translateY(0); }
+.admin-profile-card.card-visible { opacity: 1; transform: none; }
 
 /* Engranajes decorativos */
 .apc-gear { position: absolute; pointer-events: none; }
@@ -854,71 +841,79 @@ async function guardarPerfilAdmin() {
 .apc-gear.gear-small { transform-origin: center; }
 @keyframes gearTurn { to { transform: rotate(360deg); } }
 
-/* Avatar */
-.apc-avatar {
-  width: 58px; height: 58px; border-radius: 50%; flex-shrink: 0;
+/* Cabecera */
+.pc-header {
+  display: flex; align-items: center; gap: 18px;
+  flex-wrap: wrap; position: relative; z-index: 1;
+}
+.pc-avatar-wrap {
+  flex-shrink: 0; opacity: 0; transform: scale(0.5);
+  transition: opacity 0.5s ease 0.1s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s;
+}
+.pc-avatar-wrap.avatar-in { opacity: 1; transform: scale(1); }
+.pc-avatar {
+  width: 68px; height: 68px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 800;
+  font-size: 22px; font-weight: 800;
   border: 2.5px solid rgba(255,255,255,0.25);
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.3);
 }
-
-/* Info */
-.apc-info { flex: 1; display: flex; align-items: center; position: relative; z-index: 1; min-width: 0; }
-
-/* Fila principal: nombre + datos todos en línea */
-.apc-main-row {
-  display: flex; align-items: center; gap: 0;
-  flex-wrap: nowrap; min-width: 0;
+.pc-identity {
+  flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0;
 }
-.apc-name {
-  font-size: 17px; font-weight: 800; color: white;
-  letter-spacing: 0.2px; white-space: nowrap; flex-shrink: 0;
+.pc-name {
+  font-size: 20px; font-weight: 700; color: white;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-/* Separador vertical entre elementos */
-.apc-vsep {
-  width: 1px; height: 16px;
-  background: rgba(255,255,255,0.2);
-  margin: 0 16px; flex-shrink: 0;
-}
-
-.apc-badges-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.apc-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9);
-  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-.apc-username-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55);
-  font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-/* Items de dato con icono */
-.apc-data-item { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-.apc-data-icon {
-  width: 22px; height: 22px; border-radius: 6px;
-  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.7); flex-shrink: 0;
-}
-.apc-data-val { font-size: 12px; color: rgba(255,255,255,0.7); white-space: nowrap; }
-.apc-data-empty { color: rgba(255,255,255,0.3); font-style: italic; }
-.apc-data-sep { width: 1px; height: 14px; background: rgba(255,255,255,0.15); margin: 0 14px 0 0; flex-shrink: 0; }
-
-.btn-edit-admin {
-  display: flex; align-items: center; gap: 6px;
+.pc-edit-btn {
+  display: flex; align-items: center; gap: 7px;
   background: rgba(255,255,255,0.12); color: white;
-  border: 1px solid rgba(255,255,255,0.2); border-radius: 9px;
-  padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
-  flex-shrink: 0; position: relative; z-index: 1;
-  transition: background 0.2s, transform 0.2s;
-  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 10px;
+  padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  flex-shrink: 0; backdrop-filter: blur(6px);
+  transition: background 0.2s, transform 0.15s; position: relative; z-index: 1;
 }
-.btn-edit-admin:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+.pc-edit-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+
+/* Divisor */
+.pc-divider {
+  margin: 22px 0 18px; border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  position: relative; z-index: 1;
+}
+
+/* Grid de contacto */
+.pc-contact-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; position: relative; z-index: 1;
+}
+.pc-contact-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; opacity: 0;
+  animation: contactReveal 0.4s ease both;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.pc-contact-item:hover {
+  background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.2); transform: translateY(-1px);
+}
+@keyframes contactReveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.pc-contact-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pc-contact-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pc-contact-label {
+  font-size: 10px; color: rgba(255,255,255,0.45);
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+.pc-contact-value {
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pc-contact-empty { color: rgba(255,255,255,0.3); font-style: italic; }
 
 /* ── TABLA BOX ── */
 .table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; transition-delay: 320ms; }
