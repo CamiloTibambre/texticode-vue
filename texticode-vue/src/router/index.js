@@ -40,14 +40,24 @@ const router = createRouter({
 
 function normalizarRol(rol) {
   if (!rol) return null
-  const r = rol.toLowerCase()
-  if (r === 'administrador') return 'admin'
+  const r = rol.toLowerCase().trim()
+  if (r === 'administrador' || r === 'admin') return 'admin'
+  if (r === 'operario' || r === 'operador')   return 'operario'
+  if (r === 'cliente')                         return 'cliente'
   return r
 }
 
 router.beforeEach((to) => {
   const auth = useAuthStore()
   const rol  = normalizarRol(auth.rol)
+
+  console.log('=== GUARD ===')
+  console.log('auth.usuario:', auth.usuario)
+  console.log('auth.rol (raw computed):', auth.rol)
+  console.log('rol normalizado:', rol)
+  console.log('to.meta.rol:', to.meta.rol)
+  console.log('estaLogueado:', auth.estaLogueado)
+  // ... resto del guard
 
   // Rutas protegidas por rol
   if (to.meta.rol) {
