@@ -7,17 +7,10 @@ export const useAuthStore = defineStore('auth', () => {
   const token   = ref(localStorage.getItem('jwt_token') || null)
   const usuario = ref(JSON.parse(localStorage.getItem('usuario') || 'null'))
 
-  function normalizarRol(r) {
-    const s = (r || '').toLowerCase().trim()
-    if (s === 'administrador' || s === 'admin') return 'admin'
-    if (s === 'operario' || s === 'operador')   return 'operario'
-    if (s === 'cliente')                         return 'cliente'
-    return s
-  }
-
   const rol = computed(() => {
     if (!usuario.value) return null
-    return normalizarRol(usuario.value.rol || usuario.value.Rol)
+    const r = usuario.value.Rol || usuario.value.rol || ''
+    return r.toLowerCase()
   })
 
   const idUsuario    = computed(() => usuario.value?.Id_Usuario ?? null)
@@ -33,7 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value   = data.token || 'session_activa'
     usuario.value = {
       ...user,
-      rol: normalizarRol(user.Rol || user.rol || ''),
+      rol: (user.Rol || '').toLowerCase(),
     }
 
     localStorage.setItem('jwt_token', token.value)

@@ -182,7 +182,7 @@
                 <td class="nivel-td">
                   <div class="nivel-bar-wrap" :title="`${stockPct(m)}% del máximo`">
                     <div class="nivel-bar">
-                      <div class="nivel-fill" :class="m.estadoClass" :style="{ width: stockPct(m) + '%' }"></div>
+                      <div class="nivel-fill" :class="m.estadoClass" :style="{ width: (barWidths[m.id] ?? 0) + '%' }"></div>
                     </div>
                     <span class="nivel-pct">{{ stockPct(m) }}%</span>
                   </div>
@@ -360,6 +360,22 @@ const form = ref({
   unidad: '', minimo: 0, maximo: 0, cliente: '', Id_Cliente: null
 })
 
+// ── Barras de nivel animadas ──────────────────────────────────
+const barWidths = ref({})
+
+function animateBars() {
+  const init = {}
+  materiales.value.forEach(m => { init[m.id] = 0 })
+  barWidths.value = init
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    materiales.value.forEach((m, i) => {
+      setTimeout(() => {
+        barWidths.value = { ...barWidths.value, [m.id]: stockPct(m) }
+      }, i * 60)
+    })
+  }))
+}
+
 // ── Contadores animados ──────────────────────────────────────
 const displayTotal      = ref(0)
 const displayAlertas    = ref(0)
@@ -511,6 +527,7 @@ async function guardar() {
     }
     const data = await getMateriales()
     materiales.value = data.map(mapearMaterial)
+    animateBars()
   } catch (err) {
     showToast(err.message || 'Error al guardar', 'toast-danger')
   }
@@ -545,6 +562,7 @@ onMounted(async () => {
   try {
     const data = await getMateriales()
     materiales.value = data.map(mapearMaterial)
+    animateBars()
   } catch (err) {
     console.error('Error cargando materiales:', err)
   }
@@ -565,6 +583,7 @@ onMounted(async () => {
     animateCount(displayTotal,      materiales.value.length)
     animateCount(displayAlertas,    alertas.value.length)
     animateCount(displayCategorias, categorias.length)
+    animateBars()
   }, 80)
 })
 </script>
@@ -847,7 +866,7 @@ td { padding: 14px 18px; font-size: 14px; color: #374151; border-top: 1px solid 
 .nivel-td       { min-width: 110px; }
 .nivel-bar-wrap { display: flex; align-items: center; gap: 6px; }
 .nivel-bar      { flex: 1; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
-.nivel-fill     { height: 100%; border-radius: 99px; transition: width .7s ease; }
+.nivel-fill     { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 .nivel-fill.success { background: #16a34a; }
 .nivel-fill.warning { background: #ca8a04; }
 .nivel-fill.danger  { background: #dc2626; }
