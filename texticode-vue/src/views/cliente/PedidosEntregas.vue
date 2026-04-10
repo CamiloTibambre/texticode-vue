@@ -357,10 +357,9 @@ const pedidosFiltrados = computed(() =>
 .count-badge { background: #1f3a52; color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; line-height: 1.6; }
 
 /* ── ORDER CARDS ── */
-.orders-list { display: flex; flex-direction: column; }
-.order-card { display: flex; overflow: hidden; border-bottom: 1px solid #f3f4f6; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease, background 0.15s; }
-.order-card:last-child { border-bottom: none; }
-.order-card:hover { background: #f9fafb; }
+.orders-list { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.order-card { display: flex; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 12px; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease, background 0.15s, box-shadow 0.2s; }
+.order-card:hover { background: #f9fafb; box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
 .order-card.card-stagger-in { opacity: 1; transform: translateY(0); }
 .order-stripe { width: 5px; flex-shrink: 0; }
 .stripe-blue  { background: #2563eb; }
