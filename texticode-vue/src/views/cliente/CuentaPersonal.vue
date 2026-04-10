@@ -1,17 +1,16 @@
 <template>
   <div style="display:flex;min-height:100vh;background:#f1f5f9;position:relative;overflow:hidden">
     <AppSidebar rol="cliente" />
-
-    <!-- FONDO DECORATIVO -->
+ 
     <div class="bg-orbs" aria-hidden="true">
       <div class="orb orb-1"></div>
       <div class="orb orb-2"></div>
       <div class="orb orb-3"></div>
       <div class="bg-grid"></div>
     </div>
-
+ 
     <main class="main">
-
+ 
       <!-- HERO HEADER -->
       <div class="page-hero" :class="{ 'hero-visible': mounted }">
         <div class="hero-left">
@@ -34,20 +33,14 @@
             <p class="hero-sub">Tu perfil y comprobantes de entrega</p>
           </div>
         </div>
-        <button v-if="auth.idUsuario && !cargando && !error" class="btn-edit-hero" @click="abrirModal">
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
-          </svg>
-          Editar Perfil
-        </button>
       </div>
-
+ 
       <!-- CARGANDO -->
       <div v-if="cargando" class="loading-wrap">
         <div class="spinner"></div>
         <p class="loading-text">Cargando perfil...</p>
       </div>
-
+ 
       <!-- ERROR -->
       <div v-else-if="error" class="error-banner">
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -56,9 +49,9 @@
         {{ error }}
         <button class="btn-retry" @click="cargarDatos">Reintentar</button>
       </div>
-
+ 
       <template v-else>
-
+ 
         <!-- SIN SESIÓN -->
         <div v-if="!auth.idUsuario" class="empty-session">
           <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
@@ -67,25 +60,77 @@
           <p class="empty-title">Ingresa con tu cuenta</p>
           <p class="empty-sub">Inicia sesión con tus credenciales reales para ver tu perfil y comprobantes.</p>
         </div>
-
-        <!-- CON SESIÓN -->
+ 
         <template v-else>
-          
-            
-          <!-- BANNER PERFIL -->
-          <div class="profile-banner" :class="{ 'banner-in': mounted }">
-            <div class="avatar-circle" :class="{ 'avatar-in': mounted }">{{ iniciales }}</div>
-            <div class="profile-info">
-              <div class="profile-name">{{ perfil.Nombre_Completo }}</div>
-              <div class="profile-role">Cliente · Texticode</div>
-              <span class="status-pill" :class="perfil.Estado === 'activo' ? 'status-active' : 'status-inactive'">
-                <span class="status-dot"></span>
-                {{ perfil.Estado === 'activo' ? 'Activo' : 'Inactivo' }}
-              </span>
+ 
+          <!-- CARD UNIFICADA con engranajes animados -->
+          <div class="profile-contact-card" :class="{ 'banner-in': mounted }">
+ 
+            <!-- Engranajes decorativos (igual que admin-profile-card) -->
+            <div class="apc-gear gear-big" :class="{ 'gear-spin': mounted }">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.07)" stroke-width=".8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+              </svg>
+            </div>
+            <div class="apc-gear gear-small" :class="{ 'gear-spin-rev': mounted }">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.1)" stroke-width=".8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+              </svg>
+            </div>
+ 
+            <div class="pc-header">
+              <!-- Avatar con paleta dinámica -->
+              <div
+                class="pc-avatar-wrap"
+                :class="{ 'avatar-in': mounted }"
+              >
+                <div
+                  class="pc-avatar"
+                  :style="{ background: avatarBg(perfil.Nombre_Completo), color: avatarColor(perfil.Nombre_Completo) }"
+                >
+                  {{ iniciales }}
+                </div>
+              </div>
+ 
+              <!-- Identidad: solo nombre, sin rol ni estado -->
+              <div class="pc-identity">
+                <div class="pc-name">{{ perfil.Nombre_Completo }}</div>
+              </div>
+ 
+              <!-- Botón editar -->
+              <button class="pc-edit-btn" @click="abrirModal">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+                </svg>
+                Editar Perfil
+              </button>
+            </div>
+ 
+            <!-- Divisor -->
+            <div class="pc-divider"></div>
+ 
+            <!-- Información de contacto -->
+            <div class="pc-contact-grid">
+              <div
+                class="pc-contact-item"
+                v-for="(item, i) in contactItems"
+                :key="item.label"
+                :style="{ animationDelay: mounted ? `${200 + i * 65}ms` : '9999s' }"
+              >
+                <div class="pc-contact-icon">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24"
+                       stroke-width="1.8" stroke="currentColor" style="display:block">
+                    <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon"/>
+                  </svg>
+                </div>
+                <div class="pc-contact-info">
+                  <span class="pc-contact-label">{{ item.label }}</span>
+                  <span class="pc-contact-value">{{ item.value }}</span>
+                </div>
+              </div>
             </div>
           </div>
-          
-
+ 
           <!-- STATS CARDS -->
           <div class="stats-grid" :class="{ 'stats-visible': mounted }">
             <div
@@ -104,34 +149,7 @@
               <p :style="{ color: s.accent }">{{ s.display }}</p>
             </div>
           </div>
-
-          <!-- CONTACTO -->
-          <div class="table-box" :class="{ 'box-visible': mounted }" style="transition-delay: 160ms; padding: 20px 24px; margin-bottom: 20px;">
-            <div class="table-header-bar" style="margin: -20px -24px 18px; border-radius: 14px 14px 0 0;">
-              <div class="table-header-left">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/>
-                </svg>
-                Información de Contacto
-              </div>
-            </div>
-            <div class="contact-grid">
-              <div class="contact-item" v-for="(item, i) in contactItems" :key="item.label"
-                :class="{ 'contact-reveal': mounted }"
-                :style="{ animationDelay: mounted ? `${220 + i * 65}ms` : '0ms' }">
-                <div class="contact-icon-wrap" :style="{ background: item.bg, color: item.color }">
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:block">
-                    <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="c-label">{{ item.label }}</div>
-                  <div class="c-val">{{ item.value }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+ 
           <!-- TABLA COMPROBANTES -->
           <section class="table-box" :class="{ 'box-visible': mounted }" style="transition-delay: 280ms;">
             <div class="table-header-bar">
@@ -143,11 +161,11 @@
                 <span class="count-badge">{{ ordenesOrdenadas.length }}</span>
               </div>
             </div>
-
+ 
             <div v-if="cargandoComprobantes" class="loading-inline-wrap">
               <div class="skeleton-row" v-for="i in 3" :key="i"></div>
             </div>
-
+ 
             <template v-else>
               <table>
                 <thead>
@@ -191,7 +209,7 @@
                   </TransitionGroup>
                 </tbody>
               </table>
-
+ 
               <div v-if="ordenesOrdenadas.length === 0" class="empty-state">
                 <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#9ca3af" width="40" height="40">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -200,11 +218,11 @@
               </div>
             </template>
           </section>
-
+ 
         </template>
       </template>
     </main>
-
+ 
     <!-- MODAL DETALLE -->
     <Transition name="modal">
       <div v-if="ordenSeleccionada" class="modal" @click.self="ordenSeleccionada = null">
@@ -231,7 +249,7 @@
         </div>
       </div>
     </Transition>
-
+ 
     <!-- MODAL EDITAR PERFIL -->
     <Transition name="modal">
       <div v-if="modalVisible" class="modal" @click.self="cerrarModal">
@@ -265,43 +283,52 @@
         </div>
       </div>
     </Transition>
-
+ 
     <!-- TOAST -->
     <Transition name="toast">
       <div v-if="toast.visible" class="toast" :class="'toast-' + toast.type">{{ toast.msg }}</div>
     </Transition>
-
   </div>
 </template>
-
+ 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
 import { getUsuario, actualizarUsuario, getOrdenesDeCliente, getComprobantes } from '../../services/api'
-
+ 
 const auth = useAuthStore()
-
-const mounted             = ref(false)
-const cargando            = ref(true)
+ 
+const mounted              = ref(false)
+const cargando             = ref(true)
 const cargandoComprobantes = ref(false)
-const error               = ref('')
-const errorGuardar        = ref('')
-const guardando           = ref(false)
-const modalVisible        = ref(false)
-const mostrarPassword     = ref(false)
-const toast               = ref({ visible: false, msg: '', type: 'success' })
-const ordenSeleccionada   = ref(null)
-
-const perfil      = ref({})
-const ordenes     = ref([])
-const formEdicion = ref({})
-
-// Contadores animados
+const error                = ref('')
+const errorGuardar         = ref('')
+const guardando            = ref(false)
+const modalVisible         = ref(false)
+const mostrarPassword      = ref(false)
+const toast                = ref({ visible: false, msg: '', type: 'success' })
+const ordenSeleccionada    = ref(null)
+const perfil               = ref({})
+const ordenes              = ref([])
+const formEdicion          = ref({})
+ 
 const displayOrdenes    = ref(0)
 const displayEntregadas = ref(0)
 const displayPendientes = ref(0)
-
+ 
+// ── PALETA DE AVATARES (igual que el primer código) ──
+const PALETTES = [
+  { bg: '#dbeafe', color: '#1d4ed8' },
+  { bg: '#fce7f3', color: '#be185d' },
+  { bg: '#d1fae5', color: '#065f46' },
+  { bg: '#fef9c3', color: '#92400e' },
+  { bg: '#ede9fe', color: '#5b21b6' },
+  { bg: '#fee2e2', color: '#991b1b' },
+]
+function avatarBg(n)    { return PALETTES[(n?.charCodeAt(0) || 0) % PALETTES.length].bg }
+function avatarColor(n) { return PALETTES[(n?.charCodeAt(0) || 0) % PALETTES.length].color }
+ 
 function animateCount(targetRef, target) {
   let val = 0
   const step = Math.max(1, Math.ceil(target / 40))
@@ -311,28 +338,27 @@ function animateCount(targetRef, target) {
     else targetRef.value = val
   }, 20)
 }
-
+ 
 const iniciales = computed(() =>
   (perfil.value.Nombre_Completo || '').split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()
 )
-
-const ICON_ORDERS  = 'm9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185Z'
-const ICON_CHECK   = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
-const ICON_CLOCK   = 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
-
+ 
+const ICON_ORDERS = 'm9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185Z'
+const ICON_CHECK  = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+const ICON_CLOCK  = 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+ 
 const statsCards = computed(() => [
-  { label: 'Órdenes totales',  display: displayOrdenes.value,    accent: '#1f3a52', icon: ICON_ORDERS },
-  { label: 'Entregadas',       display: displayEntregadas.value, accent: '#16a34a', icon: ICON_CHECK  },
-  { label: 'Pendientes',       display: displayPendientes.value, accent: '#d97706', icon: ICON_CLOCK  },
+  { label: 'Órdenes totales', display: displayOrdenes.value,    accent: '#1f3a52', icon: ICON_ORDERS },
+  { label: 'Entregadas',      display: displayEntregadas.value, accent: '#16a34a', icon: ICON_CHECK  },
+  { label: 'Pendientes',      display: displayPendientes.value, accent: '#d97706', icon: ICON_CLOCK  },
 ])
-
+ 
 const contactItems = computed(() => [
-  { label: 'Email',    value: perfil.value.Correo         || '—', color: '#2563eb', bg: '#eff6ff', icon: 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75' },
-  { label: 'Teléfono', value: perfil.value.Telefono       || '—', color: '#16a34a', bg: '#f0fdf4', icon: 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25Z' },
-  { label: 'Usuario',  value: perfil.value.Nombre_Usuario || '—', color: '#7c3aed', bg: '#ede9fe', icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0' },
+  { label: 'Email',    value: perfil.value.Correo         || '—', icon: 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75' },
+  { label: 'Teléfono', value: perfil.value.Telefono       || '—', icon: 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25Z' },
+  { label: 'Usuario',  value: perfil.value.Nombre_Usuario || '—', icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0' },
 ])
-
-// Ordenamiento comprobantes
+ 
 const sortKeyOrdenes = ref('numero')
 const sortDirOrdenes = ref(1)
 function sortOrdenes(key) {
@@ -348,7 +374,7 @@ const ordenesOrdenadas = computed(() =>
     return (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * sortDirOrdenes.value
   })
 )
-
+ 
 async function cargarDatos() {
   cargando.value = true; error.value = ''
   try {
@@ -385,7 +411,7 @@ async function cargarDatos() {
     cargando.value = false
   }
 }
-
+ 
 onMounted(async () => {
   await cargarDatos()
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -395,7 +421,7 @@ onMounted(async () => {
     animateCount(displayPendientes, ordenes.value.filter(o => o.estadoClass === 'danger').length)
   }))
 })
-
+ 
 function verDetalle(o) { ordenSeleccionada.value = o }
 function descargar(o) {
   o.flash = true; setTimeout(() => { o.flash = false }, 1200)
@@ -417,7 +443,7 @@ async function guardarCambios() {
 }
 function mostrarToast(msg, type = 'success') { toast.value = { visible: true, msg, type }; setTimeout(() => { toast.value.visible = false }, 2800) }
 </script>
-
+ 
 <style scoped>
 /* ── FONDO DECORATIVO ── */
 .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
@@ -429,11 +455,11 @@ function mostrarToast(msg, type = 'success') { toast.value = { visible: true, ms
 @keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
 @keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
 .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px); background-size: 40px 40px; }
-
+ 
 .main { flex: 1; padding: 28px 30px; overflow-y: auto; position: relative; z-index: 1; }
-
-/* ── HERO HEADER ── */
-.page-hero { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; opacity: 0; transform: translateY(-16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+ 
+/* ── HERO ── */
+.page-hero { display: flex; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; opacity: 0; transform: translateY(-16px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .page-hero.hero-visible { opacity: 1; transform: translateY(0); }
 .hero-left { display: flex; align-items: center; gap: 16px; }
 .hero-text { display: flex; flex-direction: column; }
@@ -447,34 +473,178 @@ function mostrarToast(msg, type = 'success') { toast.value = { visible: true, ms
 .title-char { display: inline-block; opacity: 0; transform: translateY(12px); animation: charReveal 0.4s ease forwards; }
 @keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
 .hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
-.btn-edit-hero { display: flex; align-items: center; gap: 6px; background: #1f3a52; color: white; border: none; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; flex-shrink: 0; }
-.btn-edit-hero:hover { background: #162b3c; transform: translateY(-1px); }
-
-/* ── BANNER PERFIL ── */
-.profile-banner { background: linear-gradient(135deg, #111827 0%, #1f3a52 55%, #0f2236 100%); border-radius: 16px; padding: 26px 28px; display: flex; align-items: center; gap: 20px; margin-bottom: 20px; opacity: 0; transform: translateY(22px) scale(0.97); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1); }
-.profile-banner.banner-in { opacity: 1; transform: none; }
-.avatar-circle { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #2d5f8a, #4a90c8); color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(255,255,255,0.1); opacity: 0; transform: scale(0.4); transition: opacity 0.6s ease 0.1s, transform 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.1s; }
-.avatar-circle.avatar-in { opacity: 1; transform: scale(1); }
-.profile-info { flex: 1; }
-.profile-name { font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px; }
-.profile-role { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 8px; }
-.status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
-.status-active { background: #dcfce7; color: #166534; }
-.status-inactive { background: #fee2e2; color: #991b1b; }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: blink 2s ease-in-out infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-/* Engranajes */
-.gear-deco { position: absolute; pointer-events: none; }
-.gear-big  { width: 160px; height: 160px; right: -20px; top: -30px; }
-.gear-small { width: 80px; height: 80px; right: 110px; bottom: -20px; }
-.gear-big svg, .gear-small svg { width: 100%; height: 100%; }
+ 
+/* ══════════════════════════════════════════
+   CARD PERFIL CON ENGRANAJES ANIMADOS
+══════════════════════════════════════════ */
+.profile-contact-card {
+  background: linear-gradient(135deg, #111827 0%, #1f3a52 55%, #0f2236 100%);
+  border-radius: 18px;
+  padding: 26px 28px;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(22px) scale(0.97);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(15, 34, 54, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.profile-contact-card.banner-in { opacity: 1; transform: none; }
+ 
+/* Engranajes decorativos (tomados del primer código) */
+.apc-gear { position: absolute; pointer-events: none; }
+.apc-gear svg { width: 100%; height: 100%; }
+.apc-gear.gear-big   { width: 160px; height: 160px; right: -20px; top: -30px; }
+.apc-gear.gear-small { width: 80px;  height: 80px;  right: 115px; bottom: -20px; }
 .gear-spin     { animation: gearTurn 20s linear infinite; }
 .gear-spin-rev { animation: gearTurn 14s linear infinite reverse; }
-.gear-big.gear-spin     { transform-origin: 80px 80px; }
-.gear-small.gear-spin-rev { transform-origin: 40px 40px; }
+.apc-gear.gear-big   { transform-origin: center; }
+.apc-gear.gear-small { transform-origin: center; }
 @keyframes gearTurn { to { transform: rotate(360deg); } }
-
+ 
+/* ── CABECERA ── */
+.pc-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+ 
+/* Avatar con paleta dinámica */
+.pc-avatar-wrap {
+  flex-shrink: 0;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.5s ease 0.1s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s;
+}
+.pc-avatar-wrap.avatar-in { opacity: 1; transform: scale(1); }
+.pc-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  border: 2.5px solid rgba(255,255,255,0.25);
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.3);
+}
+ 
+/* Identidad: solo nombre */
+.pc-identity {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.pc-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+ 
+/* Botón editar */
+.pc-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s, transform 0.15s;
+  position: relative;
+  z-index: 1;
+}
+.pc-edit-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+ 
+/* Divisor */
+.pc-divider {
+  margin: 22px 0 18px;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  z-index: 1;
+}
+ 
+/* ── GRID DE CONTACTO ── */
+.pc-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+ 
+.pc-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  opacity: 0;
+  animation: contactReveal 0.4s ease both;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.pc-contact-item:hover {
+  background: rgba(255,255,255,0.13);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+@keyframes contactReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+.pc-contact-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+ 
+.pc-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pc-contact-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.pc-contact-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+ 
 /* ── STATS ── */
 .stats-grid { display: flex; gap: 18px; margin-bottom: 20px; }
 .stat-card { background: white; flex: 1; padding: 20px 20px 20px 24px; border-radius: 14px; border: 1px solid #e5e7eb; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s; }
@@ -484,26 +654,15 @@ function mostrarToast(msg, type = 'success') { toast.value = { visible: true, ms
 .stat-icon-bg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); opacity: 0.07; }
 .stat-icon-bg svg { width: 52px; height: 52px; }
 .stat-card h3 { font-size: 13px; color: #6b7280; font-weight: 500; margin: 0 0 10px 0; }
-.stat-card p { font-size: 30px; font-weight: 800; margin: 0; line-height: 1; }
-
-/* ── CONTACTO ── */
-.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.contact-item { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 10px; border: 1px solid #f3f4f6; background: #fafbfc; opacity: 0; transform: translateY(8px); animation: contactReveal 0.4s ease both; transition: background 0.2s, border-color 0.2s, transform 0.2s; }
-.contact-item:hover { background: white; border-color: #e0eaf2; transform: translateY(-1px); }
-@keyframes contactReveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.contact-icon-wrap { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.c-label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
-.c-val   { font-size: 13px; font-weight: 600; color: #111827; }
-
-/* ── TABLE BOX ── */
+.stat-card p  { font-size: 30px; font-weight: 800; margin: 0; line-height: 1; }
+ 
+/* ── TABLA ── */
 .table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; margin-bottom: 20px; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
 .box-visible { opacity: 1; transform: translateY(0); }
 .table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; }
 .table-header-left { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #374151; }
 .table-header-left svg { color: #1f3a52; }
 .count-badge { background: #1f3a52; color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; line-height: 1.6; }
-
-/* ── TABLA ── */
 table { width: 100%; border-collapse: collapse; }
 thead { background: #f9fafb; }
 th { text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; padding: 13px 18px; white-space: nowrap; }
@@ -522,17 +681,15 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .success { background: #dcfce7; color: #15803d; }
 .danger  { background: #fee2e2; color: #b91c1c; }
 .actions { display: flex; gap: 8px; align-items: center; }
-.action-btn { width: 32px; height: 32px; border-radius: 7px; border: none; background: #1f3a52; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: all 0.15s; -webkit-font-smoothing: antialiased; }
-.action-btn svg { pointer-events: none; filter: drop-shadow(0 0 0.3px rgba(255,255,255,0.4)); }
-.view-btn:hover { background: #2d5580; transform: scale(1.07); }
+.action-btn { width: 32px; height: 32px; border-radius: 7px; border: none; background: #1f3a52; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: all 0.15s; }
+.action-btn svg { pointer-events: none; }
+.view-btn:hover     { background: #2d5580; transform: scale(1.07); }
 .download-btn:hover { background: #1d4ed8; transform: scale(1.07); }
-
-/* ── SKELETON ── */
+ 
+/* ── SKELETON / LOADING / EMPTY ── */
 .loading-inline-wrap { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 .skeleton-row { height: 48px; border-radius: 8px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* ── EMPTY / LOADING ── */
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 44px 0; color: #9ca3af; font-size: 14px; }
 .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 80px 0; gap: 16px; position: relative; z-index: 1; }
 .spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spin 0.7s linear infinite; }
@@ -543,37 +700,35 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .empty-session { display: flex; flex-direction: column; align-items: center; padding: 80px 24px; gap: 12px; text-align: center; position: relative; z-index: 1; }
 .empty-title { font-size: 16px; font-weight: 600; color: #374151; }
 .empty-sub   { font-size: 13px; color: #9ca3af; max-width: 320px; line-height: 1.6; }
-
+ 
 /* ── MODAL ── */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
 .modal-container { background: white; border-radius: 16px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
-.modal-title { font-size: 16px; font-weight: 700; color: #111827; }
-.modal-close { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; }
+.modal-title  { font-size: 16px; font-weight: 700; color: #111827; }
+.modal-close  { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; }
 .modal-close:hover { background: #f3f4f6; }
-.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.modal-body   { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid #f3f4f6; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 12px; font-weight: 600; color: #374151; }
-.form-input { border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #111827; outline: none; transition: border-color 0.2s; }
+.form-group   { display: flex; flex-direction: column; gap: 5px; }
+.form-label   { font-size: 12px; font-weight: 600; color: #374151; }
+.form-input   { border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #111827; outline: none; transition: border-color 0.2s; }
 .form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
-.input-wrap { display: flex; align-items: center; border: 1.5px solid #e5e7eb; border-radius: 8px; }
+.input-wrap   { display: flex; align-items: center; border: 1.5px solid #e5e7eb; border-radius: 8px; }
 .input-wrap:focus-within { border-color: #1f3a52; }
 .input-wrap .form-input { flex: 1; border: none; outline: none; box-shadow: none !important; }
-.toggle-pass { background: none; border: none; cursor: pointer; padding: 0 10px; color: #9ca3af; }
+.toggle-pass  { background: none; border: none; cursor: pointer; padding: 0 10px; color: #9ca3af; }
 .toggle-pass:hover { color: #374151; }
 .btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; }
 .btn-cancelar:hover { background: #f3f4f6; }
-.btn-guardar { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-guardar  { background: #1f3a52; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
 .btn-guardar:hover:not(:disabled) { background: #162b3c; }
 .btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
 .error-inline { color: #dc2626; font-size: 13px; padding: 4px 24px; }
-
-/* Detalle grid */
 .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .detalle-item { display: flex; flex-direction: column; gap: 4px; }
 .detalle-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
-
+ 
 /* ── TOAST ── */
 .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 2000; }
 .toast-success { background: #166534; color: white; }
@@ -584,10 +739,15 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 .row-enter-active, .row-leave-active { transition: opacity 0.3s ease; }
 .row-enter-from, .row-leave-to { opacity: 0; }
-
+ 
+/* ── RESPONSIVE ── */
 @media (max-width: 960px) {
+  .main { padding: 20px 16px; }
   .stats-grid { flex-direction: column; }
-  .page-hero { flex-direction: column; align-items: flex-start; }
-  .contact-grid { grid-template-columns: 1fr; }
+  .pc-contact-grid { grid-template-columns: 1fr 1fr; }
+  .pc-edit-btn { width: 100%; justify-content: center; }
+}
+@media (max-width: 600px) {
+  .pc-contact-grid { grid-template-columns: 1fr; }
 }
 </style>
