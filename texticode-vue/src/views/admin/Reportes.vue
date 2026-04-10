@@ -28,20 +28,7 @@
             <p class="hero-sub">Análisis y exportación de datos de la operación</p>
           </div>
         </div>
-        <div class="hero-filter-wrap">
-          <div class="select-wrapper">
-            <select v-model="tipoFiltro" class="type-select">
-              <option value="">Todos los tipos</option>
-              <option>Ventas</option>
-              <option>Inventario</option>
-              <option>Clientes</option>
-              <option>Producción</option>
-            </select>
-            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-            </svg>
-          </div>
-        </div>
+
       </div>
 
       <!-- STATS CARDS -->
@@ -124,6 +111,18 @@
             </svg>
             Reportes Disponibles
             <span class="count-badge">{{ reportes.length }} reporte{{ reportes.length !== 1 ? 's' : '' }}</span>
+          </div>
+          <div class="select-wrapper">
+            <select v-model="tipoFiltro" class="type-select">
+              <option value="">Todos los tipos</option>
+              <option>Ventas</option>
+              <option>Inventario</option>
+              <option>Clientes</option>
+              <option>Producción</option>
+            </select>
+            <svg class="select-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+            </svg>
           </div>
         </div>
 
@@ -345,28 +344,28 @@ const reportesData = reactive([
   {
     titulo: 'Reporte de Producción', tipo: 'Producción',
     periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
-    generado: new Date().toISOString().split('T')[0], subtitulo: 'Cargando...',
+    generado: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })(), subtitulo: 'Cargando...',
     downloading: false, exporting: false,
     iconPath: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'
   },
   {
     titulo: 'Inventario Stock Bajo', tipo: 'Inventario',
     periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
-    generado: new Date().toISOString().split('T')[0], subtitulo: 'Cargando...',
+    generado: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })(), subtitulo: 'Cargando...',
     downloading: false, exporting: false,
     iconPath: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9'
   },
   {
     titulo: 'Análisis de Clientes', tipo: 'Clientes',
     periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
-    generado: new Date().toISOString().split('T')[0], subtitulo: 'Cargando...',
+    generado: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })(), subtitulo: 'Cargando...',
     downloading: false, exporting: false,
     iconPath: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
   },
   {
     titulo: 'Resumen de Órdenes', tipo: 'Ventas',
     periodo: new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
-    generado: new Date().toISOString().split('T')[0], subtitulo: 'Cargando...',
+    generado: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })(), subtitulo: 'Cargando...',
     downloading: false, exporting: false,
     iconPath: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
   },
@@ -872,7 +871,6 @@ function slugify(value) { return value.toLowerCase().replace(/\s+/g, '-') }
 .title-char { display: inline-block; opacity: 0; transform: translateY(12px); animation: charReveal 0.4s ease forwards; }
 @keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
 .hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
-.hero-filter-wrap { flex-shrink: 0; }
 .select-wrapper { position: relative; display: inline-flex; align-items: center; }
 .type-select { padding: 9px 36px 9px 14px; border-radius: 10px; border: 1.5px solid #e5e7eb; background: white; font-size: 14px; color: #374151; appearance: none; -webkit-appearance: none; cursor: pointer; min-width: 190px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
 .type-select:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
@@ -892,16 +890,16 @@ function slugify(value) { return value.toLowerCase().replace(/\s+/g, '-') }
 .change-icon  { width: 14px; height: 14px; flex-shrink: 0; }
 
 /* TABLE BOX */
-.table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; margin-bottom: 28px; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
+.table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; margin-bottom: 28px; overflow: visible; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
 .box-visible { opacity: 1; transform: translateY(0); }
-.table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; }
+.table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; border-radius: 14px 14px 0 0; }
 .table-header-left { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #374151; }
 .table-header-left svg { color: #1f3a52; }
 .count-badge { background: #1f3a52; color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; line-height: 1.6; }
 
 /* ── CHART — con overflow visible para tooltip ── */
 .chart-container { overflow: visible; padding: 0 20px; }
-.chart { display: flex; align-items: flex-end; gap: 16px; height: 220px; margin: 20px 0 16px; position: relative; overflow: visible; }
+.chart { display: flex; align-items: flex-end; gap: 16px; height: 220px; margin: 60px 0 16px; position: relative; overflow: visible; }
 .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; cursor: pointer; position: relative; overflow: visible; }
 .bar-wrapper { display: flex; align-items: flex-end; width: 100%; justify-content: center; position: relative; overflow: visible; }
 
@@ -958,14 +956,14 @@ function slugify(value) { return value.toLowerCase().replace(/\s+/g, '-') }
 .bar-counts { display: flex; gap: 6px; font-size: 12px; font-weight: 600; margin-top: 2px; }
 .c-dark   { color: #1f3a52; }
 .c-orange { color: #94a3b8; }
-.legend   { display: flex; gap: 20px; font-size: 13px; color: #374151; justify-content: center; margin: 0 20px 20px; }
+.legend   { display: flex; gap: 20px; font-size: 13px; color: #374151; justify-content: center; margin: 0 20px 20px; border-radius: 0 0 14px 14px; }
 .legend-item { display: flex; align-items: center; gap: 6px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .dot-dark   { background: #1f3a52; }
 .dot-orange { background: #94a3b8; }
 
 /* REPORT LIST */
-.report-list-wrap { padding: 16px 20px; }
+.report-list-wrap { padding: 16px 20px; border-radius: 0 0 14px 14px; overflow: hidden; }
 .report-list { display: flex; flex-direction: column; gap: 12px; }
 .report-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: white; transition: border-color 0.2s, box-shadow 0.2s; animation: rowSlideIn 0.35s ease both; }
 .report-row:hover { border-color: #d1d5db; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
