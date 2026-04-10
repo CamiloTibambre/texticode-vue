@@ -120,27 +120,35 @@
 
             <div class="nosotros-pills">
               <div class="n-pill">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+                <span class="pill-icon-wrap pill-green">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </span>
                 Reduce errores operativos
               </div>
               <div class="n-pill">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+                <span class="pill-icon-wrap pill-blue">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </span>
                 Ahorra tiempo en gestión
               </div>
               <div class="n-pill">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z"/>
-                </svg>
+                <span class="pill-icon-wrap pill-indigo">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125m0 5.625c0 2.278 3.694 4.125 8.25 4.125s8.25-1.847 8.25-4.125"/>
+                  </svg>
+                </span>
                 Centraliza la información
               </div>
               <div class="n-pill">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
-                </svg>
+                <span class="pill-icon-wrap pill-amber">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+                  </svg>
+                </span>
                 Acceso seguro por roles
               </div>
             </div>
@@ -769,8 +777,38 @@ onUnmounted(() => {
 .section-nosotros { background: white; }
 .nosotros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: flex-start; margin-top: 32px; }
 .nosotros-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-.n-pill { display: flex; align-items: center; gap: 7px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--deep); }
-.n-pill svg { flex-shrink: 0; color: var(--mid); }
+.n-pill {
+  display: flex; align-items: center; gap: 9px;
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  border-radius: 999px; padding: 7px 16px 7px 7px;
+  font-size: 13px; font-weight: 600; color: var(--deep);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  cursor: default; overflow: visible;
+}
+.n-pill:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(31,58,82,0.12);
+  background: #e8eef6;
+}
+.pill-icon-wrap {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  animation: iconFloat 4s ease-in-out infinite;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+.n-pill:nth-child(1) .pill-icon-wrap { animation-delay: 0s; }
+.n-pill:nth-child(2) .pill-icon-wrap { animation-delay: -1s; }
+.n-pill:nth-child(3) .pill-icon-wrap { animation-delay: -2s; }
+.n-pill:nth-child(4) .pill-icon-wrap { animation-delay: -3s; }
+.n-pill:hover .pill-icon-wrap {
+  transform: scale(1.25) rotate(-8deg);
+  animation-play-state: paused;
+}
+.pill-green  { background: #dcfce7; color: #16a34a; }
+.pill-blue   { background: #dbeafe; color: #2563eb; }
+.pill-indigo { background: #e0e7ff; color: #4338ca; }
+.pill-amber  { background: #fef3c7; color: #d97706; }
 
 .prob-sol-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
 .ps-section { padding: 22px 24px; }
@@ -912,17 +950,62 @@ onUnmounted(() => {
 
 .obj-timeline-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 24px; }
 .obj-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.obj-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow 0.2s, transform 0.2s; }
-.obj-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-2px); }
 .obj-num { font-size: 22px; font-weight: 800; color: #e0eaf2; letter-spacing: -0.03em; }
 .obj-item p { font-size: 13px; color: #4b5563; line-height: 1.65; margin: 0; }
+.obj-item {
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 18px; display: flex; flex-direction: column; gap: 10px;
+  animation: objFloat 5s ease-in-out infinite;
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1), border-color 0.25s ease;
+  cursor: default;
+}
+.obj-item:nth-child(1) { animation-delay: 0s; }
+.obj-item:nth-child(2) { animation-delay: -0.8s; }
+.obj-item:nth-child(3) { animation-delay: -1.6s; }
+.obj-item:nth-child(4) { animation-delay: -2.4s; }
+.obj-item:nth-child(5) { animation-delay: -3.2s; }
+.obj-item:nth-child(6) { animation-delay: -4s; }
+.obj-item:hover {
+  box-shadow: 0 8px 24px rgba(31,58,82,0.12);
+  transform: translateY(-6px) scale(1.02) !important;
+  border-color: #c8d8e8;
+  animation-play-state: paused;
+}
+@keyframes objFloat {
+  0%, 100% { transform: translateY(0px); }
+  40%       { transform: translateY(-5px); }
+  70%       { transform: translateY(-3px); }
+}
 
 /* ── STACK ── */
 .section-stack { background: #f8fafc; }
 .stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
-.tech-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 22px 18px; text-align: center; transition: box-shadow 0.2s, transform 0.2s; }
-.tech-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-3px); }
-.tech-icon-wrap { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+.tech-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 14px;
+  padding: 22px 18px; text-align: center;
+  animation: cardBob 5s ease-in-out infinite;
+  transition: box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1), border-color 0.28s ease;
+  cursor: default;
+}
+.tech-card:nth-child(1) { animation-delay: 0s; }
+.tech-card:nth-child(2) { animation-delay: -1.25s; }
+.tech-card:nth-child(3) { animation-delay: -2.5s; }
+.tech-card:nth-child(4) { animation-delay: -3.75s; }
+.tech-card:hover {
+  box-shadow: 0 14px 36px rgba(31,58,82,0.14);
+  transform: translateY(-8px) scale(1.03) !important;
+  border-color: #c8d8e8;
+  animation-play-state: paused;
+}
+.tech-icon-wrap {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tech-card:hover .tech-icon-wrap {
+  transform: scale(1.18) rotate(-5deg);
+}
 .tech-icon-text { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; }
 .tech-name { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 4px; }
 .tech-role { font-size: 12px; color: #9ca3af; }
@@ -930,9 +1013,33 @@ onUnmounted(() => {
 /* ── EQUIPO ── */
 .section-equipo { background: white; }
 .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px; }
-.team-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px; padding: 28px 20px; text-align: center; transition: box-shadow 0.2s, transform 0.2s; }
-.team-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); transform: translateY(-3px); }
-.team-avatar { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; margin: 0 auto 16px; }
+.team-card {
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px;
+  padding: 28px 20px; text-align: center;
+  animation: cardBob 5.5s ease-in-out infinite;
+  transition: box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1), border-color 0.28s ease;
+  cursor: default;
+}
+.team-card:nth-child(1) { animation-delay: 0s; }
+.team-card:nth-child(2) { animation-delay: -1.375s; }
+.team-card:nth-child(3) { animation-delay: -2.75s; }
+.team-card:nth-child(4) { animation-delay: -4.125s; }
+.team-card:hover {
+  box-shadow: 0 14px 36px rgba(0,0,0,0.1);
+  transform: translateY(-8px) scale(1.03) !important;
+  border-color: #d1d5db;
+  animation-play-state: paused;
+}
+.team-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; margin: 0 auto 16px;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+}
+.team-card:hover .team-avatar {
+  transform: scale(1.15) translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.14);
+}
 .team-name { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 6px; }
 .team-role { font-size: 12px; color: #9ca3af; }
 
@@ -1045,5 +1152,10 @@ onUnmounted(() => {
   30%       { transform: translateY(-4px) rotate(1deg); }
   60%       { transform: translateY(-2px) rotate(-0.5deg); }
   80%       { transform: translateY(-5px) rotate(0.8deg); }
+}
+@keyframes cardBob {
+  0%, 100% { transform: translateY(0px); }
+  40%       { transform: translateY(-6px); }
+  70%       { transform: translateY(-3px); }
 }
 </style>
