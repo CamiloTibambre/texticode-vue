@@ -8,6 +8,9 @@ const routes = [
   // LOGIN
   { path: '/login', name: 'Login',   component: () => import('../views/LoginView.vue') },
 
+  // CAMBIAR CONTRASEÑA (recuperación por correo)
+  { path: '/cambiar-contrasena', name: 'CambiarContrasena', component: () => import('../views/CambiarContrasena.vue') },
+
   // ADMINISTRADOR
   { path: '/admin/usuarios',   name: 'AdminUsuarios',   component: () => import('../views/admin/GestionUsuarios.vue'),   meta: { rol: 'admin' } },
   { path: '/admin/clientes',   name: 'AdminClientes',   component: () => import('../views/admin/GestionClientes.vue'),   meta: { rol: 'admin' } },
