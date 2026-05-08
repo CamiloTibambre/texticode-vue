@@ -297,13 +297,10 @@ import { ref, computed, onMounted } from 'vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import { useAuthStore } from '../../stores/auth'
 
-<<<<<<< HEAD
 // ── SENDGRID ───────────────────────────────────────────────────
 import { useNotificaciones } from '../../composables/useNotificaciones'
 const { notificarEstado } = useNotificaciones()
 
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 const auth = useAuthStore()
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
@@ -333,7 +330,6 @@ function estadoLabel(estado) {
   return { 'en-proceso': 'En Proceso', 'completado': 'Completado', 'pausado': 'Pausado' }[estado] || estado
 }
 
-<<<<<<< HEAD
 // ── Helper: obtener correo del cliente por Id ──────────────────
 async function obtenerCorreoCliente(idCliente) {
   try {
@@ -346,8 +342,6 @@ async function obtenerCorreoCliente(idCliente) {
   }
 }
 
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 // ── Carga ──
 onMounted(async () => {
   if (!auth.idUsuario) { cargando.value = false; setTimeout(() => { mounted.value = true }, 80); return }
@@ -378,13 +372,10 @@ onMounted(async () => {
         return {
           id:              `OP-${String(t.Id_Orden).padStart(3,'0')}`,
           idReal:          t.Id_Orden,
-<<<<<<< HEAD
           idCliente:       t.Id_Cliente,          // ← guardamos el Id_Cliente
           nombre:          t.Descripcion,
           producto:        t.Producto || t.Descripcion,
-=======
           nombre:          t.Descripcion,
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
           estado,
           prioridad:       (t.Prioridad || 'Media').toLowerCase(),
           unidadesHechas:  realizadas,
@@ -403,17 +394,14 @@ onMounted(async () => {
 })
 
 // ── Computed ──
-<<<<<<< HEAD
 const ordenesActivas          = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
 const historialOrdenado       = computed(() => [...historial.value].reverse())
 const totalUnidadesReportadas = computed(() => historial.value.reduce((acc, h) => acc + h.nuevas, 0))
 const ordenesUnicas           = computed(() => new Set(historial.value.map(h => h.ordenId)).size)
-=======
 const ordenesActivas     = computed(() => ordenes.value.filter(o => o.estado !== 'completado'))
 const historialOrdenado  = computed(() => [...historial.value].reverse())
 const totalUnidadesReportadas = computed(() => historial.value.reduce((acc, h) => acc + h.nuevas, 0))
 const ordenesUnicas = computed(() => new Set(historial.value.map(h => h.ordenId)).size)
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 
 // ── Modal ──
 function abrirModal(o) {
@@ -468,7 +456,6 @@ async function togglePausa(o) {
 
     o.estado = siguienteEstado === 'Pausado' ? 'pausado' : 'en-proceso'
     showToast(siguienteEstado === 'Pausado' ? 'Orden pausada correctamente' : 'Orden reanudada correctamente', 'toast-success')
-<<<<<<< HEAD
 
     // ── SENDGRID: notificar al cliente que la orden fue pausada/reanudada ──
     const cliente = await obtenerCorreoCliente(o.idCliente)
@@ -484,8 +471,6 @@ async function togglePausa(o) {
       )
     }
 
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   } catch (err) {
     console.error('Error pausando/reanudando:', err)
     showToast('No se pudo actualizar el estado de la orden', 'toast-error')
@@ -544,7 +529,6 @@ async function enviarReporte() {
 
     showToast('Reporte enviado correctamente', 'toast-success')
     cerrarModal()
-<<<<<<< HEAD
 
     // ── SENDGRID: notificar al cliente solo si la orden se completó ──
     if (nuevoEstado === 'Completada') {
@@ -562,8 +546,6 @@ async function enviarReporte() {
       }
     }
 
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   } catch (err) {
     console.error('Error:', err)
     showToast('Error al enviar el reporte', 'toast-error')
@@ -595,7 +577,6 @@ function showToast(msg, type = 'toast-success') {
 .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px); background-size: 40px 40px; }
 
 /* ── HERO HEADER ── */
-<<<<<<< HEAD
 .page-hero { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; opacity: 0; transform: translateY(-16px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .page-hero.hero-visible { opacity: 1; transform: translateY(0); }
 .hero-left { display: flex; align-items: center; gap: 16px; }
@@ -608,7 +589,6 @@ function showToast(msg, type = 'toast-success') {
 @keyframes iconPulse { 0% { transform: scale(0.7); opacity: 0.5; } 100% { transform: scale(1.4); opacity: 0; } }
 .hero-title { font-size: 24px; font-weight: 700; color: #111827; margin: 0; display: flex; flex-wrap: wrap; }
 .title-char { display: inline-block; opacity: 0; transform: translateY(12px); animation: charReveal 0.4s ease forwards; }
-=======
 .page-hero {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
@@ -645,21 +625,17 @@ function showToast(msg, type = 'toast-success') {
   display: inline-block; opacity: 0; transform: translateY(12px);
   animation: charReveal 0.4s ease forwards;
 }
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 @keyframes charReveal { to { opacity: 1; transform: translateY(0); } }
 .hero-sub { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
 
 /* ── TABS ── */
-<<<<<<< HEAD
 .tabs-wrapper { display: flex; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 5px; margin-bottom: 22px; gap: 4px; opacity: 0; transform: translateY(12px); transition: opacity 0.4s ease, transform 0.4s ease; }
-=======
 .tabs-wrapper {
   display: flex; background: white; border: 1px solid #e5e7eb;
   border-radius: 12px; padding: 5px; margin-bottom: 22px; gap: 4px;
   opacity: 0; transform: translateY(12px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .tabs-wrapper.section-visible { opacity: 1; transform: translateY(0); }
 .tab-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.18s; }
 .tab-btn:hover:not(.active) { background: #f3f4f6; color: #374151; }
@@ -677,13 +653,11 @@ function showToast(msg, type = 'toast-success') {
 .empty-hint { font-size: 12px; color: #d1d5db; }
 
 /* ── GRID ÓRDENES ── */
-<<<<<<< HEAD
 .orders-grid { display: flex; flex-direction: column; gap: 16px; opacity: 0; transform: translateY(12px); transition: opacity .45s ease, transform .45s ease; }
 .orders-grid.section-visible { opacity: 1; transform: translateY(0); }
 .order-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; }
 .order-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.07); transform: translateY(-2px); }
 .order-card.card-pausada { border-color: #fde68a; background: #fffef7; opacity: 0.9; }
-=======
 .orders-grid {
   display: flex; flex-direction: column; gap: 16px;
   opacity: 0; transform: translateY(12px);
@@ -698,15 +672,11 @@ function showToast(msg, type = 'toast-success') {
 .order-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.07); transform: translateY(-2px); }
 .order-card.card-pausada { border-color: #fde68a; background: #fffef7; opacity: 0.9; }
 
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .oc-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 12px; border-bottom: 1px solid #f3f4f6; }
 .oc-header.en-proceso { background: linear-gradient(90deg, #eff6ff, transparent); border-bottom-color: #dbeafe; }
 .oc-header.pausado    { background: linear-gradient(90deg, #fffbeb, transparent); border-bottom-color: #fde68a; }
 .oc-header.completado { background: linear-gradient(90deg, #f0fdf4, transparent); border-bottom-color: #bbf7d0; }
-<<<<<<< HEAD
-=======
 
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .oc-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .oc-id   { font-size: 13px; font-weight: 700; color: #1f3a52; }
 .oc-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
@@ -717,19 +687,13 @@ function showToast(msg, type = 'toast-success') {
 .oc-prio.alta  { background: #fee2e2; color: #991b1b; }
 .oc-prio.media { background: #fef3c7; color: #92400e; }
 .oc-prio.baja  { background: #f0fdf4; color: #166534; }
-<<<<<<< HEAD
-=======
 
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .btn-pausa { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: white; font-size: 12px; font-weight: 600; color: #374151; cursor: pointer; transition: all 0.15s; }
 .btn-pausa:hover:not(:disabled) { background: #fef3c7; border-color: #fde68a; color: #b45309; }
 .btn-reanudar { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
 .btn-reanudar:hover:not(:disabled) { background: #dbeafe; }
 .btn-pausa:disabled { opacity: 0.4; cursor: not-allowed; }
-<<<<<<< HEAD
-=======
 
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .oc-body    { padding: 16px 18px; }
 .oc-nombre  { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 14px; }
 .oc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 16px; }
@@ -741,10 +705,7 @@ function showToast(msg, type = 'toast-success') {
 .oc-meta-val.prendas .sep   { color: #9ca3af; }
 .oc-meta-val.prendas .tot   { font-size: 13px; color: #9ca3af; font-weight: 500; }
 .val-vencida { color: #dc2626 !important; }
-<<<<<<< HEAD
-=======
 
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .oc-progress { margin-bottom: 18px; }
 .oc-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .oc-progress-lbl { font-size: 12px; color: #6b7280; font-weight: 500; }
@@ -756,9 +717,7 @@ function showToast(msg, type = 'toast-success') {
 .oc-bar-fill.fill-completado { background: #16a34a; }
 .oc-bar-fill.fill-pausado    { background: #f59e0b; }
 .oc-bar-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: #d1d5db; }
-<<<<<<< HEAD
 .btn-reportar { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #1f3a52; color: white; border: none; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.15s; }
-=======
 
 .btn-reportar {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -766,7 +725,6 @@ function showToast(msg, type = 'toast-success') {
   border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
   transition: background 0.2s, transform 0.15s;
 }
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .btn-reportar:hover:not(:disabled) { background: #2d5580; transform: translateY(-1px); }
 .btn-reportar:active:not(:disabled) { transform: scale(.97); }
 .btn-reportar:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
@@ -774,11 +732,9 @@ function showToast(msg, type = 'toast-success') {
 /* ── HISTORIAL ── */
 .historial-list { display: flex; flex-direction: column; gap: 12px; }
 .hist-entries   { display: flex; flex-direction: column; gap: 12px; }
-<<<<<<< HEAD
 .hist-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; opacity: 0; transform: translateY(12px); transition: opacity .45s ease, transform .45s ease; }
 .hist-summary.section-visible { opacity: 1; transform: translateY(0); }
 .hist-sum-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; opacity: 0; transform: translateY(16px); transition: opacity .4s ease, transform .4s ease, box-shadow .2s; }
-=======
 
 .hist-summary {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px;
@@ -793,21 +749,17 @@ function showToast(msg, type = 'toast-success') {
   opacity: 0; transform: translateY(16px);
   transition: opacity .4s ease, transform .4s ease, box-shadow .2s;
 }
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .hist-sum-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-2px) !important; }
 .hist-sum-item.card-visible { opacity: 1; transform: translateY(0); }
 .hist-sum-num { font-size: 28px; font-weight: 700; color: #1f3a52; }
 .hist-sum-lbl { font-size: 12px; color: #9ca3af; text-align: center; }
-<<<<<<< HEAD
 .hist-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px; transition: box-shadow 0.2s, transform 0.2s; }
-=======
 
 .hist-card {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
   background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px;
   transition: box-shadow 0.2s, transform 0.2s;
 }
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 .hist-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-1px); }
 .hist-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0; }
 .hist-icon { width: 38px; height: 38px; flex-shrink: 0; background: #f0fdf4; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #16a34a; }
