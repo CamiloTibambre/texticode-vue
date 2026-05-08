@@ -17,12 +17,10 @@
             <stop offset="100%" stop-color="#1f3a52" stop-opacity="0"/>
           </linearGradient>
         </defs>
-        <!-- Curvas de hilo que se dibujan al cargar -->
         <path class="svgline l1" d="M-100,220 C300,120 700,380 1100,240 S1540,100 1640,280" fill="none" stroke="url(#lg1)" stroke-width="1.2"/>
         <path class="svgline l2" d="M-100,440 C350,320 680,540 1000,420 S1380,280 1640,460" fill="none" stroke="url(#lg1)" stroke-width="0.8"/>
         <path class="svgline l3" d="M1640,180 C1240,80 820,320 520,200 S120,60 -100,240" fill="none" stroke="url(#lg2)" stroke-width="1.2"/>
         <path class="svgline l4" d="M-100,680 C380,580 760,760 1060,660 S1400,540 1640,700" fill="none" stroke="url(#lg2)" stroke-width="0.7"/>
-        <!-- Hilos verticales finos -->
         <line x1="280" y1="0" x2="240" y2="900" stroke="#2d6a9f" stroke-opacity="0.06" stroke-width="0.8"/>
         <line x1="560" y1="0" x2="600" y2="900" stroke="#2d6a9f" stroke-opacity="0.04" stroke-width="0.8"/>
         <line x1="1000" y1="0" x2="960" y2="900" stroke="#2d6a9f" stroke-opacity="0.05" stroke-width="0.8"/>
@@ -38,28 +36,22 @@
     <!-- ══ CARD DE LOGIN ══ -->
     <div class="login-card" :class="{ 'card-visible': cardVisible, 'card-error': shakeError }">
 
-      <!-- Borde superior decorativo animado -->
       <div class="card-top-border"></div>
 
-      <!-- Barra de progreso -->
       <div class="progress-bar" :class="{ active: loading }">
         <div class="progress-fill"></div>
       </div>
 
       <!-- Logo -->
       <div class="logo-wrap" :class="{ visible: cardVisible }">
-        <!-- Anillo exterior giratorio -->
         <div class="logo-ring ring-outer">
           <span class="ring-spark spark-1"></span>
           <span class="ring-spark spark-2"></span>
           <span class="ring-spark spark-3"></span>
           <span class="ring-spark spark-4"></span>
         </div>
-        <!-- Anillo interior giratorio inverso -->
         <div class="logo-ring ring-inner"></div>
-        <!-- Halo de luz pulsante -->
         <div class="logo-glow"></div>
-        <!-- Logo -->
         <img src="/img/LogoTexticode.png" alt="Texticode" class="logo-img">
       </div>
 
@@ -102,6 +94,13 @@
           </div>
         </div>
 
+        <!-- ── Enlace "Olvidé mi contraseña" ── -->
+        <div class="forgot-link-wrap">
+          <button class="forgot-link" @click="abrirModalRecuperar" type="button">
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+
         <Transition name="err">
           <div v-if="error" class="error-msg">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -142,6 +141,102 @@
       </p>
     </div>
 
+    <!-- ══ MODAL: OLVIDÉ MI CONTRASEÑA ══ -->
+    <Transition name="modal">
+      <div v-if="showRecuperar" class="modal-overlay" @click.self="cerrarModalRecuperar">
+        <div class="modal-card" :class="{ 'modal-visible': showRecuperar }">
+
+          <div class="card-top-border"></div>
+
+          <!-- Ícono de sobre animado -->
+          <div class="modal-icon-wrap">
+            <div class="modal-icon-ring"></div>
+            <svg class="modal-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.4" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
+            </svg>
+          </div>
+
+          <!-- Pantalla 1: ingresar correo -->
+          <template v-if="!recuperarEnviado">
+            <h2 class="modal-title">Recuperar contraseña</h2>
+            <p class="modal-subtitle">
+              Ingresa tu correo registrado y te enviaremos un enlace para cambiar tu contraseña.
+            </p>
+
+            <div class="form-group" :class="{ focused: focusRecuperar, 'has-error': recuperarError }">
+              <label>Correo electrónico</label>
+              <div class="input-wrap">
+                <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
+                </svg>
+                <input
+                  v-model="recuperarEmail"
+                  type="email"
+                  placeholder="tu@correo.com"
+                  @focus="focusRecuperar = true"
+                  @blur="focusRecuperar = false"
+                  @keyup.enter="enviarRecuperacion"
+                  autocomplete="email"
+                  ref="inputRecuperar"
+                >
+              </div>
+            </div>
+
+            <Transition name="err">
+              <div v-if="recuperarError" class="error-msg" style="margin-bottom: 12px;">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+                </svg>
+                {{ recuperarError }}
+              </div>
+            </Transition>
+
+            <button class="btn-login" @click="enviarRecuperacion" :disabled="recuperarLoading" :class="{ loading: recuperarLoading }">
+              <span class="btn-shimmer"></span>
+              <span v-if="!recuperarLoading" class="btn-text">
+                Enviar enlace
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+                </svg>
+              </span>
+              <span v-else class="btn-spinner">
+                <svg class="spin" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                </svg>
+                Enviando...
+              </span>
+            </button>
+
+            <button class="modal-cancel" @click="cerrarModalRecuperar" type="button">
+              Cancelar
+            </button>
+          </template>
+
+          <!-- Pantalla 2: correo enviado ✓ -->
+          <template v-else>
+            <div class="success-icon-wrap">
+              <svg class="success-check" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+              </svg>
+            </div>
+            <h2 class="modal-title">¡Correo enviado!</h2>
+            <p class="modal-subtitle">
+              Si <strong>{{ recuperarEmail }}</strong> está registrado, recibirás un enlace para cambiar tu contraseña en los próximos minutos.
+            </p>
+            <p class="modal-hint">Revisa también tu carpeta de spam.</p>
+
+            <button class="btn-login" @click="cerrarModalRecuperar" style="margin-top: 8px;">
+              <span class="btn-shimmer"></span>
+              <span class="btn-text">Entendido</span>
+            </button>
+          </template>
+
+        </div>
+      </div>
+    </Transition>
+
     <!-- Toast -->
     <Transition name="toast">
       <div class="toast" v-if="toastMsg" :class="toastType">
@@ -156,7 +251,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -173,11 +268,24 @@ const toastMsg     = ref('')
 const toastType    = ref('success')
 const fabricCanvas = ref(null)
 
+// ── Estado modal recuperar contraseña ──
+const showRecuperar    = ref(false)
+const recuperarEmail   = ref('')
+const recuperarError   = ref('')
+const recuperarLoading = ref(false)
+const recuperarEnviado = ref(false)
+const focusRecuperar   = ref(false)
+const inputRecuperar   = ref(null)
+
 const router = useRouter()
 const auth   = useAuthStore()
 
 let ctx, animFrame
 
+<<<<<<< HEAD
+// ── Canvas tejido animado ──
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 function initFabric() {
   const canvas = fabricCanvas.value
   if (!canvas) return
@@ -239,11 +347,17 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toastMsg.value = '', 3000)
 }
 
+<<<<<<< HEAD
+function getRuta(usuario) {
+  const idRol = usuario?.Id_Rol
+  const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
+=======
 // Rutas por rol — usa el valor exacto que devuelve el backend ("administrador", "operario", "cliente")
 function getRuta(usuario) {
   const idRol = usuario?.Id_Rol
   const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
 
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   if (idRol === 1 || rol === 'administrador' || rol === 'admin') return '/admin/usuarios'
   if (idRol === 2 || rol === 'operario')                         return '/operario/cuenta'
   if (idRol === 3 || rol === 'cliente')                          return '/cliente/cuenta'
@@ -271,6 +385,64 @@ async function iniciarSesion() {
   }
 }
 
+<<<<<<< HEAD
+// ══════════════════════════════════════
+//   RECUPERAR CONTRASEÑA
+// ══════════════════════════════════════
+
+function abrirModalRecuperar() {
+  recuperarEmail.value   = email.value  // pre-llenar si ya escribió su correo
+  recuperarError.value   = ''
+  recuperarEnviado.value = false
+  showRecuperar.value    = true
+  nextTick(() => inputRecuperar.value?.focus())
+}
+
+function cerrarModalRecuperar() {
+  showRecuperar.value    = false
+  recuperarEmail.value   = ''
+  recuperarError.value   = ''
+  recuperarEnviado.value = false
+}
+
+async function enviarRecuperacion() {
+  recuperarError.value = ''
+  const emailVal = recuperarEmail.value.trim()
+
+  if (!emailVal) {
+    recuperarError.value = 'Ingresa tu correo electrónico.'
+    return
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(emailVal)) {
+    recuperarError.value = 'El correo no tiene un formato válido.'
+    return
+  }
+
+  recuperarLoading.value = true
+  try {
+    const res = await fetch('/api/auth/recuperar-contrasena', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailVal })
+    })
+
+    // Siempre mostramos éxito aunque el correo no exista (seguridad)
+    if (res.ok || res.status === 404) {
+      recuperarEnviado.value = true
+    } else {
+      const data = await res.json().catch(() => ({}))
+      recuperarError.value = data.mensaje || 'Ocurrió un error. Intenta de nuevo.'
+    }
+  } catch {
+    recuperarError.value = 'No se pudo conectar con el servidor. Intenta más tarde.'
+  } finally {
+    recuperarLoading.value = false
+  }
+}
+
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 onMounted(() => {
   setTimeout(() => cardVisible.value = true, 80)
   initFabric()
@@ -302,7 +474,6 @@ onUnmounted(() => {
 }
 .fabric-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* SVG con curvas que se dibujan */
 .bg-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 .svgline {
   stroke-dasharray: 1200;
@@ -347,7 +518,6 @@ onUnmounted(() => {
 .login-card.card-error   { animation: shake 0.42s ease; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
 
-/* Borde superior decorativo con gradiente animado */
 .card-top-border {
   position: absolute; top: 0; left: 0; right: 0; height: 3px;
   border-radius: 20px 20px 0 0;
@@ -357,7 +527,6 @@ onUnmounted(() => {
 }
 @keyframes bordermove { 0%{background-position:0% 0} 100%{background-position:300% 0} }
 
-/* Barra de progreso (debajo del top border) */
 .progress-bar {
   position: absolute; top: 3px; left: 0; right: 0; height: 2px;
   overflow: hidden; border-radius: 0;
@@ -383,7 +552,6 @@ onUnmounted(() => {
 }
 .logo-wrap.visible { opacity: 1; transform: none; }
 
-/* Un solo anillo exterior, muy sutil */
 .logo-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 1px solid transparent; pointer-events: none; }
 .ring-outer {
   width: 144px; height: 144px;
@@ -395,7 +563,6 @@ onUnmounted(() => {
 .ring-inner { display: none; }
 @keyframes spinring { to { transform: rotate(360deg); } }
 
-/* Solo 2 destellos pequeños y lentos */
 .ring-spark {
   position: absolute; top: 50%; left: 50%;
   width: 4px; height: 4px; border-radius: 50%;
@@ -416,7 +583,6 @@ onUnmounted(() => {
   100% { transform: rotate(360deg) translateX(69px) translateX(-2px); opacity: 0.8; }
 }
 
-/* Halo pulsante suave detrás del logo */
 .logo-glow {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -504,6 +670,23 @@ h1.visible { opacity: 1; transform: none; }
 .err-leave-active { transition: all 0.18s ease; }
 .err-enter-from, .err-leave-to { opacity: 0; transform: translateY(-4px); }
 
+/* Enlace olvidé mi contraseña */
+.forgot-link-wrap {
+  display: flex; justify-content: flex-end;
+  margin-top: -6px; margin-bottom: 14px;
+}
+.forgot-link {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 12.5px; font-weight: 500; color: #2d6a9f;
+  transition: color 0.2s;
+  text-decoration: underline; text-underline-offset: 2px;
+  text-decoration-color: transparent;
+}
+.forgot-link:hover {
+  color: #1f3a52;
+  text-decoration-color: #1f3a52;
+}
+
 /* ══════════════════════════════════════
    BOTÓN PRINCIPAL
 ══════════════════════════════════════ */
@@ -514,7 +697,6 @@ h1.visible { opacity: 1; transform: none; }
   font-size: 14.5px; font-weight: 600; cursor: pointer;
   transition: all 0.22s; position: relative; overflow: hidden;
 }
-/* Efecto shimmer al hover */
 .btn-shimmer {
   position: absolute; inset: 0;
   background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.09) 50%, transparent 65%);
@@ -536,6 +718,97 @@ h1.visible { opacity: 1; transform: none; }
 }
 
 /* ══════════════════════════════════════
+<<<<<<< HEAD
+   MODAL RECUPERAR CONTRASEÑA
+══════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(10, 26, 39, 0.75);
+  backdrop-filter: blur(6px);
+}
+
+.modal-card {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  padding: 36px 32px 28px;
+  width: 100%; max-width: 380px;
+  box-shadow:
+    0 32px 80px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(45,106,159,0.1);
+}
+
+/* Ícono del modal */
+.modal-icon-wrap {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px; position: relative;
+}
+.modal-icon-ring {
+  position: absolute;
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 1.5px solid rgba(45,106,159,0.15);
+  animation: spinring 6s linear infinite;
+}
+.modal-icon {
+  width: 40px; height: 40px;
+  color: #2d6a9f;
+  position: relative; z-index: 1;
+}
+
+.modal-title {
+  font-size: 18px; font-weight: 700; color: #0d1f2d;
+  text-align: center; margin-bottom: 8px; letter-spacing: -0.02em;
+  opacity: 1; transform: none; /* override h1 animation */
+}
+.modal-subtitle {
+  font-size: 13px; color: #6b7280; text-align: center;
+  margin-bottom: 22px; line-height: 1.55; opacity: 1; transform: none;
+}
+.modal-subtitle strong { color: #1f3a52; }
+
+.modal-hint {
+  text-align: center; font-size: 12px; color: #9ca3af;
+  margin-top: 10px; margin-bottom: 4px;
+}
+
+.modal-cancel {
+  width: 100%; padding: 10px; margin-top: 10px;
+  background: none; border: 1.5px solid #e5e7eb;
+  border-radius: 10px; color: #6b7280;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all 0.18s;
+}
+.modal-cancel:hover {
+  border-color: #9ca3af; color: #374151; background: #f9fafb;
+}
+
+/* Pantalla de éxito */
+.success-icon-wrap {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.success-check {
+  width: 52px; height: 52px; color: #2d6a9f;
+  animation: popIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Transiciones del modal */
+.modal-enter-active { transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.modal-leave-active { transition: all 0.2s ease; }
+.modal-enter-from  { opacity: 0; }
+.modal-leave-to    { opacity: 0; }
+.modal-enter-from .modal-card { transform: translateY(16px) scale(0.97); }
+.modal-leave-to   .modal-card { transform: translateY(8px) scale(0.98); }
+
+/* ══════════════════════════════════════
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
    FOOTER
 ══════════════════════════════════════ */
 .back-landing-wrap {

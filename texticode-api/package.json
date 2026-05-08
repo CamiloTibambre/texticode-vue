@@ -9,6 +9,10 @@
     "start": "node index.js"
   },
   "dependencies": {
+<<<<<<< HEAD
+    "@sendgrid/mail": "^8.1.6",
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

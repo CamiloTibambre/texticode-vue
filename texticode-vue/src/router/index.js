@@ -8,6 +8,10 @@ const routes = [
   // LOGIN
   { path: '/login', name: 'Login',   component: () => import('../views/LoginView.vue') },
 
+<<<<<<< HEAD
+  // CAMBIAR CONTRASEÑA (recuperación por correo)
+  { path: '/cambiar-contrasena', name: 'CambiarContrasena', component: () => import('../views/CambiarContrasena.vue') },
+
   // ADMINISTRADOR
   { path: '/admin/usuarios',   name: 'AdminUsuarios',   component: () => import('../views/admin/GestionUsuarios.vue'),   meta: { rol: 'admin' } },
   { path: '/admin/clientes',   name: 'AdminClientes',   component: () => import('../views/admin/GestionClientes.vue'),   meta: { rol: 'admin' } },
@@ -20,6 +24,20 @@ const routes = [
   { path: '/operario/tareas',  name: 'OperarioTareas',  component: () => import('../views/operario/TareasAsignadas.vue'), meta: { rol: 'operario' } },
   { path: '/operario/avances', name: 'OperarioAvances', component: () => import('../views/operario/ReportarAvances.vue'), meta: { rol: 'operario' } },
 
+=======
+  // ADMINISTRADOR
+  { path: '/admin/usuarios',   name: 'AdminUsuarios',   component: () => import('../views/admin/GestionUsuarios.vue'),   meta: { rol: 'admin' } },
+  { path: '/admin/clientes',   name: 'AdminClientes',   component: () => import('../views/admin/GestionClientes.vue'),   meta: { rol: 'admin' } },
+  { path: '/admin/inventario', name: 'AdminInventario', component: () => import('../views/admin/GestionInventario.vue'), meta: { rol: 'admin' } },
+  { path: '/admin/reportes',   name: 'AdminReportes',   component: () => import('../views/admin/Reportes.vue'),          meta: { rol: 'admin' } },
+  { path: '/admin/produccion', name: 'AdminProduccion', component: () => import('../views/admin/GestionProduccion.vue'), meta: { rol: 'admin' } },
+
+  // OPERARIO
+  { path: '/operario/cuenta',  name: 'OperarioCuenta',  component: () => import('../views/operario/CuentaPersonal.vue'),  meta: { rol: 'operario' } },
+  { path: '/operario/tareas',  name: 'OperarioTareas',  component: () => import('../views/operario/TareasAsignadas.vue'), meta: { rol: 'operario' } },
+  { path: '/operario/avances', name: 'OperarioAvances', component: () => import('../views/operario/ReportarAvances.vue'), meta: { rol: 'operario' } },
+
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   // CLIENTE
   { path: '/cliente/cuenta',   name: 'ClienteCuenta',   component: () => import('../views/cliente/CuentaPersonal.vue'),   meta: { rol: 'cliente' } },
   { path: '/cliente/pedidos',  name: 'ClientePedidos',  component: () => import('../views/cliente/PedidosEntregas.vue'),  meta: { rol: 'cliente' } },
