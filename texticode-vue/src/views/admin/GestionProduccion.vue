@@ -140,6 +140,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
                       </svg>
                     </button>
+                    <button class="action-btn btn-calendar" @click="sincronizarOrdenCalendario(o)" title="Añadir a Google Calendar">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m9 15 2 2 4-5"/>
+                      </svg>
+                    </button>
                     <button class="action-btn btn-editar"   @click="abrirModal(o)"        title="Editar">
                       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" shape-rendering="geometricPrecision" style="display:block">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
@@ -422,7 +428,8 @@ import {
   getOrdenes, crearOrden, actualizarOrden, eliminarOrden,
   getUsuarios, getMateriales,
   getMaterialesDeOrden, agregarMaterialOrden, eliminarMaterialOrden,
-  crearComprobante
+  crearComprobante,
+  sincronizarOrdenGoogleCalendar, generarIcsOrden
 } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 
@@ -813,6 +820,32 @@ async function guardar() {
 // ── DETALLE ───────────────────────────────────────────────────
 function verDetalle(o) { detalleOrden.value = o }
 
+async function sincronizarOrdenCalendario(o) {
+  try {
+    const res = await sincronizarOrdenGoogleCalendar(o.Id_Orden, {
+      includeCliente: true,
+      includeOperario: true,
+      includeAttendees: true,
+      sendUpdates: 'all',
+    })
+    if (res.creados > 0) {
+      showToast(`Orden #${o.Id_Orden} sincronizada en ${res.creados}/${res.total} calendarios`, 'toast-success')
+      return
+    }
+    const ics = await generarIcsOrden(o.Id_Orden)
+    const blob = new Blob([ics.content], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = ics.filename
+    a.click()
+    URL.revokeObjectURL(url)
+    showToast('No hay cuentas conectadas; se descargó un archivo .ics', 'toast-success')
+  } catch (err) {
+    showToast(err.message || 'No se pudo sincronizar con Google Calendar', 'toast-danger')
+  }
+}
+
 // ── ELIMINAR ──────────────────────────────────────────────────
 function solicitarEliminar(o) { confirmOrden.value = o }
 
@@ -938,6 +971,7 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .btn-ver      { background: #1f3a52; } .btn-ver:hover      { background: #2d5580; transform: scale(1.07); }
 .btn-editar   { background: #1f3a52; } .btn-editar:hover   { background: #2d5580; transform: scale(1.07); }
 .btn-eliminar { background: #1f3a52; } .btn-eliminar:hover { background: #b91c1c; transform: scale(1.07); }
+.btn-calendar { background: #1f3a52; } .btn-calendar:hover { background: #2563eb; transform: scale(1.07); }
 
 /* ── EMPTY STATE ── */
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 10px; color: #9ca3af; font-size: 14px; }
