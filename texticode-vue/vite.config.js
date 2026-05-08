@@ -8,6 +8,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+<<<<<<< HEAD
   },
   server: {
     proxy: {
@@ -16,5 +17,7 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   }
 })

@@ -282,7 +282,10 @@ const auth   = useAuthStore()
 
 let ctx, animFrame
 
+<<<<<<< HEAD
 // ── Canvas tejido animado ──
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 function initFabric() {
   const canvas = fabricCanvas.value
   if (!canvas) return
@@ -344,9 +347,17 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toastMsg.value = '', 3000)
 }
 
+<<<<<<< HEAD
 function getRuta(usuario) {
   const idRol = usuario?.Id_Rol
   const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
+=======
+// Rutas por rol — usa el valor exacto que devuelve el backend ("administrador", "operario", "cliente")
+function getRuta(usuario) {
+  const idRol = usuario?.Id_Rol
+  const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
+
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   if (idRol === 1 || rol === 'administrador' || rol === 'admin') return '/admin/usuarios'
   if (idRol === 2 || rol === 'operario')                         return '/operario/cuenta'
   if (idRol === 3 || rol === 'cliente')                          return '/cliente/cuenta'
@@ -374,6 +385,7 @@ async function iniciarSesion() {
   }
 }
 
+<<<<<<< HEAD
 // ══════════════════════════════════════
 //   RECUPERAR CONTRASEÑA
 // ══════════════════════════════════════
@@ -429,6 +441,8 @@ async function enviarRecuperacion() {
   }
 }
 
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 onMounted(() => {
   setTimeout(() => cardVisible.value = true, 80)
   initFabric()
@@ -704,6 +718,7 @@ h1.visible { opacity: 1; transform: none; }
 }
 
 /* ══════════════════════════════════════
+<<<<<<< HEAD
    MODAL RECUPERAR CONTRASEÑA
 ══════════════════════════════════════ */
 .modal-overlay {
@@ -792,6 +807,8 @@ h1.visible { opacity: 1; transform: none; }
 .modal-leave-to   .modal-card { transform: translateY(8px) scale(0.98); }
 
 /* ══════════════════════════════════════
+=======
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
    FOOTER
 ══════════════════════════════════════ */
 .back-landing-wrap {

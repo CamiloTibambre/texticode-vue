@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import express  from 'express'
 import crypto   from 'crypto'
 import sgMail   from '@sendgrid/mail'
@@ -8,13 +9,32 @@ import bcrypt   from 'bcryptjs'
 const router = express.Router()
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+=======
+// backend/routes/usuarios.js
+// Agrega este endpoint a tu archivo de rutas de usuarios existente
+// Instala dependencias si no las tienes: npm install jsonwebtoken bcryptjs
+
+const express = require('express')
+const router  = express.Router()
+const jwt     = require('jsonwebtoken')
+const bcrypt  = require('bcryptjs')
+const db      = require('../db')  // tu conexión MySQL existente
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 
 const JWT_SECRET  = process.env.JWT_SECRET  || 'cambia_este_secreto_seguro'
 const JWT_EXPIRES = process.env.JWT_EXPIRES || '8h'
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────
 // POST /api/auth/login
 // ─────────────────────────────────────────────────────────
+=======
+/**
+ * POST /api/usuarios/login
+ * Body: { correo: string, contrasena: string }
+ * Acepta correo o Nombre_Usuario en el campo "correo"
+ */
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 router.post('/login', async (req, res) => {
   const { correo, contrasena } = req.body
 
@@ -44,6 +64,10 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Tu cuenta está inactiva. Contacta al administrador.' })
     }
 
+<<<<<<< HEAD
+=======
+    // Verifica contraseña — soporta bcrypt y texto plano
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
     let passwordValida = false
     const esHash = user.Contrasena.startsWith('$2')
     if (esHash) {
@@ -56,6 +80,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciales incorrectas.' })
     }
 
+<<<<<<< HEAD
+=======
+    // Generar token JWT
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
     const token = jwt.sign(
       { id: user.Id_Usuario, rol: user.Id_Rol, usuario: user.Nombre_Usuario },
       JWT_SECRET,
@@ -76,11 +104,16 @@ router.post('/login', async (req, res) => {
     })
 
   } catch (err) {
+<<<<<<< HEAD
     console.error('Error en /login:', err)
+=======
+    console.error('Error en /usuarios/login:', err)
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
     return res.status(500).json({ error: 'Error interno del servidor.' })
   }
 })
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────
 // POST /api/auth/recuperar-contrasena
 // ─────────────────────────────────────────────────────────
@@ -265,3 +298,47 @@ router.post('/cambiar-contrasena', async (req, res) => {
 })
 
 export default router
+=======
+module.exports = router
+
+
+/* ─────────────────────────────────────────────────────────
+   middleware/authMiddleware.js
+   Para proteger otras rutas con JWT
+   Uso: router.get('/usuarios', verificarToken, (req, res) => { ... })
+──────────────────────────────────────────────────────────*/
+/*
+const jwt = require('jsonwebtoken')
+
+function verificarToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+
+  if (!token) return res.status(401).json({ error: 'Token requerido.' })
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'cambia_este_secreto_seguro')
+    req.usuario = decoded
+    next()
+  } catch (err) {
+    return res.status(403).json({ error: 'Token inválido o expirado.' })
+  }
+}
+
+module.exports = verificarToken
+*/
+
+
+/* ─────────────────────────────────────────────────────────
+   .env — Agrega en la raíz de tu backend
+──────────────────────────────────────────────────────────*/
+/*
+DB_HOST=127.0.0.1
+DB_PORT=3307
+DB_USER=root
+DB_PASS=
+DB_NAME=texticode
+JWT_SECRET=mi_clave_super_secreta_2026
+JWT_EXPIRES=8h
+*/
+>>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
