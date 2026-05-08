@@ -94,7 +94,7 @@
           </div>
         </div>
 
-        <!-- ── Enlace "Olvidé mi contraseña" ── -->
+        <!-- Enlace "Olvidé mi contraseña" -->
         <div class="forgot-link-wrap">
           <button class="forgot-link" @click="abrirModalRecuperar" type="button">
             ¿Olvidaste tu contraseña?
@@ -148,7 +148,6 @@
 
           <div class="card-top-border"></div>
 
-          <!-- Ícono de sobre animado -->
           <div class="modal-icon-wrap">
             <div class="modal-icon-ring"></div>
             <svg class="modal-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.4" stroke="currentColor">
@@ -157,7 +156,6 @@
             </svg>
           </div>
 
-          <!-- Pantalla 1: ingresar correo -->
           <template v-if="!recuperarEnviado">
             <h2 class="modal-title">Recuperar contraseña</h2>
             <p class="modal-subtitle">
@@ -214,7 +212,6 @@
             </button>
           </template>
 
-          <!-- Pantalla 2: correo enviado ✓ -->
           <template v-else>
             <div class="success-icon-wrap">
               <svg class="success-check" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -237,7 +234,6 @@
       </div>
     </Transition>
 
-    <!-- Toast -->
     <Transition name="toast">
       <div class="toast" v-if="toastMsg" :class="toastType">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -268,7 +264,6 @@ const toastMsg     = ref('')
 const toastType    = ref('success')
 const fabricCanvas = ref(null)
 
-// ── Estado modal recuperar contraseña ──
 const showRecuperar    = ref(false)
 const recuperarEmail   = ref('')
 const recuperarError   = ref('')
@@ -282,10 +277,6 @@ const auth   = useAuthStore()
 
 let ctx, animFrame
 
-<<<<<<< HEAD
-// ── Canvas tejido animado ──
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 function initFabric() {
   const canvas = fabricCanvas.value
   if (!canvas) return
@@ -347,17 +338,10 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toastMsg.value = '', 3000)
 }
 
-<<<<<<< HEAD
-function getRuta(usuario) {
-  const idRol = usuario?.Id_Rol
-  const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
-=======
-// Rutas por rol — usa el valor exacto que devuelve el backend ("administrador", "operario", "cliente")
 function getRuta(usuario) {
   const idRol = usuario?.Id_Rol
   const rol   = (usuario?.Rol || usuario?.rol || '').toLowerCase()
 
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
   if (idRol === 1 || rol === 'administrador' || rol === 'admin') return '/admin/usuarios'
   if (idRol === 2 || rol === 'operario')                         return '/operario/cuenta'
   if (idRol === 3 || rol === 'cliente')                          return '/cliente/cuenta'
@@ -385,13 +369,8 @@ async function iniciarSesion() {
   }
 }
 
-<<<<<<< HEAD
-// ══════════════════════════════════════
-//   RECUPERAR CONTRASEÑA
-// ══════════════════════════════════════
-
 function abrirModalRecuperar() {
-  recuperarEmail.value   = email.value  // pre-llenar si ya escribió su correo
+  recuperarEmail.value   = email.value
   recuperarError.value   = ''
   recuperarEnviado.value = false
   showRecuperar.value    = true
@@ -427,7 +406,6 @@ async function enviarRecuperacion() {
       body: JSON.stringify({ email: emailVal })
     })
 
-    // Siempre mostramos éxito aunque el correo no exista (seguridad)
     if (res.ok || res.status === 404) {
       recuperarEnviado.value = true
     } else {
@@ -441,8 +419,6 @@ async function enviarRecuperacion() {
   }
 }
 
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
 onMounted(() => {
   setTimeout(() => cardVisible.value = true, 80)
   initFabric()
@@ -455,18 +431,12 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ══════════════════════════════════════
-   BASE
-══════════════════════════════════════ */
 .login-page {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
   padding: 20px; position: relative; overflow: hidden;
 }
 
-/* ══════════════════════════════════════
-   FONDO
-══════════════════════════════════════ */
 .bg-layer {
   position: fixed; inset: 0;
   background: linear-gradient(135deg, #0d1f2d 0%, #1a3347 40%, #0f2233 70%, #0a1a27 100%);
@@ -498,10 +468,6 @@ onUnmounted(() => {
 .orb-3 { width: 280px; height: 280px; background: radial-gradient(circle, rgba(29,78,120,0.15) 0%, transparent 65%); top: 50%; right: 30%; animation: floatorb 15s ease-in-out infinite alternate; animation-delay: -5s; }
 @keyframes floatorb { from { transform: translate(0,0) scale(1); } to { transform: translate(22px,-28px) scale(1.08); } }
 
-
-/* ══════════════════════════════════════
-   CARD
-══════════════════════════════════════ */
 .login-card {
   position: relative; z-index: 1;
   background: rgba(255,255,255,0.98);
@@ -542,7 +508,6 @@ onUnmounted(() => {
 }
 @keyframes shimbar { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
 
-/* Logo */
 .logo-wrap {
   text-align: center; margin-bottom: 18px; position: relative;
   height: 148px;
@@ -612,9 +577,6 @@ h1.visible { opacity: 1; transform: none; }
 }
 .subtitle.visible { opacity: 1; transform: none; }
 
-/* ══════════════════════════════════════
-   FORMULARIO
-══════════════════════════════════════ */
 .form {
   opacity: 0; transform: translateY(8px);
   transition: opacity 0.4s ease 0.33s, transform 0.4s ease 0.33s;
@@ -670,7 +632,6 @@ h1.visible { opacity: 1; transform: none; }
 .err-leave-active { transition: all 0.18s ease; }
 .err-enter-from, .err-leave-to { opacity: 0; transform: translateY(-4px); }
 
-/* Enlace olvidé mi contraseña */
 .forgot-link-wrap {
   display: flex; justify-content: flex-end;
   margin-top: -6px; margin-bottom: 14px;
@@ -687,9 +648,6 @@ h1.visible { opacity: 1; transform: none; }
   text-decoration-color: #1f3a52;
 }
 
-/* ══════════════════════════════════════
-   BOTÓN PRINCIPAL
-══════════════════════════════════════ */
 .btn-login {
   width: 100%; padding: 13px; margin-top: 4px;
   background: linear-gradient(135deg, #1f3a52 0%, #2d5478 100%);
@@ -717,10 +675,6 @@ h1.visible { opacity: 1; transform: none; }
   gap: 8px; position: relative;
 }
 
-/* ══════════════════════════════════════
-<<<<<<< HEAD
-   MODAL RECUPERAR CONTRASEÑA
-══════════════════════════════════════ */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 50;
   display: flex; align-items: center; justify-content: center;
@@ -740,7 +694,6 @@ h1.visible { opacity: 1; transform: none; }
     0 0 0 1px rgba(45,106,159,0.1);
 }
 
-/* Ícono del modal */
 .modal-icon-wrap {
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 16px; position: relative;
@@ -760,7 +713,7 @@ h1.visible { opacity: 1; transform: none; }
 .modal-title {
   font-size: 18px; font-weight: 700; color: #0d1f2d;
   text-align: center; margin-bottom: 8px; letter-spacing: -0.02em;
-  opacity: 1; transform: none; /* override h1 animation */
+  opacity: 1; transform: none;
 }
 .modal-subtitle {
   font-size: 13px; color: #6b7280; text-align: center;
@@ -784,7 +737,6 @@ h1.visible { opacity: 1; transform: none; }
   border-color: #9ca3af; color: #374151; background: #f9fafb;
 }
 
-/* Pantalla de éxito */
 .success-icon-wrap {
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 14px;
@@ -798,7 +750,6 @@ h1.visible { opacity: 1; transform: none; }
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* Transiciones del modal */
 .modal-enter-active { transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
 .modal-leave-active { transition: all 0.2s ease; }
 .modal-enter-from  { opacity: 0; }
@@ -806,11 +757,6 @@ h1.visible { opacity: 1; transform: none; }
 .modal-enter-from .modal-card { transform: translateY(16px) scale(0.97); }
 .modal-leave-to   .modal-card { transform: translateY(8px) scale(0.98); }
 
-/* ══════════════════════════════════════
-=======
->>>>>>> a8905268374bb67a62da02f0c667af47be5c3ab3
-   FOOTER
-══════════════════════════════════════ */
 .back-landing-wrap {
   display: flex; justify-content: center;
   margin-top: 18px;
@@ -842,15 +788,9 @@ h1.visible { opacity: 1; transform: none; }
 }
 .card-footer.visible { opacity: 1; }
 
-/* ══════════════════════════════════════
-   SPINNER
-══════════════════════════════════════ */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.72s linear infinite; }
 
-/* ══════════════════════════════════════
-   TOAST
-══════════════════════════════════════ */
 .toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: 8px;
