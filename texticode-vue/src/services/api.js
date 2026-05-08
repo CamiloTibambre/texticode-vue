@@ -64,3 +64,19 @@ export const getUsuariosDeOrden    = (idOrden)             => request(`/usuario-
 export const getOrdenesDeUsuario   = (idUsuario)           => request(`/usuario-orden/usuario/${idUsuario}`)
 export const asignarUsuarioOrden   = (body)                => request('/usuario-orden', { method: 'POST', body: JSON.stringify(body) })
 export const desasignarUsuarioOrden= (idUsuario, idOrden)  => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })
+// ── GOOGLE CALENDAR ───────────────────────────────────────
+export const getGoogleCalendarConfig = () => request('/google-calendar/config')
+export const getGoogleCalendarAuthUrl = (userId, returnTo = '/calendario') =>
+  request(`/google-calendar/auth-url?userId=${encodeURIComponent(userId)}&returnTo=${encodeURIComponent(returnTo)}`)
+export const getGoogleCalendarStatus = (idUsuario) => request(`/google-calendar/status/${idUsuario}`)
+export const desconectarGoogleCalendar = (idUsuario) => request(`/google-calendar/disconnect/${idUsuario}`, { method: 'DELETE' })
+export const getGoogleCalendarEvents = (idUsuario, params = {}) => {
+  const qs = new URLSearchParams(params).toString()
+  return request(`/google-calendar/events/${idUsuario}${qs ? `?${qs}` : ''}`)
+}
+export const getUsuariosGoogleCalendar = () => request('/google-calendar/connected-users')
+export const sincronizarOrdenGoogleCalendar = (idOrden, body = {}) =>
+  request(`/google-calendar/orders/${idOrden}/sync`, { method: 'POST', body: JSON.stringify(body) })
+export const crearEventoManualGoogleCalendar = (body) =>
+  request('/google-calendar/events/manual', { method: 'POST', body: JSON.stringify(body) })
+export const generarIcsOrden = (idOrden) => request(`/google-calendar/ics/order/${idOrden}`, { method: 'POST' })
