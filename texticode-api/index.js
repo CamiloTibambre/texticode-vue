@@ -12,6 +12,7 @@ import ordenMaterialRouter  from './routes/orden_material.js'
 import usuarioOrdenRouter   from './routes/usuario_orden.js'
 import notificacionesRouter from './routes/notificaciones.js'
 import authRouter           from './routes/auth.route.js'
+import googleCalendarRouter from './routes/googleCalendar.js'
 
 const app = express()
 
@@ -27,6 +28,7 @@ app.use('/api/orden-material',   ordenMaterialRouter)
 app.use('/api/usuario-orden',    usuarioOrdenRouter)
 app.use('/api/notificaciones',   notificacionesRouter)
 app.use('/api/auth',             authRouter)
+app.use('/api/google-calendar',  googleCalendarRouter)
 
 app.get('/', (req, res) => {
   res.json({
@@ -45,6 +47,9 @@ app.get('/', (req, res) => {
       'POST /api/notificaciones/tarea',
       'GET  /api/notificaciones/estadisticas',
       'POST /api/auth/recuperar-contrasena',
+      'GET  /api/google-calendar/config',
+      'GET  /api/google-calendar/auth-url',
+      'POST /api/google-calendar/orders/:id/sync',
     ]
   })
 })
