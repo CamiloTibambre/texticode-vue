@@ -13,6 +13,7 @@ import usuarioOrdenRouter   from './routes/usuario_orden.js'
 import notificacionesRouter from './routes/notificaciones.js'
 import authRouter           from './routes/auth.route.js'
 import practicaRouter       from './routes/practica.routes.js'
+import eficienciaRouter     from './routes/eficiencia.js'
 
 const app = express()
 
@@ -29,6 +30,7 @@ app.use('/api/usuario-orden',    usuarioOrdenRouter)
 app.use('/api/notificaciones',   notificacionesRouter)
 app.use('/api/auth',             authRouter)
 app.use('/api/practica',         practicaRouter)
+app.use('/api/eficiencia',       eficienciaRouter)
 
 app.get('/', (req, res) => {
   res.json({
@@ -53,6 +55,11 @@ app.get('/', (req, res) => {
       'GET  /api/practica/usuarios?page=&limit=',
       'GET  /api/practica/comprobantes?estado=&fecha=',
       'GET  /api/practica/ordenes?orden=Prioridad&dir=desc',
+      'GET  /api/eficiencia/operarios',
+      'GET  /api/eficiencia/operarios/:id',
+      'GET  /api/eficiencia/operarios?rendimiento=Alto|Medio|Bajo',
+      'GET  /api/eficiencia/operarios?estado=Completada|En Proceso|Pausado',
+      'GET  /api/eficiencia/operarios?limite=5',
     ]
   })
 })
