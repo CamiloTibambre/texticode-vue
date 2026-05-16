@@ -38,13 +38,13 @@
           <div class="hero-text">
             <h1 class="hero-title">
               <span
-                v-for="(ch, i) in 'Eficiencia de Operarios'"
+                v-for="(ch, i) in 'Gestión de Operarios'"
                 :key="i"
                 class="title-char"
                 :style="{ animationDelay: animVisible ? `${i * 35}ms` : '9999s' }"
               >{{ ch === ' ' ? '\u00A0' : ch }}</span>
             </h1>
-            <p class="hero-sub">Rendimiento, productividad y control de retrasos</p>
+            <p class="hero-sub">Rendimiento, productividad y gestión de problemas</p>
           </div>
         </div>
         <div class="hero-actions-wrap">
@@ -109,10 +109,11 @@
 
       <!-- MODAL DETALLE OPERARIO -->
       <Transition name="modal">
-        <div v-if="modalDetalle" class="modal" @click.self="modalDetalle = false">
+        <div v-if="modalDetalle" class="modal" @click.self="cerrarModal">
           <div class="modal-content modal-detalle">
-            <span class="close" @click="modalDetalle = false">×</span>
+            <span class="close" @click="cerrarModal">×</span>
             <div v-if="operarioActivo" class="detalle-inner">
+
               <!-- Cabecera -->
               <div class="detalle-header">
                 <div class="detalle-avatar" :style="{ background: avatarBg(operarioActivo.Nombre_Completo), color: avatarColor(operarioActivo.Nombre_Completo) }">
@@ -157,7 +158,7 @@
                 </div>
               </div>
 
-              <!-- Tabla de órdenes -->
+              <!-- Tabla de órdenes con observaciones inline -->
               <div v-if="operarioActivo.ordenes_detalle?.length" class="detalle-ordenes">
                 <div class="detalle-ordenes-titulo">Órdenes asignadas</div>
                 <table class="tabla-ordenes">
@@ -167,41 +168,116 @@
                       <th>Producto</th>
                       <th>Estado</th>
                       <th>Prioridad</th>
+                      <th>Dificultad</th>
                       <th>Avance</th>
                       <th>Fecha límite</th>
+                      <th>Obs.</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr
-                      v-for="o in operarioActivo.ordenes_detalle"
-                      :key="o.Id_Orden"
-                      :class="{ 'orden-retraso': o.en_retraso }"
-                    >
-                      <td>{{ o.Id_Orden }}</td>
-                      <td>{{ o.Producto }}</td>
-                      <td>
-                        <span class="badge-estado" :class="estadoClass(o.Estado)">{{ o.Estado }}</span>
-                      </td>
-                      <td>
-                        <span class="badge-prioridad" :class="o.Prioridad?.toLowerCase()">{{ o.Prioridad }}</span>
-                      </td>
-                      <td>
-                        <div class="avance-wrap">
-                          <div class="avance-bar">
-                            <div class="avance-fill" :style="{ width: avancePct(o) + '%', background: o.en_retraso ? '#dc2626' : '#16a34a' }"></div>
+                    <template v-for="o in operarioActivo.ordenes_detalle" :key="o.Id_Orden">
+                      <!-- Fila de la orden -->
+                      <tr :class="{ 'orden-retraso': o.en_retraso }">
+                        <td>{{ o.Id_Orden }}</td>
+                        <td>{{ o.Producto }}</td>
+                        <td>
+                          <span class="badge-estado" :class="estadoClass(o.Estado)">{{ o.Estado }}</span>
+                        </td>
+                        <td>
+                          <span class="badge-prioridad" :class="o.Prioridad?.toLowerCase()">{{ o.Prioridad }}</span>
+                        </td>
+                        <td>
+                          <span class="badge-dificultad" :class="dificultadClass(o.Dificultad)">{{ o.Dificultad || 'Media' }}</span>
+                        </td>
+                        <td>
+                          <div class="avance-wrap">
+                            <div class="avance-bar">
+                              <div class="avance-fill" :style="{ width: avancePct(o) + '%', background: o.en_retraso ? '#dc2626' : '#16a34a' }"></div>
+                            </div>
+                            <span class="avance-txt">{{ o.Unidades_Realizadas }}/{{ o.Unidades }}</span>
                           </div>
-                          <span class="avance-txt">{{ o.Unidades_Realizadas }}/{{ o.Unidades }}</span>
-                        </div>
-                      </td>
-                      <td :class="{ 'td-retraso': o.en_retraso }">
-                        {{ formatFecha(o.Fecha_Limite) }}
-                        <span v-if="o.en_retraso" class="retraso-tag">VENCIDA</span>
-                      </td>
-                    </tr>
+                        </td>
+                        <td :class="{ 'td-retraso': o.en_retraso }">
+                          {{ formatFecha(o.Fecha_Limite) }}
+                          <span v-if="o.en_retraso" class="retraso-tag">VENCIDA</span>
+                        </td>
+                        <td>
+                          <!-- Botón toggle observaciones de esta orden -->
+                          <button
+                            class="btn-obs-toggle"
+                            :class="{ 'active': ordenObsAbierta === o.Id_Orden }"
+                            @click="toggleObsOrden(o)"
+                            :title="ordenObsAbierta === o.Id_Orden ? 'Cerrar observaciones' : 'Ver / agregar observaciones'"
+                          >
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>
+                            </svg>
+                            <span v-if="obsXOrden[o.Id_Orden]?.length" class="obs-badge-mini">
+                              {{ obsXOrden[o.Id_Orden].length }}
+                            </span>
+                          </button>
+                        </td>
+                      </tr>
+
+                      <!-- Panel de observaciones inline (se expande debajo de la fila) -->
+                      <Transition name="obs-panel">
+                        <tr v-if="ordenObsAbierta === o.Id_Orden" class="obs-row">
+                          <td colspan="8" class="obs-panel-td">
+                            <div class="obs-panel">
+
+                              <div class="obs-panel-header">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>
+                                </svg>
+                                Observaciones — Orden #{{ o.Id_Orden }}: {{ o.Producto }}
+                              </div>
+
+                              <!-- Historial de obs de esta orden -->
+                              <div v-if="cargandoObsOrden" class="obs-loading">Cargando...</div>
+                              <div v-else-if="!obsXOrden[o.Id_Orden]?.length" class="obs-empty-inline">
+                                Sin observaciones para esta orden aún.
+                              </div>
+                              <div v-else class="obs-lista-inline">
+                                <div v-for="obs in obsXOrden[o.Id_Orden]" :key="obs.Id_Observacion" class="obs-item-inline">
+                                  <div class="obs-meta-inline">
+                                    <span class="obs-admin-inline">{{ obs.Admin }}</span>
+                                    <span class="obs-fecha-inline">{{ formatFechaObs(obs.Fecha) }}</span>
+                                  </div>
+                                  <p class="obs-texto-inline">{{ obs.Observacion }}</p>
+                                </div>
+                              </div>
+
+                              <!-- Formulario nueva obs vinculada a esta orden -->
+                              <div class="obs-form-inline">
+                                <textarea
+                                  v-model="nuevaObsXOrden[o.Id_Orden]"
+                                  class="obs-textarea-inline"
+                                  :placeholder="`Describe el problema de la orden #${o.Id_Orden}...`"
+                                  maxlength="500"
+                                  rows="2"
+                                ></textarea>
+                                <div class="obs-form-inline-footer">
+                                  <span class="obs-chars">{{ (nuevaObsXOrden[o.Id_Orden] || '').length }}/500</span>
+                                  <button
+                                    class="btn-obs-guardar-inline"
+                                    @click="guardarObservacionOrden(o)"
+                                    :disabled="!nuevaObsXOrden[o.Id_Orden]?.trim() || guardandoObsOrden === o.Id_Orden"
+                                  >
+                                    {{ guardandoObsOrden === o.Id_Orden ? 'Guardando...' : 'Guardar' }}
+                                  </button>
+                                </div>
+                              </div>
+
+                            </div>
+                          </td>
+                        </tr>
+                      </Transition>
+                    </template>
                   </tbody>
                 </table>
               </div>
               <div v-else class="sin-ordenes">Sin órdenes asignadas</div>
+
             </div>
             <div v-else class="cargando-detalle">
               <div class="spinner"></div>
@@ -280,14 +356,11 @@
                 class="table-row"
                 :style="{ animationDelay: `${idx * 40}ms` }"
               >
-                <!-- Posición en ranking -->
                 <td class="td-rank">
                   <span class="rank-num" :class="{ 'rank-gold': idx === 0, 'rank-silver': idx === 1, 'rank-bronze': idx === 2 }">
                     {{ idx + 1 }}
                   </span>
                 </td>
-
-                <!-- Operario -->
                 <td>
                   <div class="user">
                     <div class="avatar" :style="{ background: avatarBg(op.Nombre_Completo), color: avatarColor(op.Nombre_Completo) }">
@@ -299,8 +372,6 @@
                     </div>
                   </div>
                 </td>
-
-                <!-- Prendas / día -->
                 <td>
                   <div class="prendas-cell">
                     <span class="prendas-num">{{ op.prendas_por_dia }}</span>
@@ -311,13 +382,7 @@
                     </div>
                   </div>
                 </td>
-
-                <!-- Total producidas -->
-                <td>
-                  <span class="num-cell">{{ op.total_unidades_producidas }}</span>
-                </td>
-
-                <!-- En retraso -->
+                <td><span class="num-cell">{{ op.total_unidades_producidas }}</span></td>
                 <td>
                   <span class="retraso-cell" :class="{ 'retraso-activo': op.ordenes_en_retraso > 0 }">
                     <svg v-if="op.ordenes_en_retraso > 0" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -326,20 +391,12 @@
                     {{ op.ordenes_en_retraso }}
                   </span>
                 </td>
-
-                <!-- Completadas -->
-                <td>
-                  <span class="completadas-cell">{{ op.ordenes_completadas }}</span>
-                </td>
-
-                <!-- Rendimiento -->
+                <td><span class="completadas-cell">{{ op.ordenes_completadas }}</span></td>
                 <td>
                   <span class="badge-rendimiento" :class="op.rendimiento?.toLowerCase()">
                     {{ op.rendimiento }}
                   </span>
                 </td>
-
-                <!-- Ver detalle -->
                 <td>
                   <button class="action-btn" @click="verDetalle(op.Id_Usuario)" title="Ver detalle">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -368,24 +425,37 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
 import { getEficienciaOperarios, getEficienciaOperario } from '../../services/api.js'
+import { useAuthStore } from '../../stores/auth'
+
+const auth = useAuthStore()
 
 // ── ESTADO ──
-const animVisible      = ref(false)
-const cargando         = ref(true)
-const error            = ref('')
-const searchFocus      = ref(false)
-const busqueda         = ref('')
+const animVisible       = ref(false)
+const cargando          = ref(true)
+const error             = ref('')
+const searchFocus       = ref(false)
+const busqueda          = ref('')
 const filtroRendimiento = ref('')
-const operarios        = ref([])
-const modalDetalle     = ref(false)
-const operarioActivo   = ref(null)
-const sortKey          = ref('prendas_por_dia')
-const sortDir          = ref(-1)  // descendente por defecto (más alto arriba)
+const operarios         = ref([])
+const modalDetalle      = ref(false)
+const operarioActivo    = ref(null)
+const sortKey           = ref('prendas_por_dia')
+const sortDir           = ref(-1)
+
+// Observaciones por orden (nuevo sistema)
+const ordenObsAbierta   = ref(null)      // Id_Orden actualmente abierto
+const obsXOrden         = reactive({})   // { [Id_Orden]: [...observaciones] }
+const nuevaObsXOrden    = reactive({})   // { [Id_Orden]: 'texto' }
+const cargandoObsOrden  = ref(false)
+const guardandoObsOrden = ref(null)      // Id_Orden que está guardando
 
 const toast = ref({ visible: false, msg: '', type: 'success' })
+
+const BASE    = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_KEY = import.meta.env.VITE_API_KEY || ''
 
 // ── TOAST ──
 function mostrarToast(msg, type = 'success') {
@@ -416,8 +486,10 @@ onMounted(async () => {
 
 // ── VER DETALLE ──
 async function verDetalle(id) {
-  operarioActivo.value = null
-  modalDetalle.value = true
+  operarioActivo.value  = null
+  ordenObsAbierta.value = null
+  modalDetalle.value    = true
+
   try {
     const data = await getEficienciaOperario(id)
     operarioActivo.value = data
@@ -427,21 +499,96 @@ async function verDetalle(id) {
   }
 }
 
+function cerrarModal() {
+  modalDetalle.value    = false
+  operarioActivo.value  = null
+  ordenObsAbierta.value = null
+}
+
+// ── OBSERVACIONES POR ORDEN ──
+
+/** Abre/cierra el panel de obs de una orden. Carga las obs si no las tiene aún. */
+async function toggleObsOrden(orden) {
+  const id = orden.Id_Orden
+
+  // Si ya estaba abierta, la cerramos
+  if (ordenObsAbierta.value === id) {
+    ordenObsAbierta.value = null
+    return
+  }
+
+  ordenObsAbierta.value = id
+
+  // Si ya tenemos las obs cargadas, no volvemos a pedir
+  if (obsXOrden[id] !== undefined) return
+
+  cargandoObsOrden.value = true
+  try {
+    const res = await fetch(
+      `${BASE}/eficiencia/observaciones/${operarioActivo.value.Id_Usuario}?Id_Orden=${id}`,
+      { headers: { 'x-api-key': API_KEY } }
+    )
+    const json = await res.json()
+    obsXOrden[id] = json.data || []
+  } catch {
+    obsXOrden[id] = []
+  } finally {
+    cargandoObsOrden.value = false
+  }
+}
+
+/** Guarda una nueva observación vinculada a una orden específica */
+async function guardarObservacionOrden(orden) {
+  const id    = orden.Id_Orden
+  const texto = nuevaObsXOrden[id]?.trim()
+  if (!texto || !operarioActivo.value) return
+
+  guardandoObsOrden.value = id
+  try {
+    const res = await fetch(`${BASE}/eficiencia/observaciones`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY
+      },
+      body: JSON.stringify({
+        Id_Operario: operarioActivo.value.Id_Usuario,
+        Id_Admin:    auth.idUsuario,
+        Id_Orden:    id,
+        Observacion: texto
+      })
+    })
+    if (!res.ok) throw new Error('Error al guardar')
+
+    nuevaObsXOrden[id] = ''
+
+    // Recargar obs de esta orden
+    const res2 = await fetch(
+      `${BASE}/eficiencia/observaciones/${operarioActivo.value.Id_Usuario}?Id_Orden=${id}`,
+      { headers: { 'x-api-key': API_KEY } }
+    )
+    const json2 = await res2.json()
+    obsXOrden[id] = json2.data || []
+
+    mostrarToast(`Observación guardada en orden #${id}`)
+  } catch {
+    mostrarToast('Error al guardar la observación', 'danger')
+  } finally {
+    guardandoObsOrden.value = null
+  }
+}
+
 // ── ORDENAMIENTO ──
 function sortBy(key) {
-  if (sortKey.value === key) {
-    sortDir.value *= -1
-  } else {
-    sortKey.value = key
-    sortDir.value = -1
-  }
+  if (sortKey.value === key) sortDir.value *= -1
+  else { sortKey.value = key; sortDir.value = -1 }
 }
 
 // ── FILTROS Y ORDEN ──
 const operariosFiltrados = computed(() =>
   operarios.value.filter(op => {
     const q = busqueda.value.toLowerCase()
-    const matchBusqueda = op.Nombre_Completo?.toLowerCase().includes(q) || op.Nombre_Usuario?.toLowerCase().includes(q)
+    const matchBusqueda    = op.Nombre_Completo?.toLowerCase().includes(q) || op.Nombre_Usuario?.toLowerCase().includes(q)
     const matchRendimiento = !filtroRendimiento.value || op.rendimiento === filtroRendimiento.value
     return matchBusqueda && matchRendimiento
   })
@@ -485,10 +632,10 @@ const ICON_ALERT   = 'M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.6
 const ICON_DOWN    = 'M2.25 6 9 12.75l4.286-4.286a11.948 11.948 0 0 1 4.306 6.43l.776 2.898m0 0 3.182-5.511m-3.182 5.51-5.511-3.181'
 
 const statsCards = computed(() => [
-  { label: 'Total Operarios',   display: statsDisplay.value.total,    accentColor: '#1f3a52', iconPath: ICON_USERS  },
-  { label: 'Rendimiento Alto',  display: statsDisplay.value.alto,     accentColor: '#16a34a', iconPath: ICON_TROPHY },
-  { label: 'Órdenes en Retraso',display: statsDisplay.value.retrasos, accentColor: '#dc2626', iconPath: ICON_ALERT  },
-  { label: 'Rendimiento Bajo',  display: statsDisplay.value.bajo,     accentColor: '#d97706', iconPath: ICON_DOWN   },
+  { label: 'Total Operarios',    display: statsDisplay.value.total,    accentColor: '#1f3a52', iconPath: ICON_USERS  },
+  { label: 'Rendimiento Alto',   display: statsDisplay.value.alto,     accentColor: '#16a34a', iconPath: ICON_TROPHY },
+  { label: 'Órdenes en Retraso', display: statsDisplay.value.retrasos, accentColor: '#dc2626', iconPath: ICON_ALERT  },
+  { label: 'Rendimiento Bajo',   display: statsDisplay.value.bajo,     accentColor: '#d97706', iconPath: ICON_DOWN   },
 ])
 
 // ── HELPERS VISUALES ──
@@ -510,15 +657,19 @@ function rendimientoColor(r) {
   if (r === 'Medio') return '#2563eb'
   return '#dc2626'
 }
-
 function estadoClass(estado) {
-  const map = { 'Completada': 'completada', 'En Proceso': 'en-proceso', 'Pausado': 'pausado' }
-  return map[estado] || ''
+  return { 'Completada': 'completada', 'En Proceso': 'en-proceso', 'Pausado': 'pausado' }[estado] || ''
 }
-
+function dificultadClass(d) {
+  return { 'Alta': 'dif-alta', 'Media': 'dif-media', 'Baja': 'dif-baja' }[d] || 'dif-media'
+}
 function formatFecha(f) {
   if (!f) return '—'
   return new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+function formatFechaObs(f) {
+  if (!f) return '—'
+  return new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
@@ -644,6 +795,12 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .badge-rendimiento.medio { background: #dbeafe; color: #1d4ed8; }
 .badge-rendimiento.bajo  { background: #fee2e2; color: #b91c1c; }
 
+/* ── BADGE DIFICULTAD ── */
+.badge-dificultad { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.dif-alta  { background: #fce7f3; color: #9d174d; }
+.dif-media { background: #ede9fe; color: #5b21b6; }
+.dif-baja  { background: #ecfdf5; color: #065f46; }
+
 /* ── ACCIONES ── */
 .action-btn { width: 32px; height: 32px; border-radius: 7px; border: none; background: #1f3a52; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: all 0.15s; }
 .action-btn:hover { background: #2d5580; transform: scale(1.07); }
@@ -665,11 +822,10 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 
 /* ── MODAL DETALLE ── */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-.modal-content { background: white; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 16px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.modal-content { background: white; width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 16px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
 .close { position: absolute; top: 16px; right: 20px; font-size: 22px; cursor: pointer; color: #9ca3af; background: none; border: none; transition: color 0.15s; }
 .close:hover { color: #374151; }
 
-/* Detalle operario */
 .detalle-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detalle-avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; flex-shrink: 0; }
 .detalle-nombre { font-size: 18px; font-weight: 700; color: #111827; }
@@ -679,12 +835,11 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .metrica-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
 .metrica-label { font-size: 11px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
 .metrica-valor { font-size: 22px; font-weight: 800; }
-.metrica-valor.azul  { color: #2563eb; }
-.metrica-valor.verde { color: #16a34a; }
-.metrica-valor.rojo  { color: #dc2626; }
+.metrica-valor.azul    { color: #2563eb; }
+.metrica-valor.verde   { color: #16a34a; }
+.metrica-valor.rojo    { color: #dc2626; }
 .metrica-valor.amarillo { color: #d97706; }
 
-/* Tabla de órdenes */
 .detalle-ordenes-titulo { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px; }
 .tabla-ordenes { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tabla-ordenes th { text-align: left; padding: 9px 12px; background: #f9fafb; font-size: 11px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
@@ -693,7 +848,6 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .td-retraso { color: #dc2626; font-weight: 600; }
 .retraso-tag { display: inline-block; background: #dc2626; color: white; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
 
-/* Badges órdenes */
 .badge-estado { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .badge-estado.completada  { background: #dcfce7; color: #15803d; }
 .badge-estado.en-proceso  { background: #dbeafe; color: #1d4ed8; }
@@ -703,7 +857,6 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .badge-prioridad.media  { background: #fef9c3; color: #92400e; }
 .badge-prioridad.baja   { background: #f3f4f6; color: #374151; }
 
-/* Barra de avance */
 .avance-wrap { display: flex; align-items: center; gap: 6px; }
 .avance-bar  { flex: 1; height: 5px; background: #e5e7eb; border-radius: 999px; overflow: hidden; min-width: 50px; }
 .avance-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
@@ -712,6 +865,129 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .sin-ordenes { text-align: center; padding: 30px; color: #9ca3af; font-size: 14px; }
 .cargando-detalle { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 60px; color: #6b7280; }
 .spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spinIcon 0.7s linear infinite; }
+
+/* ── BOTÓN TOGGLE OBS POR ORDEN ── */
+.btn-obs-toggle {
+  position: relative;
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s;
+}
+.btn-obs-toggle:hover { border-color: #1f3a52; color: #1f3a52; background: #f0f4f8; }
+.btn-obs-toggle.active { background: #1f3a52; color: white; border-color: #1f3a52; }
+.obs-badge-mini {
+  position: absolute;
+  top: -5px; right: -5px;
+  background: #dc2626;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+/* ── PANEL DE OBS INLINE ── */
+.obs-row td { padding: 0 !important; border-top: none !important; }
+.obs-panel-td { padding: 0 !important; }
+.obs-panel {
+  background: #f8fafc;
+  border-top: 2px solid #1f3a52;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.obs-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f3a52;
+}
+.obs-panel-header svg { color: #1f3a52; flex-shrink: 0; }
+
+.obs-loading { font-size: 12px; color: #9ca3af; }
+.obs-empty-inline { font-size: 12px; color: #9ca3af; font-style: italic; }
+
+.obs-lista-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.obs-item-inline {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.obs-meta-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.obs-admin-inline { font-size: 11px; font-weight: 700; color: #1f3a52; }
+.obs-fecha-inline { font-size: 10px; color: #9ca3af; }
+.obs-texto-inline { font-size: 12px; color: #374151; margin: 0; line-height: 1.5; }
+
+.obs-form-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+.obs-textarea-inline {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: #374151;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  background: white;
+}
+.obs-textarea-inline:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.08); }
+.obs-form-inline-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.obs-chars { font-size: 10px; color: #9ca3af; }
+.btn-obs-guardar-inline {
+  background: #1f3a52;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-obs-guardar-inline:hover:not(:disabled) { background: #162d42; }
+.btn-obs-guardar-inline:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── TRANSICIÓN PANEL OBS ── */
+.obs-panel-enter-active { transition: all 0.22s ease; }
+.obs-panel-leave-active { transition: all 0.18s ease; }
+.obs-panel-enter-from { opacity: 0; transform: translateY(-6px); }
+.obs-panel-leave-to   { opacity: 0; transform: translateY(-6px); }
 
 /* ── TOAST ── */
 .toast { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }

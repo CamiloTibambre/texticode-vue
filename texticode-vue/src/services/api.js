@@ -97,3 +97,19 @@ export async function getEficienciaOperario(id) {
   const json = await requestWithKey(`/eficiencia/operarios/${id}`)
   return json.data
 }
+
+// ── OBSERVACIONES DE OPERARIOS ────────────────────────────
+// POST /api/eficiencia/observaciones → el admin registra una observación
+export async function crearObservacion(body) {
+  const json = await requestWithKey('/eficiencia/observaciones', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  return json.data
+}
+
+// GET /api/eficiencia/observaciones/:id → observaciones de un operario
+export async function getObservacionesOperario(id) {
+  const json = await requestWithKey(`/eficiencia/observaciones/${id}`)
+  return json.data
+}

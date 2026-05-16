@@ -133,7 +133,7 @@ const menuConfig = {
       { to: '/admin/inventario', label: 'Gestión de Inventario', icon: iconInventario },
       { to: '/admin/reportes',   label: 'Reportes',              icon: iconReportes   },
       { to: '/admin/produccion', label: 'Gestión de Producción', icon: iconProduccion },
-      { to: '/admin/eficiencia', label: 'Eficiencia Operarios',  icon: iconEficiencia },
+      { to: '/admin/eficiencia', label: 'Gestión de Operarios',  icon: iconEficiencia },
     ]
   },
   operario: {
