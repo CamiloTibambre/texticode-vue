@@ -102,7 +102,7 @@ router.get('/', async (req, res) => {
 // ─────────────────────────────────────────
 // GET /api/carga-trabajo/sugerencias
 // Operarios sobrecargados + sugerencias de reasignación
-// ─────────────────────────────────────────
+// ─────────────────────────────────────────////
 router.get('/sugerencias', async (req, res) => {
   try {
     const [operarios] = await db.query(`
