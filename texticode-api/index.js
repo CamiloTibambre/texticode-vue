@@ -14,6 +14,9 @@ import notificacionesRouter from './routes/notificaciones.js'
 import authRouter           from './routes/auth.route.js'
 import practicaRouter       from './routes/practica.routes.js'
 import eficienciaRouter     from './routes/eficiencia.js'
+import cargaTrabajoRoutes from './routes/carga_trabajo.js'
+
+
 
 const app = express()
 
@@ -31,6 +34,7 @@ app.use('/api/notificaciones',   notificacionesRouter)
 app.use('/api/auth',             authRouter)
 app.use('/api/practica',         practicaRouter)
 app.use('/api/eficiencia',       eficienciaRouter)
+app.use('/api/carga-trabajo',    cargaTrabajoRoutes)
 
 app.get('/', (req, res) => {
   res.json({
