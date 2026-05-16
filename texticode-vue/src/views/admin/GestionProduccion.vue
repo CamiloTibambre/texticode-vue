@@ -95,6 +95,7 @@
               <th>Materiales</th>
               <th @click="doSort('Estado')" class="th-sort">Estado <span>{{ sIcon('Estado') }}</span></th>
               <th @click="doSort('Prioridad')" class="th-sort">Prioridad <span>{{ sIcon('Prioridad') }}</span></th>
+              <th @click="doSort('Dificultad')" class="th-sort">Dificultad <span>{{ sIcon('Dificultad') }}</span></th>
               <th @click="doSort('Fecha_Limite')" class="th-sort">Fecha Límite <span>{{ sIcon('Fecha_Limite') }}</span></th>
               <th>Cantidad</th>
               <th>Acciones</th>
@@ -130,6 +131,7 @@
                 </td>
                 <td><span class="badge-estado" :class="claseEstado(o.Estado)">{{ o.Estado }}</span></td>
                 <td><span class="badge-prioridad" :class="clasePrioridad(o.Prioridad)">{{ o.Prioridad }}</span></td>
+                <td><span class="badge-dificultad" :class="claseDificultad(o.Dificultad)">{{ o.Dificultad || 'Media' }}</span></td>
                 <td :class="{ 'fecha-vencida': estaVencida(o.Fecha_Limite) }">{{ formatFecha(o.Fecha_Limite) }}</td>
                 <td>{{ o.Cantidad }}</td>
                 <td>
@@ -302,6 +304,29 @@
               </div>
             </div>
 
+            <!-- ── DIFICULTAD ── -->
+            <div class="form-group">
+              <label class="form-label">
+                Dificultad
+                <span class="label-hint">— afecta el cálculo de rendimiento del operario</span>
+              </label>
+              <select v-model="form.Dificultad" class="form-input">
+                <option value="Baja">Baja — prendas simples (medias, boxer, pantalonetas)</option>
+                <option value="Media">Media — prendas estándar (camisas, pantalones, pijamas)</option>
+                <option value="Alta">Alta — prendas complejas (chaquetas, uniformes, sudaderas, hoodies)</option>
+              </select>
+            </div>
+
+            <!-- ── ESTADO (solo visible al editar) ── -->
+            <div class="form-group" v-if="editando">
+              <label class="form-label">Estado</label>
+              <select v-model="form.Estado" class="form-input">
+                <option value="En Proceso">En Proceso</option>
+                <option value="Completada">Completada</option>
+                <option value="Pausado">Pausado</option>
+              </select>
+            </div>
+
             <div class="form-group">
               <label class="form-label">Fecha Límite <span class="req">*</span></label>
               <input v-model="form.Fecha_Limite" class="form-input" type="date">
@@ -341,6 +366,10 @@
             <div class="detalle-item">
               <span class="detalle-label">Prioridad</span>
               <span class="badge-prioridad" :class="clasePrioridad(detalleOrden.Prioridad)">{{ detalleOrden.Prioridad }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-label">Dificultad</span>
+              <span class="badge-dificultad" :class="claseDificultad(detalleOrden.Dificultad)">{{ detalleOrden.Dificultad || 'Media' }}</span>
             </div>
             <div class="detalle-item detalle-fecha-creacion">
               <span class="detalle-label">
@@ -426,14 +455,10 @@ import {
 } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 
-// ── SENDGRID — notificación al operario ───────────────────────
 import { useNotificaciones } from '../../composables/useNotificaciones'
 const { notificarTarea } = useNotificaciones()
 
-// ── Una sola declaración de BASE ──────────────────────────────
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-
-// ── AUTH (para saber quién crea el comprobante) ─────────────
 const auth = useAuthStore()
 
 // ── ESTADO ────────────────────────────────────────────────────
@@ -460,7 +485,6 @@ const sortKey = ref('Id_Orden')
 const sortDir = ref(1)
 const statTimers = new Map()
 
-// Fecha de hoy formateada para mostrar en el formulario de creación
 const fechaHoyFormateada = computed(() => {
   return new Date().toLocaleDateString('es-CO', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -477,6 +501,7 @@ const formVacio = () => ({
   Descripcion:              '',
   Cantidad:                 1,
   Prioridad:                'Media',
+  Dificultad:               'Media',
   Estado:                   'En Proceso',
   Fecha_Limite:             '',
   Fecha_Creacion:           null,
@@ -485,7 +510,7 @@ const formVacio = () => ({
 
 const form = ref(formVacio())
 
-// ── Materiales disponibles ──────────────────────────────────────
+// ── Materiales disponibles ────────────────────────────────────
 const materialesDisponibles = computed(() => {
   const yaSeleccionados = new Set(form.value.materiales_seleccionados.map(m => m.Id_Material))
   return materiales.value.filter(m => !yaSeleccionados.has(m.Id_Material))
@@ -550,7 +575,11 @@ onMounted(async () => {
   setTimeout(() => mounted.value = true, 50)
 })
 
+// ── FIX CLAVE: el watch de Id_Cliente NO debe borrar materiales
+// cuando abrirModal acaba de asignarlos. Usamos un flag para ignorarlo.
+const _ignorarWatchCliente = ref(false)
 watch(() => form.value.Id_Cliente, () => {
+  if (_ignorarWatchCliente.value) return
   form.value.materiales_seleccionados = []
   materialParaAgregar.value = ''
 })
@@ -561,10 +590,10 @@ onBeforeUnmount(() => {
 })
 
 // ── STATS ─────────────────────────────────────────────────────
-const ICON_LIST   = 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z'
-const ICON_PROC   = 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
-const ICON_CHECK  = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
-const ICON_PAUSE  = 'M15.75 5.25v13.5m-7.5-13.5v13.5'
+const ICON_LIST  = 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z'
+const ICON_PROC  = 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
+const ICON_CHECK = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+const ICON_PAUSE = 'M15.75 5.25v13.5m-7.5-13.5v13.5'
 
 const stats = computed(() => [
   { label: 'Total Órdenes', display: statsDisplay.value.total,       accentColor: '#1f3a52', iconPath: ICON_LIST  },
@@ -622,7 +651,6 @@ function formatFecha(fecha) {
     year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'
   })
 }
-
 function formatFechaInput(fecha) {
   if (!fecha) return '—'
   try {
@@ -632,7 +660,6 @@ function formatFechaInput(fecha) {
     })
   } catch { return '—' }
 }
-
 function formatFechaDetalle(fecha) {
   if (!fecha) return '—'
   try {
@@ -642,7 +669,6 @@ function formatFechaDetalle(fecha) {
     })
   } catch { return '—' }
 }
-
 function estaVencida(fecha) {
   if (!fecha) return false
   return new Date(fecha) < new Date()
@@ -652,6 +678,9 @@ function claseEstado(e) {
 }
 function clasePrioridad(p) {
   return { 'Alta': 'prio-alta', 'Media': 'prio-media', 'Baja': 'prio-baja' }[p] || ''
+}
+function claseDificultad(d) {
+  return { 'Alta': 'dif-alta', 'Media': 'dif-media', 'Baja': 'dif-baja' }[d] || 'dif-media'
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
@@ -672,20 +701,28 @@ async function abrirModal(o) {
       }))
     } catch { matsActuales = [] }
 
+    // ── FIX: bloquear el watch mientras asignamos el form ──
+    _ignorarWatchCliente.value = true
     form.value = {
       Id_Orden:                 o.Id_Orden,
       Id_Cliente:               o.Id_Cliente,
-      Id_Operario:              o.Id_Operario  || '',
-      _operarioOriginal:        o.Id_Operario  || '',
-      Producto:                 o.Producto     || '',
-      Descripcion:              o.Descripcion  || '',
+      Id_Operario:              o.Id_Operario          || '',
+      _operarioOriginal:        o.Id_Operario          || '',
+      Producto:                 o.Producto             || '',
+      Descripcion:              o.Descripcion          || '',
       Cantidad:                 o.Cantidad,
-      Prioridad:                o.Prioridad,
-      Estado:                   o.Estado,
+      Prioridad:                o.Prioridad            || 'Media',
+      // ── FIX PRINCIPAL: leer Dificultad limpia de la BD ──
+      Dificultad:               o.Dificultad           || 'Media',
+      Estado:                   o.Estado               || 'En Proceso',
       Fecha_Limite:             o.Fecha_Limite?.split('T')[0] || o.Fecha_Limite || '',
-      Fecha_Creacion:           o.Fecha_Creacion || null,
+      Fecha_Creacion:           o.Fecha_Creacion       || null,
       materiales_seleccionados: matsActuales,
     }
+    // Desbloquear el watch en el siguiente tick (después de que Vue procese la asignación)
+    await new Promise(r => setTimeout(r, 0))
+    _ignorarWatchCliente.value = false
+
   } else {
     form.value = formVacio()
   }
@@ -720,10 +757,16 @@ async function guardar() {
     Producto:     form.value.Producto     || null,
     Descripcion:  form.value.Descripcion,
     Cantidad:     form.value.Cantidad,
-    Prioridad:    form.value.Prioridad,
-    Estado:       form.value.Estado,
+    Prioridad:    form.value.Prioridad    || 'Media',
+    // ── FIX: garantizar que Dificultad sea uno de los 3 valores válidos ──
+    Dificultad:   ['Alta', 'Media', 'Baja'].includes(form.value.Dificultad)
+                    ? form.value.Dificultad
+                    : 'Media',
+    Estado:       form.value.Estado       || 'En Proceso',
     Fecha_Limite: form.value.Fecha_Limite,
   }
+
+  console.log('[DEBUG] payload enviado:', JSON.stringify(payload))
 
   try {
     let idOrden = form.value.Id_Orden
@@ -731,7 +774,6 @@ async function guardar() {
     if (editando.value) {
       await actualizarOrden(idOrden, payload)
 
-      // ── SENDGRID: notificar al operario si fue reasignado ──
       const operarioCambio = payload.Id_Operario &&
                              payload.Id_Operario != form.value._operarioOriginal
       if (operarioCambio) {
@@ -748,11 +790,9 @@ async function guardar() {
       }
 
     } else {
-      // Crear la orden
       const res = await crearOrden(payload)
       idOrden = res.Id_Orden
 
-      // ── CREAR COMPROBANTE AUTOMÁTICAMENTE ──────────────────
       try {
         await crearComprobante({
           Id_Usuario:   auth.idUsuario,
@@ -764,7 +804,6 @@ async function guardar() {
         console.warn('No se pudo crear el comprobante automáticamente:', compErr.message)
       }
 
-      // ── SENDGRID: notificar al operario si fue asignado al crear ──
       if (payload.Id_Operario) {
         const operario = operarios.value.find(op => op.Id_Usuario == payload.Id_Operario)
         if (operario?.Correo) {
@@ -779,7 +818,7 @@ async function guardar() {
       }
     }
 
-    // Gestionar materiales de la orden
+    // Gestionar materiales
     try {
       const matsExistentes = await getMaterialesDeOrden(idOrden)
       for (const m of (matsExistentes || [])) {
@@ -930,6 +969,11 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .prio-alta  { background: #fee2e2; color: #991b1b; }
 .prio-media { background: #fef3c7; color: #92400e; }
 .prio-baja  { background: #f0fdf4; color: #166534; }
+
+.badge-dificultad { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.dif-alta  { background: #fce7f3; color: #9d174d; }
+.dif-media { background: #ede9fe; color: #5b21b6; }
+.dif-baja  { background: #ecfdf5; color: #065f46; }
 
 /* ── ACCIONES ── */
 .acciones { display: flex; gap: 6px; align-items: center; }
