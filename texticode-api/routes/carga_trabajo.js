@@ -99,7 +99,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
+// ─────────────────────────────────────────/////
 // GET /api/carga-trabajo/sugerencias
 // Operarios sobrecargados + sugerencias de reasignación
 // ─────────────────────────────────────────////
