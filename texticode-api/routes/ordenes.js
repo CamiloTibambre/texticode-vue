@@ -104,7 +104,8 @@ router.post('/', async (req, res) => {
   const {
     Id_Cliente, Id_Material, Id_Operario,
     Producto, Descripcion, Cantidad,
-    Prioridad, Fecha_Limite, Estado
+    Prioridad, Fecha_Limite, Estado,
+    Dificultad
   } = req.body
 
   if (!Id_Cliente || !Id_Material || !Descripcion || !Cantidad || !Fecha_Limite)
@@ -114,8 +115,8 @@ router.post('/', async (req, res) => {
     const [result] = await pool.query(`
       INSERT INTO orden_produccion
         (Id_Cliente, Id_Material, Id_Operario, Producto, Descripcion,
-         Cantidad, Prioridad, Fecha_Limite, Estado)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         Cantidad, Prioridad, Fecha_Limite, Estado, Dificultad)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       Id_Cliente,
       Id_Material,
@@ -126,8 +127,8 @@ router.post('/', async (req, res) => {
       Prioridad    || 'Media',
       Fecha_Limite,
       Estado       || 'En Proceso',
+      Dificultad   || 'Media',
     ])
-    // Devolvemos también el insertId para que el frontend cree el comprobante
     res.status(201).json({ mensaje: 'Orden creada', Id_Orden: result.insertId })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -139,7 +140,8 @@ router.put('/:id', async (req, res) => {
   const {
     Id_Cliente, Id_Material, Id_Operario, Producto, Descripcion,
     Cantidad, Prioridad, Fecha_Limite, Estado,
-    Unidades, Unidades_Realizadas   
+    Unidades, Unidades_Realizadas,
+    Dificultad
   } = req.body
 
   try {
@@ -147,13 +149,15 @@ router.put('/:id', async (req, res) => {
       UPDATE orden_produccion
       SET Id_Cliente=?, Id_Material=?, Id_Operario=?, Producto=?, Descripcion=?,
           Cantidad=?, Prioridad=?, Fecha_Limite=?, Estado=?,
-          Unidades=?, Unidades_Realizadas=?
+          Unidades=?, Unidades_Realizadas=?,
+          Dificultad=?
       WHERE Id_Orden=?
     `, [
       Id_Cliente, Id_Material, Id_Operario || null,
       Producto || null, Descripcion, Cantidad, Prioridad,
       Fecha_Limite, Estado,
-      Unidades ?? null, Unidades_Realizadas ?? null,   
+      Unidades ?? null, Unidades_Realizadas ?? null,
+      Dificultad || 'Media',
       req.params.id,
     ])
 
@@ -178,4 +182,4 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
-export default router 
+export default router
