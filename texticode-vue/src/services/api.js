@@ -113,3 +113,31 @@ export async function getObservacionesOperario(id) {
   const json = await requestWithKey(`/eficiencia/observaciones/${id}`)
   return json.data
 }
+// ── GOOGLE CALENDAR / OAUTH ───────────────────────────────
+function authHeaders() {
+  const token = localStorage.getItem('jwt_token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+async function requestAuth(url, options = {}) {
+  const { headers = {}, ...rest } = options
+  const res = await fetch(`${BASE}${url}`, {
+    ...rest,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+      ...headers,
+    },
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || data.mensaje || 'Error en la API')
+  return data
+}
+
+export const getGoogleAuthUrl = (action = 'link') => requestAuth(`/google/auth-url?action=${encodeURIComponent(action)}`)
+export const getGoogleCalendarStatus = () => requestAuth('/google/status')
+export const updateGoogleCalendarSettings = (body) => requestAuth('/google/settings', { method: 'PATCH', body: JSON.stringify(body) })
+export const unlinkGoogleCalendar = () => requestAuth('/google/unlink', { method: 'DELETE' })
+export const syncGoogleDeliveryEvents = () => requestAuth('/google/sync/delivery-events', { method: 'POST' })
+export const getGoogleUpcomingEvents = () => requestAuth('/google/events/upcoming')
+export const getGoogleConnectedUsers = () => requestAuth('/google/connected-users')
