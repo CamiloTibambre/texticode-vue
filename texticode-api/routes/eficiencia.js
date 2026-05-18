@@ -316,4 +316,166 @@ router.get('/observaciones/:id', async (req, res) => {
   res.json({ ok: true, total: rows.length, data: rows })
 })
 
+// ─────────────────────────────────────────
+// GET /api/eficiencia/operarios/:id/historial
+// Query param: periodo = "semana" | "mes" | "trimestre"  (default: semana)
+// Retorna el rendimiento del operario filtrado por fecha reciente,
+// más una tendencia comparando con el período anterior del mismo tamaño.
+// ─────────────────────────────────────────
+router.get('/operarios/:id/historial', async (req, res) => {
+  const { id } = req.params
+  const { periodo = 'semana' } = req.query
+
+  if (isNaN(id)) {
+    return res.status(400).json({ ok: false, mensaje: 'El id debe ser un número válido' })
+  }
+
+  const periodosValidos = ['semana', 'mes', 'trimestre']
+  if (!periodosValidos.includes(periodo)) {
+    return res.status(400).json({ ok: false, mensaje: `periodo inválido. Usa: ${periodosValidos.join(', ')}` })
+  }
+
+  // Días que abarca cada período
+  const diasPeriodo = { semana: 7, mes: 30, trimestre: 90 }
+  const dias = diasPeriodo[periodo]
+
+  // Función SQL reutilizable para calcular métricas en un rango de fechas
+  const sqlMetricasPeriodo = (offsetInicio, offsetFin) => `
+    SELECT
+      ROUND(
+        COALESCE(SUM(
+          CASE
+            WHEN (SELECT COUNT(*) FROM observacion_operario ob2 WHERE ob2.Id_Orden = op.Id_Orden) = 0
+            THEN op.Unidades_Realizadas * CASE op.Dificultad
+                  WHEN 'Alta'  THEN 3
+                  WHEN 'Media' THEN 2
+                  WHEN 'Baja'  THEN 1
+                  ELSE 2
+                END
+            ELSE NULL
+          END
+        ), 0) /
+        NULLIF(
+          SUM(
+            CASE
+              WHEN (SELECT COUNT(*) FROM observacion_operario ob3 WHERE ob3.Id_Orden = op.Id_Orden) = 0
+              THEN GREATEST(DATEDIFF(CURDATE(), DATE(op.Fecha_Creacion)), 1)
+              ELSE 0
+            END
+          ), 0
+        ), 1
+      ) AS prendas_por_dia,
+      COALESCE(SUM(op.Unidades_Realizadas), 0) AS total_unidades,
+      COUNT(CASE WHEN op.Estado = 'Completada' THEN 1 END) AS completadas,
+      COUNT(CASE WHEN op.Estado IN ('En Proceso','Pausado') THEN 1 END) AS en_curso,
+      COUNT(
+        CASE
+          WHEN CURDATE() > op.Fecha_Limite
+           AND op.Estado IN ('En Proceso', 'Pausado')
+           AND (SELECT COUNT(*) FROM observacion_operario ob4 WHERE ob4.Id_Orden = op.Id_Orden) = 0
+          THEN 1
+        END
+      ) AS retrasos,
+      COUNT(
+        CASE WHEN (SELECT COUNT(*) FROM observacion_operario ob5 WHERE ob5.Id_Orden = op.Id_Orden) > 0
+        THEN 1 END
+      ) AS con_problema
+    FROM orden_produccion op
+    WHERE op.Id_Operario = ?
+      AND op.Fecha_Creacion >= DATE_SUB(CURDATE(), INTERVAL ${offsetInicio} DAY)
+      AND op.Fecha_Creacion <  DATE_SUB(CURDATE(), INTERVAL ${offsetFin}  DAY)
+  `
+
+  // Verificar que el operario exista
+  const [operario] = await db.query(
+    `SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario
+     FROM usuario u
+     INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
+     WHERE u.Id_Usuario = ? AND u.Estado = 'activo'`,
+    [id]
+  )
+
+  if (operario.length === 0) {
+    return res.status(404).json({ ok: false, mensaje: `No se encontró operario con id ${id}` })
+  }
+
+  // Período actual (últimos N días)
+  const [actual] = await db.query(sqlMetricasPeriodo(dias, 0), [id])
+
+  // Período anterior (los N días antes del período actual, para comparar)
+  const [anterior] = await db.query(sqlMetricasPeriodo(dias * 2, dias), [id])
+
+  const ppd_actual   = parseFloat(actual[0].prendas_por_dia)  || 0
+  const ppd_anterior = parseFloat(anterior[0].prendas_por_dia) || 0
+
+  // Calcular rendimiento del período actual
+  const calcularRendimiento = (ppd, retrasos) => {
+    if (retrasos > 0) return 'Bajo'
+    if (ppd >= 10)    return 'Alto'
+    if (ppd >= 3)     return 'Medio'
+    return 'Bajo'
+  }
+
+  const rendimiento_actual   = calcularRendimiento(ppd_actual,   actual[0].retrasos)
+  const rendimiento_anterior = calcularRendimiento(ppd_anterior, anterior[0].retrasos)
+
+  // Tendencia comparando prendas_por_dia
+  let tendencia = 'estable'
+  const diferencia = ppd_actual - ppd_anterior
+  if (diferencia > 0.5)       tendencia = 'subiendo'
+  else if (diferencia < -0.5) tendencia = 'bajando'
+
+  res.json({
+    ok: true,
+    data: {
+      operario:   operario[0],
+      periodo,
+      dias,
+      actual: {
+        prendas_por_dia:  ppd_actual,
+        total_unidades:   actual[0].total_unidades,
+        completadas:      actual[0].completadas,
+        en_curso:         actual[0].en_curso,
+        retrasos:         actual[0].retrasos,
+        con_problema:     actual[0].con_problema,
+        rendimiento:      rendimiento_actual
+      },
+      anterior: {
+        prendas_por_dia:  ppd_anterior,
+        total_unidades:   anterior[0].total_unidades,
+        completadas:      anterior[0].completadas,
+        retrasos:         anterior[0].retrasos,
+        rendimiento:      rendimiento_anterior
+      },
+      tendencia,                       // "subiendo" | "bajando" | "estable"
+      diferencia_prendas: Math.round(diferencia * 10) / 10
+    }
+  })
+})
+
+// ─────────────────────────────────────────
+// DELETE /api/eficiencia/observaciones/:id
+// Elimina una observación por su Id_Observacion
+// ─────────────────────────────────────────
+router.delete('/observaciones/:id', async (req, res) => {
+  const { id } = req.params
+
+  if (isNaN(id)) {
+    return res.status(400).json({ ok: false, mensaje: 'El id debe ser un número válido' })
+  }
+
+  const [obs] = await db.query(
+    `SELECT Id_Observacion FROM observacion_operario WHERE Id_Observacion = ?`,
+    [id]
+  )
+
+  if (obs.length === 0) {
+    return res.status(404).json({ ok: false, mensaje: `No se encontró la observación con id ${id}` })
+  }
+
+  await db.query(`DELETE FROM observacion_operario WHERE Id_Observacion = ?`, [id])
+
+  res.json({ ok: true, mensaje: 'Observación eliminada correctamente' })
+})
+
 export default router
