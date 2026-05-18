@@ -35,6 +35,19 @@ export const useAuthStore = defineStore('auth', () => {
     return usuario.value
   }
 
+  function guardarSesionGoogle(tokenGoogle, usuarioGoogle) {
+    token.value = tokenGoogle
+    usuario.value = {
+      ...usuarioGoogle,
+      rol: (usuarioGoogle.Rol || usuarioGoogle.rol || '').toLowerCase(),
+    }
+
+    localStorage.setItem('jwt_token', token.value)
+    localStorage.setItem('usuario', JSON.stringify(usuario.value))
+
+    return usuario.value
+  }
+
   function logout() {
     token.value   = null
     usuario.value = null
@@ -53,6 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
     idUsuario,
     estaLogueado,
     loginConCredenciales,
+    guardarSesionGoogle,
     logout,
     authHeader,
   }
