@@ -32,7 +32,7 @@ async function requestWithKey(url, options = {}) {
 // ── USUARIOS ──────────────────────────────────────────────
 export const getUsuarios        = ()         => request('/usuarios')
 export const getUsuario         = (id)       => request(`/usuarios/${id}`)
-export const loginUsuario       = (body)     => request('/usuarios/login', { method: 'POST', body: JSON.stringify(body) })
+export const loginUsuario       = (body)     => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }) // ✅ corregido
 export const crearUsuario       = (body)     => request('/usuarios', { method: 'POST', body: JSON.stringify(body) })
 export const actualizarUsuario  = (id, body) => request(`/usuarios/${id}`, { method: 'PUT', body: JSON.stringify(body) })
 export const eliminarUsuario    = (id)       => request(`/usuarios/${id}`, { method: 'DELETE' })
@@ -81,7 +81,6 @@ export const asignarUsuarioOrden    = (body)               => request('/usuario-
 export const desasignarUsuarioOrden = (idUsuario, idOrden) => request(`/usuario-orden/${idUsuario}/${idOrden}`, { method: 'DELETE' })
 
 // ── EFICIENCIA DE OPERARIOS ───────────────────────────────
-// GET /api/eficiencia/operarios → todos los operarios con ranking y rendimiento
 export async function getEficienciaOperarios(filtros = {}) {
   const params = new URLSearchParams()
   if (filtros.rendimiento) params.append('rendimiento', filtros.rendimiento)
@@ -92,14 +91,12 @@ export async function getEficienciaOperarios(filtros = {}) {
   return json.data
 }
 
-// GET /api/eficiencia/operarios/:id → un operario con detalle de sus órdenes
 export async function getEficienciaOperario(id) {
   const json = await requestWithKey(`/eficiencia/operarios/${id}`)
   return json.data
 }
 
 // ── OBSERVACIONES DE OPERARIOS ────────────────────────────
-// POST /api/eficiencia/observaciones → el admin registra una observación
 export async function crearObservacion(body) {
   const json = await requestWithKey('/eficiencia/observaciones', {
     method: 'POST',
@@ -108,8 +105,36 @@ export async function crearObservacion(body) {
   return json.data
 }
 
-// GET /api/eficiencia/observaciones/:id → observaciones de un operario
 export async function getObservacionesOperario(id) {
   const json = await requestWithKey(`/eficiencia/observaciones/${id}`)
   return json.data
 }
+
+// ── GOOGLE CALENDAR / OAUTH ───────────────────────────────
+function authHeaders() {
+  const token = localStorage.getItem('jwt_token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+async function requestAuth(url, options = {}) {
+  const { headers = {}, ...rest } = options
+  const res = await fetch(`${BASE}${url}`, {
+    ...rest,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+      ...headers,
+    },
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || data.mensaje || 'Error en la API')
+  return data
+}
+
+export const getGoogleAuthUrl             = (action = 'link') => requestAuth(`/google/auth-url?action=${encodeURIComponent(action)}`)
+export const getGoogleCalendarStatus      = ()                 => requestAuth('/google/status')
+export const updateGoogleCalendarSettings = (body)            => requestAuth('/google/settings', { method: 'PATCH', body: JSON.stringify(body) })
+export const unlinkGoogleCalendar         = ()                 => requestAuth('/google/unlink', { method: 'DELETE' })
+export const syncGoogleDeliveryEvents     = ()                 => requestAuth('/google/sync/delivery-events', { method: 'POST' })
+export const getGoogleUpcomingEvents      = ()                 => requestAuth('/google/events/upcoming')
+export const getGoogleConnectedUsers      = ()                 => requestAuth('/google/connected-users')

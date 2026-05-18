@@ -19,11 +19,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function loginConCredenciales(correo, contrasena) {
     const data = await loginUsuario({ correo, contrasena })
 
-    // El backend devuelve { mensaje, usuario } — token es opcional por ahora
     const user = data.usuario
 
-    // Guardar token si existe, si no guardar un placeholder
-    token.value   = data.token || 'session_activa'
+    // ✅ Usa el token real del backend, no un placeholder
+    token.value   = data.token || null
     usuario.value = {
       ...user,
       rol: (user.Rol || '').toLowerCase(),
@@ -31,6 +30,19 @@ export const useAuthStore = defineStore('auth', () => {
 
     localStorage.setItem('jwt_token', token.value)
     localStorage.setItem('usuario',   JSON.stringify(usuario.value))
+
+    return usuario.value
+  }
+
+  function guardarSesionGoogle(tokenGoogle, usuarioGoogle) {
+    token.value = tokenGoogle
+    usuario.value = {
+      ...usuarioGoogle,
+      rol: (usuarioGoogle.Rol || usuarioGoogle.rol || '').toLowerCase(),
+    }
+
+    localStorage.setItem('jwt_token', token.value)
+    localStorage.setItem('usuario', JSON.stringify(usuario.value))
 
     return usuario.value
   }
@@ -53,6 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     idUsuario,
     estaLogueado,
     loginConCredenciales,
+    guardarSesionGoogle,
     logout,
     authHeader,
   }
