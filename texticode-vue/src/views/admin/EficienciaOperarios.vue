@@ -82,6 +82,12 @@
         </div>
       </div>
 
+      <div class="view-switch" :class="{ 'box-visible': animVisible }">
+        <button class="switch-btn" :class="{ active: vistaActiva === 'eficiencia' }" @click="vistaActiva = 'eficiencia'">Vista eficiencia</button>
+        <button class="switch-btn" :class="{ active: vistaActiva === 'carga' }" @click="cambiarVistaCarga">Vista carga de trabajo</button>
+      </div>
+
+      <section v-if="vistaActiva === 'eficiencia'">
       <!-- STATS -->
       <div v-if="cargando" class="stats">
         <div v-for="i in 4" :key="i" class="stat-card skeleton-card">
@@ -106,7 +112,6 @@
           <p :style="{ color: s.accentColor }">{{ s.display }}</p>
         </div>
       </div>
-
       <!-- MODAL DETALLE OPERARIO -->
       <Transition name="modal">
         <div v-if="modalDetalle" class="modal" @click.self="cerrarModal">
@@ -419,6 +424,44 @@
           </tbody>
         </table>
       </div>
+      </section>
+
+      <section v-else class="carga-wrap">
+        <div class="stats">
+          <div class="stat-card"><h3>Total operarios</h3><p style="color:#1f3a52">{{ cargaResumen.total_operarios || 0 }}</p></div>
+          <div class="stat-card"><h3>Disponibles</h3><p style="color:#16a34a">{{ cargaResumen.disponibles || 0 }}</p></div>
+          <div class="stat-card"><h3>Normales</h3><p style="color:#2563eb">{{ cargaResumen.normales || 0 }}</p></div>
+          <div class="stat-card"><h3>Sobrecargados</h3><p style="color:#dc2626">{{ cargaResumen.sobrecargados || 0 }}</p></div>
+        </div>
+
+        <div class="table-box box-visible">
+          <div class="table-header-bar"><div class="table-header-left">Carga por operario</div></div>
+          <table>
+            <thead><tr><th>Operario</th><th>Órdenes activas</th><th>Vencidas</th><th>Alta prioridad</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr v-for="op in cargaOperarios" :key="op.Id_Usuario">
+                <td>{{ op.Nombre_Completo }}</td><td>{{ op.ordenes_activas }}</td><td>{{ op.ordenes_vencidas }}</td><td>{{ op.ordenes_alta_prioridad }}</td>
+                <td><span class="badge-rendimiento" :class="estadoCargaClass(op.estado_carga)">{{ op.estado_carga }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-box box-visible" style="margin-top:16px;">
+          <div class="table-header-bar"><div class="table-header-left">Recomendaciones para asignar por menor carga</div></div>
+          <div style="padding:16px" v-if="!sugerenciasCarga.length">Sin sugerencias automáticas por ahora.</div>
+          <div v-for="(sug, idx) in sugerenciasCarga" :key="idx" style="padding:16px;border-top:1px solid #eef2f7;">
+            <p style="margin:0 0 8px;color:#374151;">Operario sobrecargado: <b>{{ sug.operario_sobrecargado.nombre }}</b></p>
+            <div v-for="mov in sug.movimientos" :key="mov.Id_Orden" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+              <span>Orden #{{ mov.Id_Orden }} - {{ mov.Producto }}</span>
+              <select v-model="asignaciones[mov.Id_Orden]" class="select" style="min-width:260px;">
+                <option v-for="op in operariosMenorCarga" :key="op.Id_Usuario" :value="op.Id_Usuario">{{ op.Nombre_Completo }} · {{ op.ordenes_activas }} activas</option>
+              </select>
+              <button class="btn" @click="asignarOrden(mov.Id_Orden)" :disabled="asignandoOrden === mov.Id_Orden">{{ asignandoOrden === mov.Id_Orden ? 'Asignando...' : 'Asignar recomendado' }}</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </main>
   </div>
@@ -427,7 +470,13 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import AppSidebar from '../../components/AppSidebar.vue'
-import { getEficienciaOperarios, getEficienciaOperario } from '../../services/api.js'
+import {
+  getEficienciaOperarios,
+  getEficienciaOperario,
+  getCargaTrabajo,
+  getSugerenciasCargaTrabajo,
+  reasignarOrdenPorCarga
+} from '../../services/api.js'
 import { useAuthStore } from '../../stores/auth'
 
 const auth = useAuthStore()
@@ -444,6 +493,12 @@ const modalDetalle      = ref(false)
 const operarioActivo    = ref(null)
 const sortKey           = ref('prendas_por_dia')
 const sortDir           = ref(-1)
+const vistaActiva       = ref('eficiencia')
+const cargaOperarios    = ref([])
+const cargaResumen      = ref({})
+const sugerenciasCarga  = ref([])
+const asignaciones      = reactive({})
+const asignandoOrden    = ref(null)
 
 // Observaciones por orden (nuevo sistema)
 const ordenObsAbierta   = ref(null)      // Id_Orden actualmente abierto
@@ -584,6 +639,50 @@ function sortBy(key) {
   else { sortKey.value = key; sortDir.value = -1 }
 }
 
+const operariosMenorCarga = computed(() =>
+  [...cargaOperarios.value].sort((a, b) => (a.ordenes_activas || 0) - (b.ordenes_activas || 0))
+)
+
+function estadoCargaClass(estado) {
+  return { disponible: 'alto', normal: 'medio', sobrecargado: 'bajo' }[estado] || 'medio'
+}
+
+async function cargarVistaCarga() {
+  try {
+    const [carga, sug] = await Promise.all([getCargaTrabajo(), getSugerenciasCargaTrabajo()])
+    cargaOperarios.value = carga.data || []
+    cargaResumen.value = carga.resumen || {}
+    sugerenciasCarga.value = sug.sugerencias || []
+    sugerenciasCarga.value.forEach((s) => {
+      ;(s.movimientos || []).forEach((m) => {
+        asignaciones[m.Id_Orden] = m.hacia_operario?.id || operariosMenorCarga.value[0]?.Id_Usuario || ''
+      })
+    })
+  } catch (e) {
+    mostrarToast(e.message || 'Error cargando la vista de carga', 'danger')
+  }
+}
+
+async function cambiarVistaCarga() {
+  vistaActiva.value = 'carga'
+  if (!cargaOperarios.value.length) await cargarVistaCarga()
+}
+
+async function asignarOrden(idOrden) {
+  const destino = asignaciones[idOrden]
+  if (!destino) return
+  asignandoOrden.value = idOrden
+  try {
+    await reasignarOrdenPorCarga({ Id_Orden: idOrden, Id_Operario_Destino: destino })
+    mostrarToast(`Orden #${idOrden} asignada con recomendación por menor carga`)
+    await cargarVistaCarga()
+  } catch (e) {
+    mostrarToast(e.message || 'No se pudo reasignar la orden', 'danger')
+  } finally {
+    asignandoOrden.value = null
+  }
+}
+
 // ── FILTROS Y ORDEN ──
 const operariosFiltrados = computed(() =>
   operarios.value.filter(op => {
@@ -688,6 +787,11 @@ function formatFechaObs(f) {
 @keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
 @keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
 .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px); background-size: 40px 40px; }
+
+.view-switch { display: flex; gap: 10px; margin-bottom: 16px; }
+.switch-btn { border: 1.5px solid #d1d5db; background: white; color: #374151; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+.switch-btn.active { background: #1f3a52; color: white; border-color: #1f3a52; }
+.carga-wrap { margin-bottom: 20px; }
 
 /* ── HERO ── */
 .page-hero { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; opacity: 0; transform: translateY(-16px); transition: opacity 0.5s ease, transform 0.5s ease; }
