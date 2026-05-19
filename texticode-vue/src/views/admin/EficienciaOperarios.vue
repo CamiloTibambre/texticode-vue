@@ -107,6 +107,28 @@
         </div>
       </div>
 
+
+
+      <!-- RESUMEN API EFICIENCIA -->
+      <section class="api-showcase" :class="{ 'box-visible': animVisible }" style="transition-delay: 180ms">
+        <div class="table-header-bar">
+          <div class="table-header-left">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h9m-9 16.5h9m-9-13.5h9m-9 10.5h9m-12-12h.008v.008H4.5V5.25Zm0 3h.008v.008H4.5V8.25Zm0 3h.008v.008H4.5V11.25Zm0 3h.008v.008H4.5V14.25Zm0 3h.008v.008H4.5V17.25Z"/>
+            </svg>
+            Cobertura de API de Eficiencia
+          </div>
+        </div>
+
+        <div class="api-grid">
+          <article class="api-card" v-for="item in apiFeatures" :key="item.title">
+            <div class="api-tag">{{ item.method }} {{ item.path }}</div>
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.description }}</p>
+          </article>
+        </div>
+      </section>
+
       <!-- MODAL DETALLE OPERARIO -->
       <Transition name="modal">
         <div v-if="modalDetalle" class="modal" @click.self="cerrarModal">
@@ -774,6 +796,13 @@ const ICON_TROPHY  = 'M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.
 const ICON_ALERT   = 'M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.052 3.378c.866-1.5 3.032-1.5 3.898 0L21.303 16.126ZM12 15.75h.007v.008H12v-.008Z'
 const ICON_DOWN    = 'M2.25 6 9 12.75l4.286-4.286a11.948 11.948 0 0 1 4.306 6.43l.776 2.898m0 0 3.182-5.511m-3.182 5.51-5.511-3.181'
 
+const apiFeatures = computed(() => [
+  { method: 'GET', path: '/eficiencia/operarios', title: 'Ranking consolidado', description: `Lista ${operarios.value.length} operarios con prendas por día, rendimiento y retrasos.` },
+  { method: 'GET', path: '/eficiencia/operarios/:id', title: 'Detalle por operario', description: operarioActivo.value ? `Detalle activo de ${operarioActivo.value.Nombre_Completo} con ${operarioActivo.value.ordenes_detalle?.length || 0} órdenes.` : 'Consulta métricas completas y órdenes del operario seleccionado.' },
+  { method: 'GET', path: '/eficiencia/observaciones/:idOperario?Id_Orden=:idOrden', title: 'Historial de observaciones', description: ordenObsAbierta.value ? `Orden abierta #${ordenObsAbierta.value} con ${(obsXOrden[ordenObsAbierta.value] || []).length} observaciones cargadas.` : 'Consulta observaciones por orden para contexto de incidencias.' },
+  { method: 'POST', path: '/eficiencia/observaciones', title: 'Registro de incidencias', description: 'Permite crear observaciones vinculadas a operario, administrador y orden.' }
+])
+
 const statsCards = computed(() => [
   { label: 'Total Operarios',    display: statsDisplay.value.total,    accentColor: '#1f3a52', iconPath: ICON_USERS  },
   { label: 'Rendimiento Alto',   display: statsDisplay.value.alto,     accentColor: '#16a34a', iconPath: ICON_TROPHY },
@@ -880,6 +909,14 @@ function formatFechaObs(f) {
 @keyframes shimmer { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 .skeleton-sm { width: 45%; height: 12px; margin-bottom: 16px; }
 .skeleton-lg { width: 70%; height: 30px; }
+
+/* ── API SHOWCASE ── */
+.api-showcase { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; margin-bottom: 24px; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
+.api-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 16px; background: #f9fafb; }
+.api-card { border: 1px solid #e5e7eb; border-radius: 12px; background: white; padding: 14px; }
+.api-tag { display: inline-block; margin-bottom: 10px; font-size: 11px; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 4px 8px; border-radius: 999px; }
+.api-card h4 { margin: 0 0 8px; font-size: 14px; color: #111827; }
+.api-card p { margin: 0; font-size: 12px; color: #6b7280; line-height: 1.45; }
 
 /* ── TABLA BOX ── */
 .table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
