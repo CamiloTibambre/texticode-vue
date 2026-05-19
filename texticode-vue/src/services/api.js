@@ -138,3 +138,20 @@ export const unlinkGoogleCalendar         = ()                 => requestAuth('/
 export const syncGoogleDeliveryEvents     = ()                 => requestAuth('/google/sync/delivery-events', { method: 'POST' })
 export const getGoogleUpcomingEvents      = ()                 => requestAuth('/google/events/upcoming')
 export const getGoogleConnectedUsers      = ()                 => requestAuth('/google/connected-users')
+
+// ── CARGA DE TRABAJO ─────────────────────────────────────
+export async function getCargaTrabajo(estado = '') {
+  const query = estado ? `?estado=${encodeURIComponent(estado)}` : ''
+  return requestWithKey(`/carga-trabajo${query}`)
+}
+
+export async function getSugerenciasCargaTrabajo() {
+  return requestWithKey('/carga-trabajo/sugerencias')
+}
+
+export async function reasignarOrdenPorCarga(body) {
+  return requestWithKey('/carga-trabajo/reasignar', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
