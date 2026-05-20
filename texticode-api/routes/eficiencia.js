@@ -8,10 +8,7 @@ router.use(verificarApiKey)
 
 // ─────────────────────────────────────────
 // Prendas por día ponderadas por dificultad.
-// Las órdenes que tienen al menos una observación de problema
-// registrada se EXCLUYEN del conteo: el operario no es responsable
-// de ese retraso, por lo que no deben afectar su rendimiento.
-//
+// DATEDIFF en MySQL → (CURRENT_DATE - DATE(fecha))::int en PostgreSQL
 // Alta=3 | Media=2 | Baja=1
 // ─────────────────────────────────────────
 const SQL_PRENDAS_POR_DIA = `
@@ -20,15 +17,15 @@ const SQL_PRENDAS_POR_DIA = `
       CASE
         WHEN (
           SELECT COUNT(*) FROM observacion_operario ob2
-          WHERE ob2.Id_Orden = op.Id_Orden
+          WHERE ob2."Id_Orden" = op."Id_Orden"
         ) = 0
-        THEN op.Unidades_Realizadas * CASE op.Dificultad
+        THEN op."Unidades_Realizadas" * CASE op."Dificultad"
               WHEN 'Alta'  THEN 3
               WHEN 'Media' THEN 2
               WHEN 'Baja'  THEN 1
               ELSE 2
             END
-        ELSE NULL   -- orden con problema: no suma al ponderado
+        ELSE NULL
       END
     ), 0) /
     NULLIF(
@@ -36,10 +33,10 @@ const SQL_PRENDAS_POR_DIA = `
         CASE
           WHEN (
             SELECT COUNT(*) FROM observacion_operario ob3
-            WHERE ob3.Id_Orden = op.Id_Orden
+            WHERE ob3."Id_Orden" = op."Id_Orden"
           ) = 0
-          THEN GREATEST(DATEDIFF(CURDATE(), DATE(op.Fecha_Creacion)), 1)
-          ELSE 0    -- tampoco cuenta los días de esa orden en el divisor
+          THEN GREATEST((CURRENT_DATE - DATE(op."Fecha_Creacion"))::int, 1)
+          ELSE 0
         END
       ),
       0
@@ -48,17 +45,16 @@ const SQL_PRENDAS_POR_DIA = `
 `
 
 // ─────────────────────────────────────────
-// Órdenes "en retraso real": vencidas Y sin observación registrada.
-// Si hay observación, el retraso fue externo y no penaliza.
+// Órdenes en retraso real (vencidas sin observación)
 // ─────────────────────────────────────────
 const SQL_ORDENES_EN_RETRASO = `
   COUNT(
     CASE
-      WHEN CURDATE() > op.Fecha_Limite
-       AND op.Estado IN ('En Proceso', 'Pausado')
+      WHEN CURRENT_DATE > op."Fecha_Limite"
+       AND op."Estado" IN ('En Proceso', 'Pausado')
        AND (
          SELECT COUNT(*) FROM observacion_operario ob4
-         WHERE ob4.Id_Orden = op.Id_Orden
+         WHERE ob4."Id_Orden" = op."Id_Orden"
        ) = 0
       THEN 1
     END
@@ -75,29 +71,28 @@ router.get('/operarios/:id', async (req, res) => {
     return res.status(400).json({ ok: false, mensaje: 'El id debe ser un número válido' })
   }
 
-  const [rows] = await db.query(`
-    SELECT 
-      u.Id_Usuario,
-      u.Nombre_Completo,
-      u.Nombre_Usuario,
-      u.Correo,
-      u.Telefono,
+  const { rows } = await db.query(`
+    SELECT
+      u."Id_Usuario",
+      u."Nombre_Completo",
+      u."Nombre_Usuario",
+      u."Correo",
+      u."Telefono",
 
       ${SQL_PRENDAS_POR_DIA} AS prendas_por_dia,
 
-      COALESCE(SUM(op.Unidades_Realizadas), 0) AS total_unidades_producidas,
+      COALESCE(SUM(op."Unidades_Realizadas"), 0) AS total_unidades_producidas,
 
       ${SQL_ORDENES_EN_RETRASO} AS ordenes_en_retraso,
 
-      COUNT(CASE WHEN op.Estado = 'Completada' THEN 1 END) AS ordenes_completadas,
-      COUNT(CASE WHEN op.Estado = 'En Proceso' THEN 1 END) AS ordenes_en_proceso,
-      COUNT(CASE WHEN op.Estado = 'Pausado'    THEN 1 END) AS ordenes_pausadas,
+      COUNT(CASE WHEN op."Estado" = 'Completada' THEN 1 END) AS ordenes_completadas,
+      COUNT(CASE WHEN op."Estado" = 'En Proceso' THEN 1 END) AS ordenes_en_proceso,
+      COUNT(CASE WHEN op."Estado" = 'Pausado'    THEN 1 END) AS ordenes_pausadas,
 
-      -- Órdenes con problema reportado (informativo)
       COUNT(
         CASE WHEN (
           SELECT COUNT(*) FROM observacion_operario ob5
-          WHERE ob5.Id_Orden = op.Id_Orden
+          WHERE ob5."Id_Orden" = op."Id_Orden"
         ) > 0 THEN 1 END
       ) AS ordenes_con_problema,
 
@@ -109,46 +104,44 @@ router.get('/operarios/:id', async (req, res) => {
       END AS rendimiento
 
     FROM usuario u
-    INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-    LEFT JOIN orden_produccion op ON op.Id_Operario = u.Id_Usuario
-    WHERE u.Id_Usuario = ? AND u.Estado = 'activo'
-    GROUP BY u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario, u.Correo, u.Telefono
+    INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+    LEFT JOIN orden_produccion op ON op."Id_Operario" = u."Id_Usuario"
+    WHERE u."Id_Usuario" = $1 AND u."Estado" = 'activo'
+    GROUP BY u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario", u."Correo", u."Telefono"
   `, [id])
 
   if (rows.length === 0) {
     return res.status(404).json({ ok: false, mensaje: `No se encontró operario con id ${id}` })
   }
 
-  // Órdenes del operario con flag de si tiene problema reportado
-  const [ordenes] = await db.query(`
-    SELECT 
-      op.Id_Orden, op.Producto, op.Estado, op.Prioridad, op.Dificultad,
-      op.Unidades_Realizadas, op.Unidades, op.Fecha_Limite,
-      CASE 
-        WHEN CURDATE() > op.Fecha_Limite AND op.Estado IN ('En Proceso', 'Pausado') 
-        THEN true ELSE false 
+  const { rows: ordenes } = await db.query(`
+    SELECT
+      op."Id_Orden", op."Producto", op."Estado", op."Prioridad", op."Dificultad",
+      op."Unidades_Realizadas", op."Unidades", op."Fecha_Limite",
+      CASE
+        WHEN CURRENT_DATE > op."Fecha_Limite" AND op."Estado" IN ('En Proceso', 'Pausado')
+        THEN true ELSE false
       END AS en_retraso,
       CASE
         WHEN (
           SELECT COUNT(*) FROM observacion_operario ob
-          WHERE ob.Id_Orden = op.Id_Orden
+          WHERE ob."Id_Orden" = op."Id_Orden"
         ) > 0 THEN true ELSE false
       END AS tiene_problema
     FROM orden_produccion op
-    WHERE op.Id_Operario = ?
-    ORDER BY op.Fecha_Limite ASC
+    WHERE op."Id_Operario" = $1
+    ORDER BY op."Fecha_Limite" ASC
   `, [id])
 
-  // Para cada orden, traer sus observaciones vinculadas
   const ordenesConObs = await Promise.all(
     ordenes.map(async (o) => {
-      const [obs] = await db.query(`
-        SELECT ob.Id_Observacion, ob.Observacion, ob.Fecha,
-               u.Nombre_Completo AS Admin
+      const { rows: obs } = await db.query(`
+        SELECT ob."Id_Observacion", ob."Observacion", ob."Fecha",
+               u."Nombre_Completo" AS "Admin"
         FROM observacion_operario ob
-        INNER JOIN usuario u ON ob.Id_Admin = u.Id_Usuario
-        WHERE ob.Id_Operario = ? AND ob.Id_Orden = ?
-        ORDER BY ob.Fecha DESC
+        INNER JOIN usuario u ON ob."Id_Admin" = u."Id_Usuario"
+        WHERE ob."Id_Operario" = $1 AND ob."Id_Orden" = $2
+        ORDER BY ob."Fecha" DESC
       `, [id, o.Id_Orden])
       return { ...o, observaciones: obs }
     })
@@ -166,26 +159,26 @@ router.get('/operarios/:id', async (req, res) => {
 router.get('/operarios', async (req, res) => {
   const { rendimiento, estado, limite } = req.query
 
-  const [rows] = await db.query(`
-    SELECT 
-      u.Id_Usuario,
-      u.Nombre_Completo,
-      u.Nombre_Usuario,
+  const { rows } = await db.query(`
+    SELECT
+      u."Id_Usuario",
+      u."Nombre_Completo",
+      u."Nombre_Usuario",
 
       ${SQL_PRENDAS_POR_DIA} AS prendas_por_dia,
 
-      COALESCE(SUM(op.Unidades_Realizadas), 0) AS total_unidades_producidas,
+      COALESCE(SUM(op."Unidades_Realizadas"), 0) AS total_unidades_producidas,
 
       ${SQL_ORDENES_EN_RETRASO} AS ordenes_en_retraso,
 
-      COUNT(CASE WHEN op.Estado = 'Completada' THEN 1 END) AS ordenes_completadas,
-      COUNT(CASE WHEN op.Estado = 'En Proceso' THEN 1 END) AS ordenes_en_proceso,
-      COUNT(CASE WHEN op.Estado = 'Pausado'    THEN 1 END) AS ordenes_pausadas,
+      COUNT(CASE WHEN op."Estado" = 'Completada' THEN 1 END) AS ordenes_completadas,
+      COUNT(CASE WHEN op."Estado" = 'En Proceso' THEN 1 END) AS ordenes_en_proceso,
+      COUNT(CASE WHEN op."Estado" = 'Pausado'    THEN 1 END) AS ordenes_pausadas,
 
       COUNT(
         CASE WHEN (
           SELECT COUNT(*) FROM observacion_operario ob5
-          WHERE ob5.Id_Orden = op.Id_Orden
+          WHERE ob5."Id_Orden" = op."Id_Orden"
         ) > 0 THEN 1 END
       ) AS ordenes_con_problema,
 
@@ -197,10 +190,10 @@ router.get('/operarios', async (req, res) => {
       END AS rendimiento
 
     FROM usuario u
-    INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-    LEFT JOIN orden_produccion op ON op.Id_Operario = u.Id_Usuario
-    WHERE u.Estado = 'activo'
-    GROUP BY u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario
+    INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+    LEFT JOIN orden_produccion op ON op."Id_Operario" = u."Id_Usuario"
+    WHERE u."Estado" = 'activo'
+    GROUP BY u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario"
     ORDER BY prendas_por_dia DESC
   `)
 
@@ -244,7 +237,6 @@ router.get('/operarios', async (req, res) => {
 
 // ─────────────────────────────────────────
 // POST /api/eficiencia/observaciones
-// Body: { Id_Operario, Id_Admin, Id_Orden, Observacion }
 // ─────────────────────────────────────────
 router.post('/observaciones', async (req, res) => {
   const { Id_Operario, Id_Admin, Id_Orden, Observacion } = req.body
@@ -257,70 +249,67 @@ router.post('/observaciones', async (req, res) => {
     return res.status(400).json({ ok: false, mensaje: 'La observación no puede superar 500 caracteres' })
   }
 
-  const [operario] = await db.query(
-    `SELECT u.Id_Usuario FROM usuario u 
-     INNER JOIN rol r ON u.Id_Rol = r.Id_Rol 
-     WHERE u.Id_Usuario = ? AND r.Nombre_Rol = 'operario' AND u.Estado = 'activo'`,
+  const { rows: operario } = await db.query(
+    `SELECT u."Id_Usuario" FROM usuario u
+     INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol"
+     WHERE u."Id_Usuario" = $1 AND r."Nombre_Rol" = 'operario' AND u."Estado" = 'activo'`,
     [Id_Operario]
   )
   if (operario.length === 0) {
     return res.status(404).json({ ok: false, mensaje: 'Operario no encontrado o no activo' })
   }
 
-  const [orden] = await db.query(
-    `SELECT Id_Orden FROM orden_produccion WHERE Id_Orden = ? AND Id_Operario = ?`,
+  const { rows: orden } = await db.query(
+    `SELECT "Id_Orden" FROM orden_produccion WHERE "Id_Orden" = $1 AND "Id_Operario" = $2`,
     [Id_Orden, Id_Operario]
   )
   if (orden.length === 0) {
     return res.status(400).json({ ok: false, mensaje: 'La orden no pertenece a este operario' })
   }
 
-  const [result] = await db.query(
-    `INSERT INTO observacion_operario (Id_Operario, Id_Orden, Id_Admin, Observacion) VALUES (?, ?, ?, ?)`,
+  const { rows: result } = await db.query(
+    `INSERT INTO observacion_operario ("Id_Operario", "Id_Orden", "Id_Admin", "Observacion")
+     VALUES ($1, $2, $3, $4)
+     RETURNING "Id_Observacion"`,
     [Id_Operario, Id_Orden, Id_Admin, Observacion]
   )
 
   res.status(201).json({
     ok: true,
     mensaje: 'Observación registrada correctamente',
-    data: { Id_Observacion: result.insertId, Id_Operario, Id_Orden, Id_Admin, Observacion }
+    data: { Id_Observacion: result[0].Id_Observacion, Id_Operario, Id_Orden, Id_Admin, Observacion }
   })
 })
 
 // ─────────────────────────────────────────
 // GET /api/eficiencia/observaciones/:id
-// Filtra por orden si se pasa ?Id_Orden=
 // ─────────────────────────────────────────
 router.get('/observaciones/:id', async (req, res) => {
   const { id } = req.params
   const { Id_Orden } = req.query
 
   let sql = `
-    SELECT ob.Id_Observacion, ob.Id_Orden, ob.Observacion, ob.Fecha,
-           u.Nombre_Completo AS Admin
+    SELECT ob."Id_Observacion", ob."Id_Orden", ob."Observacion", ob."Fecha",
+           u."Nombre_Completo" AS "Admin"
     FROM observacion_operario ob
-    INNER JOIN usuario u ON ob.Id_Admin = u.Id_Usuario
-    WHERE ob.Id_Operario = ?
+    INNER JOIN usuario u ON ob."Id_Admin" = u."Id_Usuario"
+    WHERE ob."Id_Operario" = $1
   `
   const params = [id]
 
   if (Id_Orden) {
-    sql += ` AND ob.Id_Orden = ?`
+    sql += ` AND ob."Id_Orden" = $2`
     params.push(Id_Orden)
   }
 
-  sql += ` ORDER BY ob.Fecha DESC`
+  sql += ` ORDER BY ob."Fecha" DESC`
 
-  const [rows] = await db.query(sql, params)
-
+  const { rows } = await db.query(sql, params)
   res.json({ ok: true, total: rows.length, data: rows })
 })
 
 // ─────────────────────────────────────────
 // GET /api/eficiencia/operarios/:id/historial
-// Query param: periodo = "semana" | "mes" | "trimestre"  (default: semana)
-// Retorna el rendimiento del operario filtrado por fecha reciente,
-// más una tendencia comparando con el período anterior del mismo tamaño.
 // ─────────────────────────────────────────
 router.get('/operarios/:id/historial', async (req, res) => {
   const { id } = req.params
@@ -335,18 +324,17 @@ router.get('/operarios/:id/historial', async (req, res) => {
     return res.status(400).json({ ok: false, mensaje: `periodo inválido. Usa: ${periodosValidos.join(', ')}` })
   }
 
-  // Días que abarca cada período
   const diasPeriodo = { semana: 7, mes: 30, trimestre: 90 }
   const dias = diasPeriodo[periodo]
 
-  // Función SQL reutilizable para calcular métricas en un rango de fechas
+  // En PostgreSQL: DATE_SUB(CURDATE(), INTERVAL N DAY) → CURRENT_DATE - INTERVAL 'N days'
   const sqlMetricasPeriodo = (offsetInicio, offsetFin) => `
     SELECT
       ROUND(
         COALESCE(SUM(
           CASE
-            WHEN (SELECT COUNT(*) FROM observacion_operario ob2 WHERE ob2.Id_Orden = op.Id_Orden) = 0
-            THEN op.Unidades_Realizadas * CASE op.Dificultad
+            WHEN (SELECT COUNT(*) FROM observacion_operario ob2 WHERE ob2."Id_Orden" = op."Id_Orden") = 0
+            THEN op."Unidades_Realizadas" * CASE op."Dificultad"
                   WHEN 'Alta'  THEN 3
                   WHEN 'Media' THEN 2
                   WHEN 'Baja'  THEN 1
@@ -358,40 +346,39 @@ router.get('/operarios/:id/historial', async (req, res) => {
         NULLIF(
           SUM(
             CASE
-              WHEN (SELECT COUNT(*) FROM observacion_operario ob3 WHERE ob3.Id_Orden = op.Id_Orden) = 0
-              THEN GREATEST(DATEDIFF(CURDATE(), DATE(op.Fecha_Creacion)), 1)
+              WHEN (SELECT COUNT(*) FROM observacion_operario ob3 WHERE ob3."Id_Orden" = op."Id_Orden") = 0
+              THEN GREATEST((CURRENT_DATE - DATE(op."Fecha_Creacion"))::int, 1)
               ELSE 0
             END
           ), 0
         ), 1
       ) AS prendas_por_dia,
-      COALESCE(SUM(op.Unidades_Realizadas), 0) AS total_unidades,
-      COUNT(CASE WHEN op.Estado = 'Completada' THEN 1 END) AS completadas,
-      COUNT(CASE WHEN op.Estado IN ('En Proceso','Pausado') THEN 1 END) AS en_curso,
+      COALESCE(SUM(op."Unidades_Realizadas"), 0) AS total_unidades,
+      COUNT(CASE WHEN op."Estado" = 'Completada' THEN 1 END) AS completadas,
+      COUNT(CASE WHEN op."Estado" IN ('En Proceso','Pausado') THEN 1 END) AS en_curso,
       COUNT(
         CASE
-          WHEN CURDATE() > op.Fecha_Limite
-           AND op.Estado IN ('En Proceso', 'Pausado')
-           AND (SELECT COUNT(*) FROM observacion_operario ob4 WHERE ob4.Id_Orden = op.Id_Orden) = 0
+          WHEN CURRENT_DATE > op."Fecha_Limite"
+           AND op."Estado" IN ('En Proceso', 'Pausado')
+           AND (SELECT COUNT(*) FROM observacion_operario ob4 WHERE ob4."Id_Orden" = op."Id_Orden") = 0
           THEN 1
         END
       ) AS retrasos,
       COUNT(
-        CASE WHEN (SELECT COUNT(*) FROM observacion_operario ob5 WHERE ob5.Id_Orden = op.Id_Orden) > 0
+        CASE WHEN (SELECT COUNT(*) FROM observacion_operario ob5 WHERE ob5."Id_Orden" = op."Id_Orden") > 0
         THEN 1 END
       ) AS con_problema
     FROM orden_produccion op
-    WHERE op.Id_Operario = ?
-      AND op.Fecha_Creacion >= DATE_SUB(CURDATE(), INTERVAL ${offsetInicio} DAY)
-      AND op.Fecha_Creacion <  DATE_SUB(CURDATE(), INTERVAL ${offsetFin}  DAY)
+    WHERE op."Id_Operario" = $1
+      AND op."Fecha_Creacion" >= CURRENT_DATE - INTERVAL '${offsetInicio} days'
+      AND op."Fecha_Creacion" <  CURRENT_DATE - INTERVAL '${offsetFin} days'
   `
 
-  // Verificar que el operario exista
-  const [operario] = await db.query(
-    `SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario
+  const { rows: operario } = await db.query(
+    `SELECT u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario"
      FROM usuario u
-     INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-     WHERE u.Id_Usuario = ? AND u.Estado = 'activo'`,
+     INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+     WHERE u."Id_Usuario" = $1 AND u."Estado" = 'activo'`,
     [id]
   )
 
@@ -399,16 +386,12 @@ router.get('/operarios/:id/historial', async (req, res) => {
     return res.status(404).json({ ok: false, mensaje: `No se encontró operario con id ${id}` })
   }
 
-  // Período actual (últimos N días)
-  const [actual] = await db.query(sqlMetricasPeriodo(dias, 0), [id])
-
-  // Período anterior (los N días antes del período actual, para comparar)
-  const [anterior] = await db.query(sqlMetricasPeriodo(dias * 2, dias), [id])
+  const { rows: actual }   = await db.query(sqlMetricasPeriodo(dias, 0), [id])
+  const { rows: anterior } = await db.query(sqlMetricasPeriodo(dias * 2, dias), [id])
 
   const ppd_actual   = parseFloat(actual[0].prendas_por_dia)  || 0
   const ppd_anterior = parseFloat(anterior[0].prendas_por_dia) || 0
 
-  // Calcular rendimiento del período actual
   const calcularRendimiento = (ppd, retrasos) => {
     if (retrasos > 0) return 'Bajo'
     if (ppd >= 10)    return 'Alto'
@@ -419,7 +402,6 @@ router.get('/operarios/:id/historial', async (req, res) => {
   const rendimiento_actual   = calcularRendimiento(ppd_actual,   actual[0].retrasos)
   const rendimiento_anterior = calcularRendimiento(ppd_anterior, anterior[0].retrasos)
 
-  // Tendencia comparando prendas_por_dia
   let tendencia = 'estable'
   const diferencia = ppd_actual - ppd_anterior
   if (diferencia > 0.5)       tendencia = 'subiendo'
@@ -447,7 +429,7 @@ router.get('/operarios/:id/historial', async (req, res) => {
         retrasos:         anterior[0].retrasos,
         rendimiento:      rendimiento_anterior
       },
-      tendencia,                       // "subiendo" | "bajando" | "estable"
+      tendencia,
       diferencia_prendas: Math.round(diferencia * 10) / 10
     }
   })
@@ -455,7 +437,6 @@ router.get('/operarios/:id/historial', async (req, res) => {
 
 // ─────────────────────────────────────────
 // DELETE /api/eficiencia/observaciones/:id
-// Elimina una observación por su Id_Observacion
 // ─────────────────────────────────────────
 router.delete('/observaciones/:id', async (req, res) => {
   const { id } = req.params
@@ -464,8 +445,8 @@ router.delete('/observaciones/:id', async (req, res) => {
     return res.status(400).json({ ok: false, mensaje: 'El id debe ser un número válido' })
   }
 
-  const [obs] = await db.query(
-    `SELECT Id_Observacion FROM observacion_operario WHERE Id_Observacion = ?`,
+  const { rows: obs } = await db.query(
+    `SELECT "Id_Observacion" FROM observacion_operario WHERE "Id_Observacion" = $1`,
     [id]
   )
 
@@ -473,7 +454,7 @@ router.delete('/observaciones/:id', async (req, res) => {
     return res.status(404).json({ ok: false, mensaje: `No se encontró la observación con id ${id}` })
   }
 
-  await db.query(`DELETE FROM observacion_operario WHERE Id_Observacion = ?`, [id])
+  await db.query(`DELETE FROM observacion_operario WHERE "Id_Observacion" = $1`, [id])
 
   res.json({ ok: true, mensaje: 'Observación eliminada correctamente' })
 })

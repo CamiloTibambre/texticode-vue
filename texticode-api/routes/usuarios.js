@@ -7,12 +7,12 @@ const router = Router()
 // GET todos los usuarios (con nombre de rol)
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
-             u.Correo, u.Telefono, u.Estado, u.Fecha_Registro,
-             r.Nombre_Rol AS Rol, r.Id_Rol
+    const { rows } = await pool.query(`
+      SELECT u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario",
+             u."Correo", u."Telefono", u."Estado", u."Fecha_Registro",
+             r."Nombre_Rol" AS "Rol", r."Id_Rol"
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol"
     `)
     res.json(rows)
   } catch (err) {
@@ -23,13 +23,13 @@ router.get('/', async (req, res) => {
 // GET un usuario por ID
 router.get('/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
-             u.Correo, u.Telefono, u.Estado, u.Fecha_Registro,
-             r.Nombre_Rol AS Rol, r.Id_Rol
+    const { rows } = await pool.query(`
+      SELECT u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario",
+             u."Correo", u."Telefono", u."Estado", u."Fecha_Registro",
+             r."Nombre_Rol" AS "Rol", r."Id_Rol"
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
-      WHERE u.Id_Usuario = ?
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol"
+      WHERE u."Id_Usuario" = $1
     `, [req.params.id])
 
     if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
@@ -46,20 +46,19 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Correo y contraseña son requeridos' })
 
   try {
-    const [rows] = await pool.query(`
-      SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
-             u.Correo, u.Contrasena, u.Estado, r.Nombre_Rol AS Rol
+    const { rows } = await pool.query(`
+      SELECT u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario",
+             u."Correo", u."Contrasena", u."Estado", r."Nombre_Rol" AS "Rol"
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol
-      WHERE (u.Correo = ? OR u.Nombre_Usuario = ?) AND u.Estado = 'activo'
-    `, [correo, correo])
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol"
+      WHERE (u."Correo" = $1 OR u."Nombre_Usuario" = $1) AND u."Estado" = 'activo'
+    `, [correo])
 
     if (rows.length === 0)
       return res.status(401).json({ error: 'Credenciales incorrectas o usuario inactivo' })
 
     const usuario = rows[0]
 
-    // Soporta contraseñas con bcrypt y texto plano (migración gradual)
     let passwordValida = false
     if (usuario.Contrasena.startsWith('$2')) {
       passwordValida = await bcrypt.compare(contrasena, usuario.Contrasena)
@@ -70,7 +69,6 @@ router.post('/login', async (req, res) => {
     if (!passwordValida)
       return res.status(401).json({ error: 'Credenciales incorrectas o usuario inactivo' })
 
-    // No devolver la contraseña al frontend
     const { Contrasena, ...usuarioSinPass } = usuario
     res.json({ mensaje: 'Login exitoso', usuario: usuarioSinPass })
 
@@ -88,14 +86,15 @@ router.post('/', async (req, res) => {
   try {
     const hash = await bcrypt.hash(Contrasena, 10)
 
-    const [result] = await pool.query(`
-      INSERT INTO usuario (Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+    const { rows } = await pool.query(`
+      INSERT INTO usuario ("Id_Rol", "Nombre_Completo", "Nombre_Usuario", "Correo", "Telefono", "Estado", "Contrasena")
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING "Id_Usuario"
     `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo || null, Telefono || null, Estado || 'activo', hash])
 
-    res.status(201).json({ mensaje: 'Usuario creado', Id_Usuario: result.insertId })
+    res.status(201).json({ mensaje: 'Usuario creado', Id_Usuario: rows[0].Id_Usuario })
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY')
+    if (err.code === '23505')
       return res.status(409).json({ error: 'El correo o nombre de usuario ya existe' })
     res.status(500).json({ error: err.message })
   }
@@ -106,19 +105,19 @@ router.put('/:id', async (req, res) => {
   const { Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena } = req.body
   try {
     if (Contrasena && Contrasena.trim() !== '') {
-      // Se envió nueva contraseña — encriptarla
       const hash = await bcrypt.hash(Contrasena, 10)
       await pool.query(`
         UPDATE usuario
-        SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?, Contrasena=?
-        WHERE Id_Usuario=?
+        SET "Id_Rol"=$1, "Nombre_Completo"=$2, "Nombre_Usuario"=$3, "Correo"=$4,
+            "Telefono"=$5, "Estado"=$6, "Contrasena"=$7
+        WHERE "Id_Usuario"=$8
       `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo || null, Telefono || null, Estado, hash, req.params.id])
     } else {
-      // No se envió contraseña — mantener la actual
       await pool.query(`
         UPDATE usuario
-        SET Id_Rol=?, Nombre_Completo=?, Nombre_Usuario=?, Correo=?, Telefono=?, Estado=?
-        WHERE Id_Usuario=?
+        SET "Id_Rol"=$1, "Nombre_Completo"=$2, "Nombre_Usuario"=$3, "Correo"=$4,
+            "Telefono"=$5, "Estado"=$6
+        WHERE "Id_Usuario"=$7
       `, [Id_Rol, Nombre_Completo, Nombre_Usuario, Correo || null, Telefono || null, Estado, req.params.id])
     }
 
@@ -131,11 +130,11 @@ router.put('/:id', async (req, res) => {
 // PATCH inactivar usuario (soft delete)
 router.patch('/:id/inactivar', async (req, res) => {
   try {
-    const [result] = await pool.query(
-      `UPDATE usuario SET Estado = 'inactivo' WHERE Id_Usuario = ?`,
+    const { rowCount } = await pool.query(
+      `UPDATE usuario SET "Estado" = 'inactivo' WHERE "Id_Usuario" = $1`,
       [req.params.id]
     )
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
+    if (rowCount === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
     res.json({ mensaje: 'Usuario inactivado' })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -145,8 +144,8 @@ router.patch('/:id/inactivar', async (req, res) => {
 // DELETE usuario
 router.delete('/:id', async (req, res) => {
   try {
-    const [result] = await pool.query('DELETE FROM usuario WHERE Id_Usuario = ?', [req.params.id])
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
+    const { rowCount } = await pool.query('DELETE FROM usuario WHERE "Id_Usuario" = $1', [req.params.id])
+    if (rowCount === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
     res.json({ mensaje: 'Usuario eliminado' })
   } catch (err) {
     res.status(500).json({ error: err.message })

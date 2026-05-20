@@ -6,19 +6,10 @@ const router = express.Router()
 
 router.use(verificarApiKey)
 
-// ─────────────────────────────────────────
-// CONFIGURACIÓN DE UMBRALES
-// ─────────────────────────────────────────
-const LIMITE_ORDENES_SOBRECARGA = 5   // Más de 5 órdenes activas → sobrecargado
-const LIMITE_ORDENES_DISPONIBLE = 2   // 2 o menos → disponible
+const LIMITE_ORDENES_SOBRECARGA = 5
+const LIMITE_ORDENES_DISPONIBLE = 2
 
-// ─────────────────────────────────────────
 // GET /api/carga-trabajo
-// GET /api/carga-trabajo?estado=sobrecargado
-// GET /api/carga-trabajo?estado=disponible
-// GET /api/carga-trabajo?estado=normal
-// Devuelve todos los operarios con su carga actual
-// ─────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
     const { estado } = req.query
@@ -31,35 +22,35 @@ router.get('/', async (req, res) => {
       })
     }
 
-    const [operarios] = await db.query(`
+    const { rows: operarios } = await db.query(`
       SELECT
-        u.Id_Usuario,
-        u.Nombre_Completo,
-        u.Nombre_Usuario,
-        u.Correo,
-        u.Telefono,
+        u."Id_Usuario",
+        u."Nombre_Completo",
+        u."Nombre_Usuario",
+        u."Correo",
+        u."Telefono",
 
         COUNT(
-          CASE WHEN op.Estado IN ('En Proceso', 'Pausado') THEN 1 END
+          CASE WHEN op."Estado" IN ('En Proceso', 'Pausado') THEN 1 END
         ) AS ordenes_activas,
 
         COUNT(
-          CASE WHEN op.Estado IN ('En Proceso', 'Pausado')
-               AND CURDATE() > op.Fecha_Limite
+          CASE WHEN op."Estado" IN ('En Proceso', 'Pausado')
+               AND CURRENT_DATE > op."Fecha_Limite"
           THEN 1 END
         ) AS ordenes_vencidas,
 
         COUNT(
-          CASE WHEN op.Estado IN ('En Proceso', 'Pausado')
-               AND op.Prioridad = 'Alta'
+          CASE WHEN op."Estado" IN ('En Proceso', 'Pausado')
+               AND op."Prioridad" = 'Alta'
           THEN 1 END
         ) AS ordenes_alta_prioridad
 
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      LEFT JOIN orden_produccion op ON op.Id_Operario = u.Id_Usuario
-      WHERE u.Estado = 'activo'
-      GROUP BY u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario, u.Correo, u.Telefono
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      LEFT JOIN orden_produccion op ON op."Id_Operario" = u."Id_Usuario"
+      WHERE u."Estado" = 'activo'
+      GROUP BY u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario", u."Correo", u."Telefono"
       ORDER BY ordenes_activas DESC
     `)
 
@@ -75,7 +66,6 @@ router.get('/', async (req, res) => {
       return { ...op, estado_carga }
     })
 
-    // Filtrar por estado si se pasó el query param
     if (estado) {
       data = data.filter(o => o.estado_carga === estado)
     }
@@ -87,74 +77,57 @@ router.get('/', async (req, res) => {
       disponibles:     data.filter(o => o.estado_carga === 'disponible').length,
     }
 
-    res.json({
-      ok: true,
-      filtro_aplicado: estado || null,
-      resumen,
-      data
-    })
+    res.json({ ok: true, filtro_aplicado: estado || null, resumen, data })
   } catch (error) {
     console.error('[carga-trabajo] GET /', error)
     res.status(500).json({ ok: false, mensaje: 'Error al obtener la carga de trabajo' })
   }
 })
 
-// ─────────────────────────────────────────///// camilo es gei
 // GET /api/carga-trabajo/sugerencias
-// Operarios sobrecargados + sugerencias de reasignación
-// ─────────────────────────────────────────////
 router.get('/sugerencias', async (req, res) => {
   try {
-    const [operarios] = await db.query(`
+    const { rows: operarios } = await db.query(`
       SELECT
-        u.Id_Usuario,
-        u.Nombre_Completo,
+        u."Id_Usuario",
+        u."Nombre_Completo",
         COUNT(
-          CASE WHEN op.Estado IN ('En Proceso', 'Pausado') THEN 1 END
+          CASE WHEN op."Estado" IN ('En Proceso', 'Pausado') THEN 1 END
         ) AS ordenes_activas
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      LEFT JOIN orden_produccion op ON op.Id_Operario = u.Id_Usuario
-      WHERE u.Estado = 'activo'
-      GROUP BY u.Id_Usuario, u.Nombre_Completo
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      LEFT JOIN orden_produccion op ON op."Id_Operario" = u."Id_Usuario"
+      WHERE u."Estado" = 'activo'
+      GROUP BY u."Id_Usuario", u."Nombre_Completo"
     `)
 
     const sobrecargados = operarios.filter(o => o.ordenes_activas > LIMITE_ORDENES_SOBRECARGA)
     const disponibles   = operarios.filter(o => o.ordenes_activas <= LIMITE_ORDENES_DISPONIBLE)
 
     if (sobrecargados.length === 0) {
-      return res.json({
-        ok: true,
-        mensaje: 'No hay operarios sobrecargados en este momento',
-        sugerencias: []
-      })
+      return res.json({ ok: true, mensaje: 'No hay operarios sobrecargados en este momento', sugerencias: [] })
     }
-
     if (disponibles.length === 0) {
-      return res.json({
-        ok: true,
-        mensaje: 'Hay operarios sobrecargados pero ninguno tiene capacidad disponible',
-        sugerencias: []
-      })
+      return res.json({ ok: true, mensaje: 'Hay operarios sobrecargados pero ninguno tiene capacidad disponible', sugerencias: [] })
     }
 
     const sugerencias = []
 
     for (const operario of sobrecargados) {
-      const [ordenes] = await db.query(`
+      const { rows: ordenes } = await db.query(`
         SELECT
-          Id_Orden, Producto, Estado, Prioridad, Fecha_Limite,
-          Unidades, Unidades_Realizadas,
-          CASE WHEN CURDATE() > Fecha_Limite THEN true ELSE false END AS vencida,
-          CASE Prioridad
+          "Id_Orden", "Producto", "Estado", "Prioridad", "Fecha_Limite",
+          "Unidades", "Unidades_Realizadas",
+          CASE WHEN CURRENT_DATE > "Fecha_Limite" THEN true ELSE false END AS vencida,
+          CASE "Prioridad"
             WHEN 'Alta'  THEN 1
             WHEN 'Media' THEN 2
             WHEN 'Baja'  THEN 3
             ELSE 4
           END AS orden_prioridad
         FROM orden_produccion
-        WHERE Id_Operario = ? AND Estado IN ('En Proceso', 'Pausado')
-        ORDER BY vencida DESC, orden_prioridad ASC, Fecha_Limite ASC
+        WHERE "Id_Operario" = $1 AND "Estado" IN ('En Proceso', 'Pausado')
+        ORDER BY vencida DESC, orden_prioridad ASC, "Fecha_Limite" ASC
       `, [operario.Id_Usuario])
 
       const exceso = Math.max(0, operario.ordenes_activas - LIMITE_ORDENES_SOBRECARGA)
@@ -197,10 +170,7 @@ router.get('/sugerencias', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // GET /api/carga-trabajo/operarios/:id
-// Detalle de carga de un operario específico
-// ─────────────────────────────────────────
 router.get('/operarios/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -209,17 +179,17 @@ router.get('/operarios/:id', async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'El id debe ser un número válido' })
     }
 
-    const [rows] = await db.query(`
+    const { rows } = await db.query(`
       SELECT
-        u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario, u.Correo, u.Telefono,
-        COUNT(CASE WHEN op.Estado IN ('En Proceso', 'Pausado') THEN 1 END) AS ordenes_activas,
-        COUNT(CASE WHEN op.Estado IN ('En Proceso', 'Pausado') AND CURDATE() > op.Fecha_Limite THEN 1 END) AS ordenes_vencidas,
-        COUNT(CASE WHEN op.Estado IN ('En Proceso', 'Pausado') AND op.Prioridad = 'Alta' THEN 1 END) AS ordenes_alta_prioridad
+        u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario", u."Correo", u."Telefono",
+        COUNT(CASE WHEN op."Estado" IN ('En Proceso', 'Pausado') THEN 1 END) AS ordenes_activas,
+        COUNT(CASE WHEN op."Estado" IN ('En Proceso', 'Pausado') AND CURRENT_DATE > op."Fecha_Limite" THEN 1 END) AS ordenes_vencidas,
+        COUNT(CASE WHEN op."Estado" IN ('En Proceso', 'Pausado') AND op."Prioridad" = 'Alta' THEN 1 END) AS ordenes_alta_prioridad
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      LEFT JOIN orden_produccion op ON op.Id_Operario = u.Id_Usuario
-      WHERE u.Id_Usuario = ? AND u.Estado = 'activo'
-      GROUP BY u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario, u.Correo, u.Telefono
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      LEFT JOIN orden_produccion op ON op."Id_Operario" = u."Id_Usuario"
+      WHERE u."Id_Usuario" = $1 AND u."Estado" = 'activo'
+      GROUP BY u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario", u."Correo", u."Telefono"
     `, [id])
 
     if (rows.length === 0) {
@@ -232,14 +202,14 @@ router.get('/operarios/:id', async (req, res) => {
     else if (operario.ordenes_activas <= LIMITE_ORDENES_DISPONIBLE) estado_carga = 'disponible'
     else estado_carga = 'normal'
 
-    const [ordenes] = await db.query(`
+    const { rows: ordenes } = await db.query(`
       SELECT
-        Id_Orden, Producto, Estado, Prioridad,
-        Unidades, Unidades_Realizadas, Fecha_Limite,
-        CASE WHEN CURDATE() > Fecha_Limite AND Estado IN ('En Proceso', 'Pausado') THEN true ELSE false END AS vencida
+        "Id_Orden", "Producto", "Estado", "Prioridad",
+        "Unidades", "Unidades_Realizadas", "Fecha_Limite",
+        CASE WHEN CURRENT_DATE > "Fecha_Limite" AND "Estado" IN ('En Proceso', 'Pausado') THEN true ELSE false END AS vencida
       FROM orden_produccion
-      WHERE Id_Operario = ? AND Estado IN ('En Proceso', 'Pausado')
-      ORDER BY CASE Prioridad WHEN 'Alta' THEN 1 WHEN 'Media' THEN 2 ELSE 3 END ASC, Fecha_Limite ASC
+      WHERE "Id_Operario" = $1 AND "Estado" IN ('En Proceso', 'Pausado')
+      ORDER BY CASE "Prioridad" WHEN 'Alta' THEN 1 WHEN 'Media' THEN 2 ELSE 3 END ASC, "Fecha_Limite" ASC
     `, [id])
 
     res.json({
@@ -252,55 +222,40 @@ router.get('/operarios/:id', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // POST /api/carga-trabajo/reasignar
-// Reasigna una orden de un operario a otro
-// Body: { Id_Orden, Id_Operario_Destino }
-// ─────────────────────────────────────────
 router.post('/reasignar', async (req, res) => {
   try {
     const { Id_Orden, Id_Operario_Destino } = req.body
 
     if (!Id_Orden || !Id_Operario_Destino) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: 'Se requieren Id_Orden e Id_Operario_Destino'
-      })
+      return res.status(400).json({ ok: false, mensaje: 'Se requieren Id_Orden e Id_Operario_Destino' })
     }
 
-    // Verificar que la orden existe y está activa
-    const [orden] = await db.query(`
-      SELECT Id_Orden, Id_Operario, Producto, Estado
+    const { rows: orden } = await db.query(`
+      SELECT "Id_Orden", "Id_Operario", "Producto", "Estado"
       FROM orden_produccion
-      WHERE Id_Orden = ? AND Estado IN ('En Proceso', 'Pausado')
+      WHERE "Id_Orden" = $1 AND "Estado" IN ('En Proceso', 'Pausado')
     `, [Id_Orden])
 
     if (orden.length === 0) {
-      return res.status(404).json({
-        ok: false,
-        mensaje: `No se encontró una orden activa con id ${Id_Orden}`
-      })
+      return res.status(404).json({ ok: false, mensaje: `No se encontró una orden activa con id ${Id_Orden}` })
     }
 
-    // Verificar que el operario destino existe y es operario activo
-    const [operario] = await db.query(`
-      SELECT u.Id_Usuario, u.Nombre_Completo
+    const { rows: operario } = await db.query(`
+      SELECT u."Id_Usuario", u."Nombre_Completo"
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      WHERE u.Id_Usuario = ? AND u.Estado = 'activo'
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      WHERE u."Id_Usuario" = $1 AND u."Estado" = 'activo'
     `, [Id_Operario_Destino])
 
     if (operario.length === 0) {
-      return res.status(404).json({
-        ok: false,
-        mensaje: `No se encontró un operario activo con id ${Id_Operario_Destino}`
-      })
+      return res.status(404).json({ ok: false, mensaje: `No se encontró un operario activo con id ${Id_Operario_Destino}` })
     }
 
-    // Hacer la reasignación
-    await db.query(`
-      UPDATE orden_produccion SET Id_Operario = ? WHERE Id_Orden = ?
-    `, [Id_Operario_Destino, Id_Orden])
+    await db.query(
+      `UPDATE orden_produccion SET "Id_Operario" = $1 WHERE "Id_Orden" = $2`,
+      [Id_Operario_Destino, Id_Orden]
+    )
 
     res.json({
       ok: true,
@@ -318,20 +273,13 @@ router.post('/reasignar', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // POST /api/carga-trabajo/reasignar-multiple
-// Reasigna varias órdenes en una sola llamada
-// Body: { movimientos: [{ Id_Orden, Id_Operario_Destino }] }
-// ─────────────────────────────────────────
 router.post('/reasignar-multiple', async (req, res) => {
   try {
     const { movimientos } = req.body
 
     if (!Array.isArray(movimientos) || movimientos.length === 0) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: 'Se requiere un array de movimientos con al menos un elemento'
-      })
+      return res.status(400).json({ ok: false, mensaje: 'Se requiere un array de movimientos con al menos un elemento' })
     }
 
     const resultados = []
@@ -346,8 +294,8 @@ router.post('/reasignar-multiple', async (req, res) => {
       }
 
       try {
-        const [orden] = await db.query(
-          `SELECT Id_Orden, Producto FROM orden_produccion WHERE Id_Orden = ? AND Estado IN ('En Proceso', 'Pausado')`,
+        const { rows: orden } = await db.query(
+          `SELECT "Id_Orden", "Producto" FROM orden_produccion WHERE "Id_Orden" = $1 AND "Estado" IN ('En Proceso', 'Pausado')`,
           [Id_Orden]
         )
         if (orden.length === 0) {
@@ -356,7 +304,7 @@ router.post('/reasignar-multiple', async (req, res) => {
         }
 
         await db.query(
-          `UPDATE orden_produccion SET Id_Operario = ? WHERE Id_Orden = ?`,
+          `UPDATE orden_produccion SET "Id_Operario" = $1 WHERE "Id_Orden" = $2`,
           [Id_Operario_Destino, Id_Orden]
         )
         resultados.push({ Id_Orden, Producto: orden[0].Producto, Id_Operario_Destino, ok: true })
@@ -378,22 +326,18 @@ router.post('/reasignar-multiple', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // POST /api/carga-trabajo/aplicar-sugerencias
-// Aplica automáticamente todas las sugerencias generadas
-// No requiere body — calcula y aplica en un solo paso
-// ─────────────────────────────────────────
 router.post('/aplicar-sugerencias', async (req, res) => {
   try {
-    const [operarios] = await db.query(`
+    const { rows: operarios } = await db.query(`
       SELECT
-        u.Id_Usuario, u.Nombre_Completo,
-        COUNT(CASE WHEN op.Estado IN ('En Proceso', 'Pausado') THEN 1 END) AS ordenes_activas
+        u."Id_Usuario", u."Nombre_Completo",
+        COUNT(CASE WHEN op."Estado" IN ('En Proceso', 'Pausado') THEN 1 END) AS ordenes_activas
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      LEFT JOIN orden_produccion op ON op.Id_Operario = u.Id_Usuario
-      WHERE u.Estado = 'activo'
-      GROUP BY u.Id_Usuario, u.Nombre_Completo
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      LEFT JOIN orden_produccion op ON op."Id_Operario" = u."Id_Usuario"
+      WHERE u."Estado" = 'activo'
+      GROUP BY u."Id_Usuario", u."Nombre_Completo"
     `)
 
     const sobrecargados = operarios.filter(o => o.ordenes_activas > LIMITE_ORDENES_SOBRECARGA)
@@ -410,13 +354,13 @@ router.post('/aplicar-sugerencias', async (req, res) => {
     const movimientos = []
 
     for (const operario of sobrecargados) {
-      const [ordenes] = await db.query(`
-        SELECT Id_Orden, Producto, Prioridad, Fecha_Limite,
-          CASE WHEN CURDATE() > Fecha_Limite THEN true ELSE false END AS vencida,
-          CASE Prioridad WHEN 'Alta' THEN 1 WHEN 'Media' THEN 2 ELSE 3 END AS orden_prioridad
+      const { rows: ordenes } = await db.query(`
+        SELECT "Id_Orden", "Producto", "Prioridad", "Fecha_Limite",
+          CASE WHEN CURRENT_DATE > "Fecha_Limite" THEN true ELSE false END AS vencida,
+          CASE "Prioridad" WHEN 'Alta' THEN 1 WHEN 'Media' THEN 2 ELSE 3 END AS orden_prioridad
         FROM orden_produccion
-        WHERE Id_Operario = ? AND Estado IN ('En Proceso', 'Pausado')
-        ORDER BY vencida DESC, orden_prioridad ASC, Fecha_Limite ASC
+        WHERE "Id_Operario" = $1 AND "Estado" IN ('En Proceso', 'Pausado')
+        ORDER BY vencida DESC, orden_prioridad ASC, "Fecha_Limite" ASC
       `, [operario.Id_Usuario])
 
       const exceso = Math.max(0, operario.ordenes_activas - LIMITE_ORDENES_SOBRECARGA)
@@ -427,7 +371,7 @@ router.post('/aplicar-sugerencias', async (req, res) => {
         const destino = disponibles[i % disponibles.length]
 
         await db.query(
-          `UPDATE orden_produccion SET Id_Operario = ? WHERE Id_Orden = ?`,
+          `UPDATE orden_produccion SET "Id_Operario" = $1 WHERE "Id_Orden" = $2`,
           [destino.Id_Usuario, orden.Id_Orden]
         )
 
@@ -448,11 +392,7 @@ router.post('/aplicar-sugerencias', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // PATCH /api/carga-trabajo/umbrales
-// Cambia los límites de sobrecarga y disponibilidad en caliente
-// Body: { limite_sobrecarga, limite_disponible }
-// ─────────────────────────────────────────
 let umbrales = {
   limite_sobrecarga: LIMITE_ORDENES_SOBRECARGA,
   limite_disponible: LIMITE_ORDENES_DISPONIBLE,
@@ -483,11 +423,7 @@ router.patch('/umbrales', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // PATCH /api/carga-trabajo/ordenes/:id/operario
-// Reasigna una orden a un operario específico
-// Body: { Id_Operario_Destino }
-// ─────────────────────────────────────────
 router.patch('/ordenes/:id/operario', async (req, res) => {
   try {
     const { id } = req.params
@@ -500,19 +436,19 @@ router.patch('/ordenes/:id/operario', async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'Se requiere Id_Operario_Destino' })
     }
 
-    const [orden] = await db.query(
-      `SELECT Id_Orden, Id_Operario, Producto, Estado FROM orden_produccion WHERE Id_Orden = ?`,
+    const { rows: orden } = await db.query(
+      `SELECT "Id_Orden", "Id_Operario", "Producto", "Estado" FROM orden_produccion WHERE "Id_Orden" = $1`,
       [id]
     )
     if (orden.length === 0) {
       return res.status(404).json({ ok: false, mensaje: `No se encontró la orden #${id}` })
     }
 
-    const [operario] = await db.query(`
-      SELECT u.Id_Usuario, u.Nombre_Completo
+    const { rows: operario } = await db.query(`
+      SELECT u."Id_Usuario", u."Nombre_Completo"
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      WHERE u.Id_Usuario = ? AND u.Estado = 'activo'
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      WHERE u."Id_Usuario" = $1 AND u."Estado" = 'activo'
     `, [Id_Operario_Destino])
 
     if (operario.length === 0) {
@@ -520,7 +456,7 @@ router.patch('/ordenes/:id/operario', async (req, res) => {
     }
 
     await db.query(
-      `UPDATE orden_produccion SET Id_Operario = ? WHERE Id_Orden = ?`,
+      `UPDATE orden_produccion SET "Id_Operario" = $1 WHERE "Id_Orden" = $2`,
       [Id_Operario_Destino, id]
     )
 
@@ -540,11 +476,7 @@ router.patch('/ordenes/:id/operario', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────
 // PATCH /api/carga-trabajo/operarios/:id/estado
-// Activa o desactiva un operario
-// Body: { Estado: 'activo' | 'inactivo' }
-// ─────────────────────────────────────────
 router.patch('/operarios/:id/estado', async (req, res) => {
   try {
     const { id } = req.params
@@ -556,17 +488,14 @@ router.patch('/operarios/:id/estado', async (req, res) => {
 
     const estadosValidos = ['activo', 'inactivo']
     if (!Estado || !estadosValidos.includes(Estado)) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: `Estado inválido. Usa: ${estadosValidos.join(', ')}`
-      })
+      return res.status(400).json({ ok: false, mensaje: `Estado inválido. Usa: ${estadosValidos.join(', ')}` })
     }
 
-    const [operario] = await db.query(`
-      SELECT u.Id_Usuario, u.Nombre_Completo, u.Estado
+    const { rows: operario } = await db.query(`
+      SELECT u."Id_Usuario", u."Nombre_Completo", u."Estado"
       FROM usuario u
-      INNER JOIN rol r ON u.Id_Rol = r.Id_Rol AND r.Nombre_Rol = 'operario'
-      WHERE u.Id_Usuario = ?
+      INNER JOIN rol r ON u."Id_Rol" = r."Id_Rol" AND r."Nombre_Rol" = 'operario'
+      WHERE u."Id_Usuario" = $1
     `, [id])
 
     if (operario.length === 0) {
@@ -574,7 +503,7 @@ router.patch('/operarios/:id/estado', async (req, res) => {
     }
 
     await db.query(
-      `UPDATE usuario SET Estado = ? WHERE Id_Usuario = ?`,
+      `UPDATE usuario SET "Estado" = $1 WHERE "Id_Usuario" = $2`,
       [Estado, id]
     )
 
