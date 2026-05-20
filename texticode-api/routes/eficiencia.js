@@ -8,7 +8,6 @@ router.use(verificarApiKey)
 
 // ─────────────────────────────────────────
 // Prendas por día ponderadas por dificultad.
-// DATEDIFF en MySQL → (CURRENT_DATE - DATE(fecha))::int en PostgreSQL
 // Alta=3 | Media=2 | Baja=1
 // ─────────────────────────────────────────
 const SQL_PRENDAS_POR_DIA = `
@@ -45,17 +44,14 @@ const SQL_PRENDAS_POR_DIA = `
 `
 
 // ─────────────────────────────────────────
-// Órdenes en retraso real (vencidas sin observación)
+// Órdenes en retraso: todas las vencidas activas,
+// independientemente de si tienen observaciones.
 // ─────────────────────────────────────────
 const SQL_ORDENES_EN_RETRASO = `
   COUNT(
     CASE
       WHEN CURRENT_DATE > op."Fecha_Limite"
        AND op."Estado" IN ('En Proceso', 'Pausado')
-       AND (
-         SELECT COUNT(*) FROM observacion_operario ob4
-         WHERE ob4."Id_Orden" = op."Id_Orden"
-       ) = 0
       THEN 1
     END
   )
@@ -121,7 +117,7 @@ router.get('/operarios/:id', async (req, res) => {
       CASE
         WHEN CURRENT_DATE > op."Fecha_Limite" AND op."Estado" IN ('En Proceso', 'Pausado')
         THEN true ELSE false
-      END AS en_retraso,
+      END AS vencida,
       CASE
         WHEN (
           SELECT COUNT(*) FROM observacion_operario ob
@@ -327,7 +323,6 @@ router.get('/operarios/:id/historial', async (req, res) => {
   const diasPeriodo = { semana: 7, mes: 30, trimestre: 90 }
   const dias = diasPeriodo[periodo]
 
-  // En PostgreSQL: DATE_SUB(CURDATE(), INTERVAL N DAY) → CURRENT_DATE - INTERVAL 'N days'
   const sqlMetricasPeriodo = (offsetInicio, offsetFin) => `
     SELECT
       ROUND(
@@ -360,7 +355,6 @@ router.get('/operarios/:id/historial', async (req, res) => {
         CASE
           WHEN CURRENT_DATE > op."Fecha_Limite"
            AND op."Estado" IN ('En Proceso', 'Pausado')
-           AND (SELECT COUNT(*) FROM observacion_operario ob4 WHERE ob4."Id_Orden" = op."Id_Orden") = 0
           THEN 1
         END
       ) AS retrasos,
@@ -389,7 +383,7 @@ router.get('/operarios/:id/historial', async (req, res) => {
   const { rows: actual }   = await db.query(sqlMetricasPeriodo(dias, 0), [id])
   const { rows: anterior } = await db.query(sqlMetricasPeriodo(dias * 2, dias), [id])
 
-  const ppd_actual   = parseFloat(actual[0].prendas_por_dia)  || 0
+  const ppd_actual   = parseFloat(actual[0].prendas_por_dia)   || 0
   const ppd_anterior = parseFloat(anterior[0].prendas_por_dia) || 0
 
   const calcularRendimiento = (ppd, retrasos) => {
@@ -410,24 +404,24 @@ router.get('/operarios/:id/historial', async (req, res) => {
   res.json({
     ok: true,
     data: {
-      operario:   operario[0],
+      operario: operario[0],
       periodo,
       dias,
       actual: {
-        prendas_por_dia:  ppd_actual,
-        total_unidades:   actual[0].total_unidades,
-        completadas:      actual[0].completadas,
-        en_curso:         actual[0].en_curso,
-        retrasos:         actual[0].retrasos,
-        con_problema:     actual[0].con_problema,
-        rendimiento:      rendimiento_actual
+        prendas_por_dia: ppd_actual,
+        total_unidades:  actual[0].total_unidades,
+        completadas:     actual[0].completadas,
+        en_curso:        actual[0].en_curso,
+        retrasos:        actual[0].retrasos,
+        con_problema:    actual[0].con_problema,
+        rendimiento:     rendimiento_actual
       },
       anterior: {
-        prendas_por_dia:  ppd_anterior,
-        total_unidades:   anterior[0].total_unidades,
-        completadas:      anterior[0].completadas,
-        retrasos:         anterior[0].retrasos,
-        rendimiento:      rendimiento_anterior
+        prendas_por_dia: ppd_anterior,
+        total_unidades:  anterior[0].total_unidades,
+        completadas:     anterior[0].completadas,
+        retrasos:        anterior[0].retrasos,
+        rendimiento:     rendimiento_anterior
       },
       tendencia,
       diferencia_prendas: Math.round(diferencia * 10) / 10

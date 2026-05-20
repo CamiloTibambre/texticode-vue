@@ -93,9 +93,7 @@
         </div>
       </div>
 
-      <!-- ╔══════════════════════════════════╗ -->
-      <!-- ║   VIEW SWITCH — REDISEÑADO       ║ -->
-      <!-- ╚══════════════════════════════════╝ -->
+      <!-- VIEW SWITCH -->
       <div class="view-switch-wrap" :class="{ 'box-visible': animVisible }">
         <div class="view-switch-track">
           <div class="view-switch-slider" :class="{ 'slider-carga': vistaActiva === 'carga' }"></div>
@@ -115,9 +113,7 @@
         </div>
       </div>
 
-      <!-- ╔══════════════════════════════════╗ -->
-      <!-- ║   VISTA EFICIENCIA               ║ -->
-      <!-- ╚══════════════════════════════════╝ -->
+      <!-- VISTA EFICIENCIA -->
       <Transition name="vista">
         <section v-if="vistaActiva === 'eficiencia'" key="eficiencia">
 
@@ -291,7 +287,7 @@
                       </thead>
                       <tbody>
                         <template v-for="o in operarioActivo.ordenes_detalle" :key="o.Id_Orden">
-                          <tr :class="{ 'orden-retraso': o.en_retraso }">
+                          <tr :class="{ 'orden-retraso': o.vencida }">
                             <td>{{ o.Id_Orden }}</td>
                             <td>{{ o.Producto }}</td>
                             <td><span class="badge-estado" :class="estadoClass(o.Estado)">{{ o.Estado }}</span></td>
@@ -300,14 +296,14 @@
                             <td>
                               <div class="avance-wrap">
                                 <div class="avance-bar">
-                                  <div class="avance-fill" :style="{ width: avancePct(o) + '%', background: o.en_retraso ? '#dc2626' : '#16a34a' }"></div>
+                                  <div class="avance-fill" :style="{ width: avancePct(o) + '%', background: o.vencida ? '#dc2626' : '#16a34a' }"></div>
                                 </div>
                                 <span class="avance-txt">{{ o.Unidades_Realizadas }}/{{ o.Unidades }}</span>
                               </div>
                             </td>
-                            <td :class="{ 'td-retraso': o.en_retraso }">
+                            <td :class="{ 'td-retraso': o.vencida }">
                               {{ formatFecha(o.Fecha_Limite) }}
-                              <span v-if="o.en_retraso" class="retraso-tag">VENCIDA</span>
+                              <span v-if="o.vencida" class="retraso-tag">VENCIDA</span>
                             </td>
                             <td>
                               <button
@@ -378,15 +374,15 @@
                   </div>
                   <div v-else class="sin-ordenes">Sin órdenes asignadas</div>
 
-                </div><!-- /detalle-inner -->
+                </div>
 
                 <div v-else class="cargando-detalle">
                   <div class="spinner"></div>
                   Cargando...
                 </div>
 
-              </div><!-- /modal-content -->
-            </div><!-- /modal -->
+              </div>
+            </div>
           </Transition>
 
           <!-- TABLA PRINCIPAL -->
@@ -498,18 +494,15 @@
                 </tr>
               </tbody>
             </table>
-          </div><!-- /table-box -->
+          </div>
 
         </section>
       </Transition>
 
-      <!-- ╔══════════════════════════════════╗ -->
-      <!-- ║   VISTA CARGA DE TRABAJO         ║ -->
-      <!-- ╚══════════════════════════════════╝ -->
+      <!-- VISTA CARGA DE TRABAJO -->
       <Transition name="vista">
         <section v-if="vistaActiva === 'carga'" key="carga" class="carga-wrap">
 
-          <!-- STATS DE CARGA -->
           <div v-if="cargandoCarga" class="stats">
             <div v-for="i in 4" :key="i" class="stat-card skeleton-card">
               <div class="skeleton-line skeleton-sm"></div>
@@ -551,7 +544,6 @@
             </div>
           </div>
 
-          <!-- TABLA CARGA -->
           <div class="table-box box-visible" style="margin-bottom:16px">
             <div class="table-header-bar">
               <div class="table-header-left">
@@ -648,7 +640,7 @@
                 </tr>
               </tbody>
             </table>
-          </div><!-- /table-box carga -->
+          </div>
 
           <!-- MODAL DETALLE CARGA -->
           <Transition name="modal">
@@ -783,13 +775,28 @@ function mostrarToast(msg, type = 'success') {
   setTimeout(() => toast.value.visible = false, 2800)
 }
 
+// ── FIX: Normalizar números que PostgreSQL devuelve como string ──
+function normalizarOperario(op) {
+  return {
+    ...op,
+    prendas_por_dia:            Number(op.prendas_por_dia)            || 0,
+    total_unidades_producidas:  Number(op.total_unidades_producidas)   || 0,
+    ordenes_en_retraso:         Number(op.ordenes_en_retraso)          || 0,
+    ordenes_completadas:        Number(op.ordenes_completadas)         || 0,
+    ordenes_en_proceso:         Number(op.ordenes_en_proceso)          || 0,
+    ordenes_pausadas:           Number(op.ordenes_pausadas)            || 0,
+    ordenes_con_problema:       Number(op.ordenes_con_problema)        || 0,
+  }
+}
+
 // ── CARGA EFICIENCIA ──
 async function cargarDatos() {
   cargando.value = true
   error.value = ''
   try {
     const data = await getEficienciaOperarios()
-    operarios.value = data
+    // FIX: convertir strings de pg a números reales
+    operarios.value = data.map(normalizarOperario)
   } catch (e) {
     error.value = e.message || 'Error al cargar los datos de eficiencia'
     mostrarToast(error.value, 'danger')
@@ -847,7 +854,8 @@ async function verDetalle(id) {
   modalDetalle.value     = true
   try {
     const data = await getEficienciaOperario(id)
-    operarioActivo.value = data
+    // FIX: normalizar también el detalle individual
+    operarioActivo.value = normalizarOperario(data)
     cargarHistorial(id, 'semana')
   } catch (e) {
     mostrarToast('Error al cargar el detalle', 'danger')
