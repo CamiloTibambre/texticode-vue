@@ -97,36 +97,31 @@
       <!-- ║   VIEW SWITCH — REDISEÑADO       ║ -->
       <!-- ╚══════════════════════════════════╝ -->
       <div class="view-switch-wrap" :class="{ 'box-visible': animVisible }">
-        <div class="view-switch-track">
-          <div class="view-switch-slider" :class="{ 'slider-carga': vistaActiva === 'carga' }"></div>
-          <button
-            class="switch-btn"
-            :class="{ active: vistaActiva === 'eficiencia' }"
-            @click="vistaActiva = 'eficiencia'"
-          >
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
-            </svg>
-            Eficiencia &amp; Rendimiento
-            <span class="switch-badge" v-if="operarios.length">{{ operarios.length }}</span>
-          </button>
-          <button
-            class="switch-btn"
-            :class="{ active: vistaActiva === 'carga' }"
-            @click="cambiarVistaCarga"
-          >
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/>
-            </svg>
-            Carga de Trabajo
-            <span class="switch-badge danger" v-if="cargaResumen.sobrecargados > 0">{{ cargaResumen.sobrecargados }} ⚠</span>
-          </button>
-        </div>
-        <div class="view-switch-indicators">
-          <div class="indicator-dot" :class="{ 'dot-active': vistaActiva === 'eficiencia', 'dot-green': statsCounts.alto > 0 }"></div>
-          <div class="indicator-dot" :class="{ 'dot-active': vistaActiva === 'carga', 'dot-red': cargaResumen.sobrecargados > 0 }"></div>
-        </div>
-      </div>
+  <div class="view-switch-track">
+    <div class="view-switch-slider" :class="{ 'slider-carga': vistaActiva === 'carga' }"></div>
+    <button
+      class="switch-btn"
+      :class="{ active: vistaActiva === 'eficiencia' }"
+      @click="vistaActiva = 'eficiencia'"
+    >
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+      </svg>
+      Eficiencia &amp; Rendimiento
+    </button>
+    <button
+      class="switch-btn"
+      :class="{ active: vistaActiva === 'carga' }"
+      @click="cambiarVistaCarga"
+    >
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/>
+      </svg>
+      Carga de Trabajo
+      <span class="switch-badge danger" v-if="cargaResumen.sobrecargados > 0">{{ cargaResumen.sobrecargados }} ⚠</span>
+    </button>
+  </div>
+</div>
 
       <!-- ╔══════════════════════════════════╗ -->
       <!-- ║   VISTA EFICIENCIA               ║ -->
@@ -1091,10 +1086,8 @@ function formatFechaObs(f) {
 /* ╔══════════════════════════════════════════════╗ */
 /* ║   VIEW SWITCH — NUEVO DISEÑO LLAMATIVO       ║ */
 /* ╚══════════════════════════════════════════════╝ */
+/* ── VIEW SWITCH ── */
 .view-switch-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   margin-bottom: 22px;
   opacity: 0;
   transform: translateY(10px);
@@ -1109,16 +1102,15 @@ function formatFechaObs(f) {
   border: 1.5px solid #e5e7eb;
   border-radius: 14px;
   padding: 4px;
-  gap: 2px;
+  gap: 4px;
   box-shadow: 0 2px 12px rgba(31,58,82,0.08);
+  width: 100%;
 }
 
-/* Slider animado detrás de los botones */
 .view-switch-slider {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
+  top: 4px; left: 4px;
+  width: calc(50% - 6px);
   bottom: 4px;
   background: #1f3a52;
   border-radius: 10px;
@@ -1126,7 +1118,7 @@ function formatFechaObs(f) {
   box-shadow: 0 2px 8px rgba(31,58,82,0.3);
 }
 .view-switch-slider.slider-carga {
-  transform: translateX(100%);
+  transform: translateX(calc(100% + 4px));
 }
 
 .switch-btn {
@@ -1134,19 +1126,19 @@ function formatFechaObs(f) {
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
   border-radius: 10px;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #9ca3af;
   cursor: pointer;
   transition: color 0.25s ease;
   white-space: nowrap;
   flex: 1;
-  justify-content: center;
 }
 .switch-btn svg { transition: stroke 0.25s ease; flex-shrink: 0; }
 .switch-btn.active { color: white; }
@@ -1157,8 +1149,8 @@ function formatFechaObs(f) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
+  min-width: 22px;
+  height: 22px;
   padding: 0 6px;
   border-radius: 999px;
   font-size: 11px;
@@ -1173,24 +1165,6 @@ function formatFechaObs(f) {
 }
 .switch-badge.danger { background: #dc2626; color: white; }
 .switch-btn.active .switch-badge.danger { background: rgba(220,38,38,0.85); }
-
-.view-switch-indicators {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.indicator-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #d1d5db;
-  transition: all 0.3s ease;
-}
-.indicator-dot.dot-active { background: #1f3a52; transform: scale(1.3); }
-.indicator-dot.dot-green { background: #16a34a; }
-.indicator-dot.dot-active.dot-green { background: #16a34a; transform: scale(1.3); }
-.indicator-dot.dot-red { background: #dc2626; animation: dotPulse 1.5s ease-in-out infinite; }
-@keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 /* ── TRANSICIÓN DE VISTAS ── */
 .vista-enter-active { transition: all 0.3s ease; }
