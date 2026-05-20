@@ -23,15 +23,15 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const [rows] = await db.execute(
-      `SELECT u.Id_Usuario, u.Nombre_Completo, u.Nombre_Usuario,
-              u.Correo, u.Contrasena, u.Estado, u.Id_Rol,
-              r.Nombre_Rol AS Rol
+    const { rows } = await db.query(
+      `SELECT u."Id_Usuario", u."Nombre_Completo", u."Nombre_Usuario",
+              u."Correo", u."Contrasena", u."Estado", u."Id_Rol",
+              r."Nombre_Rol" AS "Rol"
        FROM usuario u
-       INNER JOIN rol r ON r.Id_Rol = u.Id_Rol
-       WHERE u.Correo = ? OR u.Nombre_Usuario = ?
+       INNER JOIN rol r ON r."Id_Rol" = u."Id_Rol"
+       WHERE u."Correo" = $1 OR u."Nombre_Usuario" = $1
        LIMIT 1`,
-      [correo, correo]
+      [correo]
     )
 
     if (rows.length === 0) {
@@ -92,10 +92,10 @@ router.post('/recuperar-contrasena', async (req, res) => {
   }
 
   try {
-    const [rows] = await db.execute(
-      `SELECT u.Id_Usuario, u.Nombre_Completo, u.Correo
+    const { rows } = await db.query(
+      `SELECT u."Id_Usuario", u."Nombre_Completo", u."Correo"
        FROM usuario u
-       WHERE u.Correo = ?
+       WHERE u."Correo" = $1
        LIMIT 1`,
       [email.trim().toLowerCase()]
     )
@@ -107,12 +107,13 @@ router.post('/recuperar-contrasena', async (req, res) => {
     const usuario = rows[0]
 
     const token      = crypto.randomBytes(32).toString('hex')
-    const expiracion = new Date(Date.now() + 60 * 60 * 1000)
+    const expiracion = new Date(Date.now() + 60 * 60 * 1000).toISOString()
 
-    await db.execute(
-      `INSERT INTO tokens_recuperacion (Id_Usuario, token, expiracion, usado)
-       VALUES (?, ?, ?, 0)
-       ON DUPLICATE KEY UPDATE token = VALUES(token), expiracion = VALUES(expiracion), usado = 0`,
+    await db.query(
+      `INSERT INTO tokens_recuperacion ("Id_Usuario", token, expiracion, usado)
+       VALUES ($1, $2, $3, false)
+       ON CONFLICT ("Id_Usuario")
+       DO UPDATE SET token = EXCLUDED.token, expiracion = EXCLUDED.expiracion, usado = false`,
       [usuario.Id_Usuario, token, expiracion]
     )
 
@@ -201,9 +202,9 @@ router.get('/validar-token', async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `SELECT id FROM tokens_recuperacion
-       WHERE token = ? AND usado = 0 AND expiracion > NOW()`,
+       WHERE token = $1 AND usado = false AND expiracion > NOW()`,
       [token]
     )
 
@@ -233,9 +234,9 @@ router.post('/cambiar-contrasena', async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query(
-      `SELECT id, Id_Usuario FROM tokens_recuperacion
-       WHERE token = ? AND usado = 0 AND expiracion > NOW()`,
+    const { rows } = await db.query(
+      `SELECT id, "Id_Usuario" FROM tokens_recuperacion
+       WHERE token = $1 AND usado = false AND expiracion > NOW()`,
       [token]
     )
 
@@ -248,12 +249,12 @@ router.post('/cambiar-contrasena', async (req, res) => {
     const hash = await bcrypt.hash(nuevaPassword, 10)
 
     await db.query(
-      `UPDATE usuario SET Contrasena = ? WHERE Id_Usuario = ?`,
+      `UPDATE usuario SET "Contrasena" = $1 WHERE "Id_Usuario" = $2`,
       [hash, Id_Usuario]
     )
 
     await db.query(
-      `UPDATE tokens_recuperacion SET usado = 1 WHERE id = ?`,
+      `UPDATE tokens_recuperacion SET usado = true WHERE id = $1`,
       [tokenId]
     )
 

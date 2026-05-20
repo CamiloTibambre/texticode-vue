@@ -182,7 +182,6 @@
                 </div>
 
                 <div v-else-if="historial" class="historial-body">
-                  <!-- Tendencia principal -->
                   <div class="tendencia-wrap">
                     <div class="tendencia-icono" :class="historial.tendencia">
                       <svg v-if="historial.tendencia === 'subiendo'" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -208,7 +207,6 @@
                     </span>
                   </div>
 
-                  <!-- Comparativa actual vs anterior -->
                   <div class="historial-comparativa">
                     <div class="periodo-card periodo-actual">
                       <div class="periodo-label">Este {{ periodoHistorial }}</div>
@@ -255,7 +253,6 @@
                   </thead>
                   <tbody>
                     <template v-for="o in operarioActivo.ordenes_detalle" :key="o.Id_Orden">
-                      <!-- Fila de la orden -->
                       <tr :class="{ 'orden-retraso': o.en_retraso }">
                         <td>{{ o.Id_Orden }}</td>
                         <td>{{ o.Producto }}</td>
@@ -281,7 +278,6 @@
                           <span v-if="o.en_retraso" class="retraso-tag">VENCIDA</span>
                         </td>
                         <td>
-                          <!-- Botón toggle observaciones de esta orden -->
                           <button
                             class="btn-obs-toggle"
                             :class="{ 'active': ordenObsAbierta === o.Id_Orden }"
@@ -298,20 +294,16 @@
                         </td>
                       </tr>
 
-                      <!-- Panel de observaciones inline (se expande debajo de la fila) -->
                       <Transition name="obs-panel">
                         <tr v-if="ordenObsAbierta === o.Id_Orden" class="obs-row">
                           <td colspan="8" class="obs-panel-td">
                             <div class="obs-panel">
-
                               <div class="obs-panel-header">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>
                                 </svg>
                                 Observaciones — Orden #{{ o.Id_Orden }}: {{ o.Producto }}
                               </div>
-
-                              <!-- Historial de obs de esta orden -->
                               <div v-if="cargandoObsOrden" class="obs-loading">Cargando...</div>
                               <div v-else-if="!obsXOrden[o.Id_Orden]?.length" class="obs-empty-inline">
                                 Sin observaciones para esta orden aún.
@@ -322,11 +314,7 @@
                                     <span class="obs-admin-inline">{{ obs.Admin }}</span>
                                     <div class="obs-meta-right">
                                       <span class="obs-fecha-inline">{{ formatFechaObs(obs.Fecha) }}</span>
-                                      <button
-                                        class="btn-obs-eliminar"
-                                        @click="eliminarObservacion(obs.Id_Observacion, o.Id_Orden)"
-                                        title="Eliminar observación"
-                                      >
+                                      <button class="btn-obs-eliminar" @click="eliminarObservacion(obs.Id_Observacion, o.Id_Orden)" title="Eliminar observación">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                           <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                         </svg>
@@ -336,8 +324,6 @@
                                   <p class="obs-texto-inline">{{ obs.Observacion }}</p>
                                 </div>
                               </div>
-
-                              <!-- Formulario nueva obs vinculada a esta orden -->
                               <div class="obs-form-inline">
                                 <textarea
                                   v-model="nuevaObsXOrden[o.Id_Orden]"
@@ -357,7 +343,6 @@
                                   </button>
                                 </div>
                               </div>
-
                             </div>
                           </td>
                         </tr>
@@ -389,7 +374,6 @@
           </div>
         </div>
 
-        <!-- SKELETON -->
         <div v-if="cargando" class="table-skeleton">
           <div v-for="i in 5" :key="i" class="table-skeleton-row">
             <span class="skeleton-avatar"></span>
@@ -401,7 +385,6 @@
           </div>
         </div>
 
-        <!-- ERROR -->
         <div v-else-if="error" class="error-state">
           <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.052 3.378c.866-1.5 3.032-1.5 3.898 0L21.303 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
@@ -410,22 +393,19 @@
           <button class="btn" @click="cargarDatos">Reintentar</button>
         </div>
 
-        <!-- TABLA -->
         <table v-else>
           <thead>
             <tr>
               <th class="th-rank">#</th>
               <th class="th-sortable" @click="sortBy('Nombre_Completo')">
-                <span class="th-inner">
-                  Operario
+                <span class="th-inner">Operario
                   <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-neutral">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
                   </svg>
                 </span>
               </th>
               <th class="th-sortable" @click="sortBy('prendas_por_dia')">
-                <span class="th-inner">
-                  Prendas / día
+                <span class="th-inner">Prendas / día
                   <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="sort-neutral">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
                   </svg>
@@ -440,22 +420,13 @@
           </thead>
           <tbody>
             <TransitionGroup name="row">
-              <tr
-                v-for="(op, idx) in operariosOrdenados"
-                :key="op.Id_Usuario"
-                class="table-row"
-                :style="{ animationDelay: `${idx * 40}ms` }"
-              >
+              <tr v-for="(op, idx) in operariosOrdenados" :key="op.Id_Usuario" class="table-row" :style="{ animationDelay: `${idx * 40}ms` }">
                 <td class="td-rank">
-                  <span class="rank-num" :class="{ 'rank-gold': idx === 0, 'rank-silver': idx === 1, 'rank-bronze': idx === 2 }">
-                    {{ idx + 1 }}
-                  </span>
+                  <span class="rank-num" :class="{ 'rank-gold': idx === 0, 'rank-silver': idx === 1, 'rank-bronze': idx === 2 }">{{ idx + 1 }}</span>
                 </td>
                 <td>
                   <div class="user">
-                    <div class="avatar" :style="{ background: avatarBg(op.Nombre_Completo), color: avatarColor(op.Nombre_Completo) }">
-                      {{ iniciales(op.Nombre_Completo) }}
-                    </div>
+                    <div class="avatar" :style="{ background: avatarBg(op.Nombre_Completo), color: avatarColor(op.Nombre_Completo) }">{{ iniciales(op.Nombre_Completo) }}</div>
                     <div class="user-info">
                       <span class="user-name">{{ op.Nombre_Completo }}</span>
                       <span class="user-handle">@{{ op.Nombre_Usuario }}</span>
@@ -483,9 +454,7 @@
                 </td>
                 <td><span class="completadas-cell">{{ op.ordenes_completadas }}</span></td>
                 <td>
-                  <span class="badge-rendimiento" :class="op.rendimiento?.toLowerCase()">
-                    {{ op.rendimiento }}
-                  </span>
+                  <span class="badge-rendimiento" :class="op.rendimiento?.toLowerCase()">{{ op.rendimiento }}</span>
                 </td>
                 <td>
                   <button class="action-btn" @click="verDetalle(op.Id_Usuario)" title="Ver detalle">
@@ -497,7 +466,6 @@
                 </td>
               </tr>
             </TransitionGroup>
-
             <tr v-if="operariosOrdenados.length === 0 && !cargando">
               <td colspan="8" class="empty-state">
                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
@@ -522,7 +490,6 @@ import { useAuthStore } from '../../stores/auth'
 
 const auth = useAuthStore()
 
-// ── ESTADO ──
 const animVisible       = ref(false)
 const cargando          = ref(true)
 const error             = ref('')
@@ -535,14 +502,12 @@ const operarioActivo    = ref(null)
 const sortKey           = ref('prendas_por_dia')
 const sortDir           = ref(-1)
 
-// Observaciones por orden (nuevo sistema)
-const ordenObsAbierta   = ref(null)      // Id_Orden actualmente abierto
-const obsXOrden         = reactive({})   // { [Id_Orden]: [...observaciones] }
-const nuevaObsXOrden    = reactive({})   // { [Id_Orden]: 'texto' }
+const ordenObsAbierta   = ref(null)
+const obsXOrden         = reactive({})
+const nuevaObsXOrden    = reactive({})
 const cargandoObsOrden  = ref(false)
-const guardandoObsOrden = ref(null)      // Id_Orden que está guardando
+const guardandoObsOrden = ref(null)
 
-// Historial de rendimiento
 const historial         = ref(null)
 const cargandoHistorial = ref(false)
 const periodoHistorial  = ref('semana')
@@ -552,13 +517,11 @@ const toast = ref({ visible: false, msg: '', type: 'success' })
 const BASE    = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 const API_KEY = import.meta.env.VITE_API_KEY || ''
 
-// ── TOAST ──
 function mostrarToast(msg, type = 'success') {
   toast.value = { visible: true, msg, type }
   setTimeout(() => toast.value.visible = false, 2800)
 }
 
-// ── CARGA ──
 async function cargarDatos() {
   cargando.value = true
   error.value = ''
@@ -576,17 +539,15 @@ async function cargarDatos() {
 onMounted(async () => {
   await cargarDatos()
   setTimeout(() => { animVisible.value = true }, 50)
-  setTimeout(() => animateStats(), 200)
+  animateStats()
 })
 
-// ── VER DETALLE ──
 async function verDetalle(id) {
   operarioActivo.value  = null
   ordenObsAbierta.value = null
   historial.value       = null
   periodoHistorial.value = 'semana'
   modalDetalle.value    = true
-
   try {
     const data = await getEficienciaOperario(id)
     operarioActivo.value = data
@@ -604,7 +565,6 @@ function cerrarModal() {
   historial.value       = null
 }
 
-// ── HISTORIAL DE RENDIMIENTO ──
 async function cargarHistorial(id, periodo) {
   cargandoHistorial.value = true
   periodoHistorial.value  = periodo
@@ -622,29 +582,14 @@ async function cargarHistorial(id, periodo) {
   }
 }
 
-// ── OBSERVACIONES POR ORDEN ──
-
-/** Abre/cierra el panel de obs de una orden. Carga las obs si no las tiene aún. */
 async function toggleObsOrden(orden) {
   const id = orden.Id_Orden
-
-  // Si ya estaba abierta, la cerramos
-  if (ordenObsAbierta.value === id) {
-    ordenObsAbierta.value = null
-    return
-  }
-
+  if (ordenObsAbierta.value === id) { ordenObsAbierta.value = null; return }
   ordenObsAbierta.value = id
-
-  // Si ya tenemos las obs cargadas, no volvemos a pedir
   if (obsXOrden[id] !== undefined) return
-
   cargandoObsOrden.value = true
   try {
-    const res = await fetch(
-      `${BASE}/eficiencia/observaciones/${operarioActivo.value.Id_Usuario}?Id_Orden=${id}`,
-      { headers: { 'x-api-key': API_KEY } }
-    )
+    const res = await fetch(`${BASE}/eficiencia/observaciones/${operarioActivo.value.Id_Usuario}?Id_Orden=${id}`, { headers: { 'x-api-key': API_KEY } })
     const json = await res.json()
     obsXOrden[id] = json.data || []
   } catch {
@@ -654,39 +599,22 @@ async function toggleObsOrden(orden) {
   }
 }
 
-/** Guarda una nueva observación vinculada a una orden específica */
 async function guardarObservacionOrden(orden) {
   const id    = orden.Id_Orden
   const texto = nuevaObsXOrden[id]?.trim()
   if (!texto || !operarioActivo.value) return
-
   guardandoObsOrden.value = id
   try {
     const res = await fetch(`${BASE}/eficiencia/observaciones`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': API_KEY
-      },
-      body: JSON.stringify({
-        Id_Operario: operarioActivo.value.Id_Usuario,
-        Id_Admin:    auth.idUsuario,
-        Id_Orden:    id,
-        Observacion: texto
-      })
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+      body: JSON.stringify({ Id_Operario: operarioActivo.value.Id_Usuario, Id_Admin: auth.idUsuario, Id_Orden: id, Observacion: texto })
     })
     if (!res.ok) throw new Error('Error al guardar')
-
     nuevaObsXOrden[id] = ''
-
-    // Recargar obs de esta orden
-    const res2 = await fetch(
-      `${BASE}/eficiencia/observaciones/${operarioActivo.value.Id_Usuario}?Id_Orden=${id}`,
-      { headers: { 'x-api-key': API_KEY } }
-    )
+    const res2 = await fetch(`${BASE}/eficiencia/observaciones/${operarioActivo.value.Id_Usuario}?Id_Orden=${id}`, { headers: { 'x-api-key': API_KEY } })
     const json2 = await res2.json()
     obsXOrden[id] = json2.data || []
-
     mostrarToast(`Observación guardada en orden #${id}`)
   } catch {
     mostrarToast('Error al guardar la observación', 'danger')
@@ -695,39 +623,27 @@ async function guardarObservacionOrden(orden) {
   }
 }
 
-/** Elimina una observación por su Id y la remueve del reactive */
 async function eliminarObservacion(idObservacion, idOrden) {
   if (!confirm('¿Eliminar esta observación? Esta acción no se puede deshacer.')) return
-
   try {
-    const res = await fetch(`${BASE}/eficiencia/observaciones/${idObservacion}`, {
-      method: 'DELETE',
-      headers: { 'x-api-key': API_KEY }
-    })
+    const res = await fetch(`${BASE}/eficiencia/observaciones/${idObservacion}`, { method: 'DELETE', headers: { 'x-api-key': API_KEY } })
     if (!res.ok) throw new Error('Error al eliminar')
-
-    // Quitar del reactive sin recargar
     obsXOrden[idOrden] = obsXOrden[idOrden].filter(o => o.Id_Observacion !== idObservacion)
-
-    // Sincronizar el flag tiene_problema en ordenes_detalle si ya no quedan obs
     if (operarioActivo.value && obsXOrden[idOrden].length === 0) {
       const orden = operarioActivo.value.ordenes_detalle?.find(o => o.Id_Orden === idOrden)
       if (orden) orden.tiene_problema = false
     }
-
     mostrarToast('Observación eliminada')
   } catch {
     mostrarToast('Error al eliminar la observación', 'danger')
   }
 }
 
-// ── ORDENAMIENTO ──
 function sortBy(key) {
   if (sortKey.value === key) sortDir.value *= -1
   else { sortKey.value = key; sortDir.value = -1 }
 }
 
-// ── FILTROS Y ORDEN ──
 const operariosFiltrados = computed(() =>
   operarios.value.filter(op => {
     const q = busqueda.value.toLowerCase()
@@ -745,10 +661,10 @@ const operariosOrdenados = computed(() =>
   })
 )
 
-// ── STATS ANIMADOS ──
 const statsDisplay = ref({ total: 0, alto: 0, bajo: 0, retrasos: 0 })
 
 function animateCount(key, target) {
+  target = Number(target)
   let val = 0
   const steps = 80
   const step = Math.max(0.1, target / steps)
@@ -762,7 +678,7 @@ function animateCount(key, target) {
 function animateStats() {
   const alto  = operarios.value.filter(o => o.rendimiento === 'Alto').length
   const bajo  = operarios.value.filter(o => o.rendimiento === 'Bajo').length
-  const retrs = operarios.value.reduce((acc, o) => acc + (o.ordenes_en_retraso || 0), 0)
+  const retrs = operarios.value.reduce((acc, o) => acc + Number(o.ordenes_en_retraso || 0), 0)
   animateCount('total',    operarios.value.length)
   animateCount('alto',     alto)
   animateCount('bajo',     bajo)
@@ -781,7 +697,6 @@ const statsCards = computed(() => [
   { label: 'Rendimiento Bajo',   display: statsDisplay.value.bajo,     accentColor: '#d97706', iconPath: ICON_DOWN   },
 ])
 
-// ── HELPERS VISUALES ──
 const PALETTES = [
   { bg: '#dbeafe', color: '#1d4ed8' }, { bg: '#fce7f3', color: '#be185d' },
   { bg: '#d1fae5', color: '#065f46' }, { bg: '#fef9c3', color: '#92400e' },
@@ -817,11 +732,8 @@ function formatFechaObs(f) {
 </script>
 
 <style scoped>
-/* ── LAYOUT ── */
 .layout { display: flex; min-height: 100vh; background: #f1f5f9; position: relative; overflow: hidden; }
 .main { flex: 1; padding: 28px 30px; position: relative; z-index: 1; }
-
-/* ── FONDO ── */
 .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.07; }
 .orb-1 { width: 600px; height: 600px; background: #1f3a52; top: -200px; right: -100px; animation: orbDrift1 18s ease-in-out infinite alternate; }
@@ -831,8 +743,6 @@ function formatFechaObs(f) {
 @keyframes orbDrift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,-50px) scale(1.15); } }
 @keyframes orbDrift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px,30px) scale(0.9); } }
 .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(31,58,82,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,58,82,0.04) 1px, transparent 1px); background-size: 40px 40px; }
-
-/* ── HERO ── */
 .page-hero { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; opacity: 0; transform: translateY(-16px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .page-hero.hero-visible { opacity: 1; transform: translateY(0); }
 .hero-left { display: flex; align-items: center; gap: 16px; }
@@ -864,8 +774,6 @@ function formatFechaObs(f) {
 .btn-icon { width: 18px; height: 18px; }
 .spin { animation: spinIcon 0.8s linear infinite; }
 @keyframes spinIcon { to { transform: rotate(360deg); } }
-
-/* ── STATS ── */
 .stats { display: flex; gap: 18px; margin-bottom: 24px; }
 .stat-card { background: white; flex: 1; padding: 20px 20px 20px 24px; border-radius: 14px; border: 1px solid #e5e7eb; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s; }
 .stats-visible .stat-card { opacity: 1; transform: translateY(0); }
@@ -880,16 +788,12 @@ function formatFechaObs(f) {
 @keyframes shimmer { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 .skeleton-sm { width: 45%; height: 12px; margin-bottom: 16px; }
 .skeleton-lg { width: 70%; height: 30px; }
-
-/* ── TABLA BOX ── */
 .table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
 .box-visible { opacity: 1; transform: translateY(0); }
 .table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; }
 .table-header-left { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #374151; }
 .table-header-left svg { color: #1f3a52; }
 .count-badge { background: #1f3a52; color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; line-height: 1.6; }
-
-/* ── TABLA ── */
 table { width: 100%; border-collapse: collapse; }
 thead { background: #f9fafb; }
 th { text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; padding: 13px 18px; white-space: nowrap; }
@@ -906,22 +810,16 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .row-leave-active { transition: all 0.3s ease; }
 .row-enter-from { opacity: 0; transform: translateY(-10px); }
 .row-leave-to   { opacity: 0; transform: translateX(20px); }
-
-/* ── RANKING ── */
 .td-rank { text-align: center; }
 .rank-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: 700; background: #f1f5f9; color: #6b7280; }
 .rank-gold   { background: #fef3c7; color: #92400e; }
 .rank-silver { background: #f1f5f9; color: #475569; }
 .rank-bronze { background: #fde8d4; color: #9a3412; }
-
-/* ── USER ── */
 .user { display: flex; align-items: center; gap: 10px; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
 .user-info { display: flex; flex-direction: column; }
 .user-name { font-weight: 600; font-size: 14px; color: #111827; }
 .user-handle { font-size: 12px; color: #6b7280; }
-
-/* ── CELDAS ── */
 .prendas-cell { display: flex; flex-direction: column; gap: 4px; }
 .prendas-num { font-size: 15px; font-weight: 700; color: #111827; }
 .mini-bar-wrap { width: 80px; }
@@ -931,24 +829,16 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .retraso-cell { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: #6b7280; }
 .retraso-activo { color: #dc2626; }
 .completadas-cell { font-weight: 600; color: #16a34a; }
-
-/* ── BADGE RENDIMIENTO ── */
 .badge-rendimiento { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .badge-rendimiento.alto  { background: #dcfce7; color: #15803d; }
 .badge-rendimiento.medio { background: #dbeafe; color: #1d4ed8; }
 .badge-rendimiento.bajo  { background: #fee2e2; color: #b91c1c; }
-
-/* ── BADGE DIFICULTAD ── */
 .badge-dificultad { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .dif-alta  { background: #fce7f3; color: #9d174d; }
 .dif-media { background: #ede9fe; color: #5b21b6; }
 .dif-baja  { background: #ecfdf5; color: #065f46; }
-
-/* ── ACCIONES ── */
 .action-btn { width: 32px; height: 32px; border-radius: 7px; border: none; background: #1f3a52; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: all 0.15s; }
 .action-btn:hover { background: #2d5580; transform: scale(1.07); }
-
-/* ── SKELETON TABLA ── */
 .table-skeleton { padding: 18px; display: grid; gap: 12px; }
 .table-skeleton-row { display: grid; grid-template-columns: 34px 1.6fr 1fr 0.8fr 0.8fr 0.8fr 0.8fr; align-items: center; gap: 16px; padding: 14px 10px; }
 .skeleton-avatar { display: block; width: 34px; height: 34px; border-radius: 999px; background: #e5e7eb; animation: shimmer 1.3s ease-in-out infinite; }
@@ -956,24 +846,18 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .skeleton-tag   { width: 90px; height: 14px; }
 .skeleton-phone { width: 70px; height: 14px; }
 .skeleton-date  { width: 80px; height: 14px; }
-
-/* ── EMPTY / ERROR ── */
 .empty-state, .error-state { text-align: center; padding: 48px 20px; color: #9ca3af; }
 .empty-state svg, .error-state svg { margin: 0 auto 12px; display: block; opacity: 0.4; }
 .empty-state p, .error-state p { font-size: 14px; margin: 0 0 12px; }
 .error-state { color: #dc2626; }
-
-/* ── MODAL DETALLE ── */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
 .modal-content { background: white; width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 16px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
 .close { position: absolute; top: 16px; right: 20px; font-size: 22px; cursor: pointer; color: #9ca3af; background: none; border: none; transition: color 0.15s; }
 .close:hover { color: #374151; }
-
 .detalle-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detalle-avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; flex-shrink: 0; }
 .detalle-nombre { font-size: 18px; font-weight: 700; color: #111827; }
 .detalle-usuario { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
-
 .detalle-metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
 .metrica-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
 .metrica-label { font-size: 11px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -982,7 +866,6 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .metrica-valor.verde   { color: #16a34a; }
 .metrica-valor.rojo    { color: #dc2626; }
 .metrica-valor.amarillo { color: #d97706; }
-
 .detalle-ordenes-titulo { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px; }
 .tabla-ordenes { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tabla-ordenes th { text-align: left; padding: 9px 12px; background: #f9fafb; font-size: 11px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
@@ -990,7 +873,6 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .orden-retraso td { background: #fff5f5; }
 .td-retraso { color: #dc2626; font-weight: 600; }
 .retraso-tag { display: inline-block; background: #dc2626; color: white; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
-
 .badge-estado { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .badge-estado.completada  { background: #dcfce7; color: #15803d; }
 .badge-estado.en-proceso  { background: #dbeafe; color: #1d4ed8; }
@@ -999,225 +881,55 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .badge-prioridad.alta   { background: #fee2e2; color: #b91c1c; }
 .badge-prioridad.media  { background: #fef9c3; color: #92400e; }
 .badge-prioridad.baja   { background: #f3f4f6; color: #374151; }
-
 .avance-wrap { display: flex; align-items: center; gap: 6px; }
 .avance-bar  { flex: 1; height: 5px; background: #e5e7eb; border-radius: 999px; overflow: hidden; min-width: 50px; }
 .avance-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
 .avance-txt  { font-size: 11px; color: #6b7280; white-space: nowrap; }
-
 .sin-ordenes { text-align: center; padding: 30px; color: #9ca3af; font-size: 14px; }
 .cargando-detalle { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 60px; color: #6b7280; }
 .spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #1f3a52; border-radius: 50%; animation: spinIcon 0.7s linear infinite; }
-
-/* ── BOTÓN TOGGLE OBS POR ORDEN ── */
-.btn-obs-toggle {
-  position: relative;
-  width: 30px; height: 30px;
-  border-radius: 7px;
-  border: 1.5px solid #e5e7eb;
-  background: white;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.15s;
-}
+.btn-obs-toggle { position: relative; width: 30px; height: 30px; border-radius: 7px; border: 1.5px solid #e5e7eb; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #6b7280; transition: all 0.15s; }
 .btn-obs-toggle:hover { border-color: #1f3a52; color: #1f3a52; background: #f0f4f8; }
 .btn-obs-toggle.active { background: #1f3a52; color: white; border-color: #1f3a52; }
-.obs-badge-mini {
-  position: absolute;
-  top: -5px; right: -5px;
-  background: #dc2626;
-  color: white;
-  font-size: 9px;
-  font-weight: 700;
-  min-width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 3px;
-  line-height: 1;
-}
-
-/* ── PANEL DE OBS INLINE ── */
+.obs-badge-mini { position: absolute; top: -5px; right: -5px; background: #dc2626; color: white; font-size: 9px; font-weight: 700; min-width: 14px; height: 14px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; line-height: 1; }
 .obs-row td { padding: 0 !important; border-top: none !important; }
 .obs-panel-td { padding: 0 !important; }
-.obs-panel {
-  background: #f8fafc;
-  border-top: 2px solid #1f3a52;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.obs-panel-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #1f3a52;
-}
+.obs-panel { background: #f8fafc; border-top: 2px solid #1f3a52; border-bottom: 1px solid #e5e7eb; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.obs-panel-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #1f3a52; }
 .obs-panel-header svg { color: #1f3a52; flex-shrink: 0; }
-
 .obs-loading { font-size: 12px; color: #9ca3af; }
 .obs-empty-inline { font-size: 12px; color: #9ca3af; font-style: italic; }
-
-.obs-lista-inline {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-.obs-item-inline {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-.obs-meta-inline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-.obs-meta-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.obs-lista-inline { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; }
+.obs-item-inline { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+.obs-meta-inline { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.obs-meta-right { display: flex; align-items: center; gap: 6px; }
 .obs-admin-inline { font-size: 11px; font-weight: 700; color: #1f3a52; }
 .obs-fecha-inline { font-size: 10px; color: #9ca3af; }
 .obs-texto-inline { font-size: 12px; color: #374151; margin: 0; line-height: 1.5; }
-
-.btn-obs-eliminar {
-  width: 22px; height: 22px;
-  border-radius: 5px;
-  border: 1px solid #fecaca;
-  background: #fff5f5;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: #dc2626;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
+.btn-obs-eliminar { width: 22px; height: 22px; border-radius: 5px; border: 1px solid #fecaca; background: #fff5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #dc2626; transition: all 0.15s; flex-shrink: 0; }
 .btn-obs-eliminar:hover { background: #fee2e2; border-color: #dc2626; }
-
-.obs-form-inline {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 12px;
-}
-.obs-textarea-inline {
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 12px;
-  color: #374151;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s;
-  font-family: inherit;
-  background: white;
-}
+.obs-form-inline { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #e5e7eb; padding-top: 12px; }
+.obs-textarea-inline { border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #374151; resize: vertical; outline: none; transition: border-color 0.2s; font-family: inherit; background: white; }
 .obs-textarea-inline:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.08); }
-.obs-form-inline-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+.obs-form-inline-footer { display: flex; align-items: center; justify-content: space-between; }
 .obs-chars { font-size: 10px; color: #9ca3af; }
-.btn-obs-guardar-inline {
-  background: #1f3a52;
-  color: white;
-  border: none;
-  border-radius: 7px;
-  padding: 7px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+.btn-obs-guardar-inline { background: #1f3a52; color: white; border: none; border-radius: 7px; padding: 7px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
 .btn-obs-guardar-inline:hover:not(:disabled) { background: #162d42; }
 .btn-obs-guardar-inline:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ── TRANSICIÓN PANEL OBS ── */
 .obs-panel-enter-active { transition: all 0.22s ease; }
 .obs-panel-leave-active { transition: all 0.18s ease; }
 .obs-panel-enter-from { opacity: 0; transform: translateY(-6px); }
 .obs-panel-leave-to   { opacity: 0; transform: translateY(-6px); }
-
-/* ── HISTORIAL DE RENDIMIENTO ── */
-.historial-section {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
-}
-.historial-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.historial-titulo {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #1f3a52;
-}
-.historial-tabs {
-  display: flex;
-  gap: 4px;
-}
-.tab-btn {
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1.5px solid #e5e7eb;
-  background: white;
-  font-size: 11px;
-  font-weight: 600;
-  color: #6b7280;
-  cursor: pointer;
-  text-transform: capitalize;
-  transition: all 0.15s;
-}
+.historial-section { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
+.historial-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.historial-titulo { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #1f3a52; }
+.historial-tabs { display: flex; gap: 4px; }
+.tab-btn { padding: 4px 12px; border-radius: 999px; border: 1.5px solid #e5e7eb; background: white; font-size: 11px; font-weight: 600; color: #6b7280; cursor: pointer; text-transform: capitalize; transition: all 0.15s; }
 .tab-btn:hover { border-color: #1f3a52; color: #1f3a52; }
 .tab-btn.tab-active { background: #1f3a52; color: white; border-color: #1f3a52; }
-
-.historial-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #9ca3af;
-  padding: 8px 0;
-}
-
-.tendencia-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 12px 14px;
-}
-.tendencia-icono {
-  width: 38px; height: 38px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
+.historial-loading { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9ca3af; padding: 8px 0; }
+.tendencia-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; }
+.tendencia-icono { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .tendencia-icono.subiendo { background: #dcfce7; color: #16a34a; }
 .tendencia-icono.bajando  { background: #fee2e2; color: #dc2626; }
 .tendencia-icono.estable  { background: #f1f5f9; color: #6b7280; }
@@ -1226,18 +938,8 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .tendencia-label.bajando  { color: #dc2626; }
 .tendencia-label.estable  { color: #6b7280; }
 .tendencia-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
-
-.historial-comparativa {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.periodo-card {
-  flex: 1;
-  border-radius: 10px;
-  padding: 12px 14px;
-  border: 1.5px solid #e5e7eb;
-}
+.historial-comparativa { display: flex; align-items: center; gap: 10px; }
+.periodo-card { flex: 1; border-radius: 10px; padding: 12px 14px; border: 1.5px solid #e5e7eb; }
 .periodo-actual  { background: white; border-color: #1f3a52; }
 .periodo-anterior { background: #f9fafb; }
 .periodo-label { font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
@@ -1247,20 +949,15 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .periodo-unit { font-size: 11px; color: #9ca3af; }
 .periodo-detalle { font-size: 10px; color: #6b7280; }
 .periodo-vs { font-size: 11px; font-weight: 700; color: #9ca3af; flex-shrink: 0; }
-
-/* ── TOAST ── */
 .toast { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .toast.success { background: #16a34a; }
 .toast.danger  { background: #dc2626; }
-
-/* ── TRANSICIONES ── */
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 .toast-enter-active { transition: all 0.3s ease; }
 .toast-leave-active { transition: all 0.25s ease; }
 .toast-enter-from { opacity: 0; transform: translateY(12px); }
 .toast-leave-to   { opacity: 0; transform: translateY(12px); }
-
 @media (max-width: 960px) {
   .page-hero { flex-direction: column; align-items: flex-start; }
   .hero-actions-wrap { width: 100%; }
