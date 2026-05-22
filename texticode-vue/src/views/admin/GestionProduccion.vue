@@ -77,13 +77,32 @@
             Órdenes de Producción
             <span class="count-badge">{{ ordenesFiltradas.length }}</span>
           </div>
+          <!-- FILTRO POR CLIENTE -->
+          <div class="table-header-right">
+            <div class="filtro-cliente-wrap">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="filtro-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+              </svg>
+              <select v-model="filtroCliente" class="filtro-cliente-select">
+                <option value="">Todos los clientes</option>
+                <option v-for="c in clientes" :key="c.Id_Usuario" :value="c.Id_Usuario">
+                  {{ c.Nombre_Completo }}
+                </option>
+              </select>
+              <button v-if="filtroCliente" class="filtro-clear" @click="filtroCliente = ''" title="Limpiar filtro">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div v-if="ordenesFiltradas.length === 0" class="empty-state">
           <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="#d1d5db">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
           </svg>
-          <p>No hay órdenes registradas aún.</p>
+          <p>{{ filtroCliente ? 'No hay órdenes para este cliente.' : 'No hay órdenes registradas aún.' }}</p>
         </div>
 
         <table v-else>
@@ -94,14 +113,13 @@
               <th>Producto</th>
               <th>Materiales</th>
               <th @click="doSort('Estado')" class="th-sort">Estado <span>{{ sIcon('Estado') }}</span></th>
-              <th @click="doSort('Prioridad')" class="th-sort">Prioridad <span>{{ sIcon('Prioridad') }}</span></th>
               <th @click="doSort('Fecha_Limite')" class="th-sort">Fecha Límite <span>{{ sIcon('Fecha_Limite') }}</span></th>
               <th>Cantidad</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <TransitionGroup name="row">
+            <TransitionGroup name="row" :key="filterKey">
               <tr
                 v-for="(o, idx) in ordenesFiltradas"
                 :key="o.Id_Orden"
@@ -116,20 +134,27 @@
                 <td>{{ o.Producto || '—' }}</td>
                 <td>
                   <div class="materiales-chips">
-                    <span
-                      v-for="m in (o.materialesExtra || [])"
-                      :key="m.Id_Material ?? m.Id_Producto"
-                      class="chip-material"
-                    >
-                      {{ m.Nombre_Material || m.Nombre_Producto || '—' }}
-                    </span>
-                    <span v-if="!o.materialesExtra || o.materialesExtra.length === 0" class="text-muted">
-                      {{ o.NombreMaterial || '—' }}
-                    </span>
+                    <template v-if="o.materialesExtra && o.materialesExtra.length">
+                      <span
+                        v-for="m in o.materialesExtra.slice(0, 2)"
+                        :key="m.Id_Material ?? m.Id_Producto"
+                        class="badge-material"
+                      >
+                        {{ m.Nombre_Material || m.Nombre_Producto || '—' }}
+                      </span>
+                      <span
+                        v-if="o.materialesExtra.length > 2"
+                        class="badge-material badge-material--mas"
+                        @mouseenter="showTooltip($event, o.materialesExtra)"
+                        @mouseleave="hideTooltip"
+                      >
+                        +{{ o.materialesExtra.length - 2 }} más
+                      </span>
+                    </template>
+                    <span v-else class="text-muted">{{ o.NombreMaterial || '—' }}</span>
                   </div>
                 </td>
                 <td><span class="badge-estado" :class="claseEstado(o.Estado)">{{ o.Estado }}</span></td>
-                <td><span class="badge-prioridad" :class="clasePrioridad(o.Prioridad)">{{ o.Prioridad }}</span></td>
                 <td :class="{ 'fecha-vencida': estaVencida(o.Fecha_Limite) }">{{ formatFecha(o.Fecha_Limite) }}</td>
                 <td>{{ o.Cantidad }}</td>
                 <td>
@@ -264,29 +289,6 @@
               <span v-if="tocado && !form.Descripcion" class="error-msg">La descripción es requerida</span>
             </div>
 
-            <!-- ── FECHA DE CREACIÓN ── -->
-            <div class="form-group">
-              <label class="form-label">
-                Fecha de Creación
-                <span class="label-hint" v-if="!editando">— se registrará automáticamente al guardar</span>
-                <span class="label-hint" v-else>— fecha en que se registró la orden</span>
-              </label>
-              <input
-                v-if="editando"
-                :value="formatFechaInput(form.Fecha_Creacion)"
-                type="text"
-                class="form-input form-input--readonly"
-                readonly
-                title="La fecha de creación no puede modificarse"
-              >
-              <div v-else class="fecha-creacion-preview">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                </svg>
-                Se asignará automáticamente: <strong>{{ fechaHoyFormateada }}</strong>
-              </div>
-            </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Cantidad <span class="req">*</span></label>
@@ -300,6 +302,29 @@
                   <option value="Baja">Baja</option>
                 </select>
               </div>
+            </div>
+
+            <!-- ── DIFICULTAD ── -->
+            <div class="form-group">
+              <label class="form-label">
+                Dificultad
+                <span class="label-hint">— afecta el cálculo de rendimiento del operario</span>
+              </label>
+              <select v-model="form.Dificultad" class="form-input">
+                <option value="Baja">Baja — prendas simples (medias, boxer, pantalonetas)</option>
+                <option value="Media">Media — prendas estándar (camisas, pantalones, pijamas)</option>
+                <option value="Alta">Alta — prendas complejas (chaquetas, uniformes, sudaderas, hoodies)</option>
+              </select>
+            </div>
+
+            <!-- ── ESTADO (solo visible al editar) ── -->
+            <div class="form-group" v-if="editando">
+              <label class="form-label">Estado</label>
+              <select v-model="form.Estado" class="form-input">
+                <option value="En Proceso">En Proceso</option>
+                <option value="Completada">Completada</option>
+                <option value="Pausado">Pausado</option>
+              </select>
             </div>
 
             <div class="form-group">
@@ -339,17 +364,20 @@
               <span class="badge-estado" :class="claseEstado(detalleOrden.Estado)">{{ detalleOrden.Estado }}</span>
             </div>
             <div class="detalle-item">
-              <span class="detalle-label">Prioridad</span>
-              <span class="badge-prioridad" :class="clasePrioridad(detalleOrden.Prioridad)">{{ detalleOrden.Prioridad }}</span>
+              <span class="detalle-label">Operario</span>
+              <span>{{ operarios.find(op => op.Id_Usuario == detalleOrden.Id_Operario)?.Nombre_Completo || 'Sin asignar' }}</span>
             </div>
-            <div class="detalle-item detalle-fecha-creacion">
-              <span class="detalle-label">
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:inline;margin-right:4px;vertical-align:-1px">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                </svg>
-                Fecha de Creación
-              </span>
-              <span class="fecha-creacion-valor">{{ formatFechaDetalle(detalleOrden.Fecha_Creacion) }}</span>
+            <div class="detalle-item">
+              <span class="detalle-label">Prioridad</span>
+              <span>{{ detalleOrden.Prioridad }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-label">Dificultad</span>
+              <span>{{ detalleOrden.Dificultad || 'Media' }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-label">Fecha de Creación</span>
+              <span>{{ formatFechaDetalle(detalleOrden.Fecha_Creacion) }}</span>
             </div>
             <div class="detalle-item">
               <span class="detalle-label">Fecha Límite</span>
@@ -412,6 +440,21 @@
         {{ toastMsg }}
       </div>
     </Transition>
+
+    <!-- TOOLTIP MATERIALES (teleport para evitar overflow clipping) -->
+    <Teleport to="body">
+      <div
+        v-if="tooltip.visible"
+        class="mat-tooltip"
+        :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }"
+      >
+        <span
+          v-for="(m, i) in tooltip.items"
+          :key="i"
+          class="mat-tooltip-chip"
+        >{{ m.Nombre_Material || m.Nombre_Producto || '—' }}</span>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -426,14 +469,10 @@ import {
 } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 
-// ── SENDGRID — notificación al operario ───────────────────────
 import { useNotificaciones } from '../../composables/useNotificaciones'
 const { notificarTarea } = useNotificaciones()
 
-// ── Una sola declaración de BASE ──────────────────────────────
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-
-// ── AUTH (para saber quién crea el comprobante) ─────────────
 const auth = useAuthStore()
 
 // ── ESTADO ────────────────────────────────────────────────────
@@ -458,15 +497,23 @@ const statsDisplay = ref({ total: 0, proceso: 0, completadas: 0, pausadas: 0 })
 const materialParaAgregar = ref('')
 const sortKey = ref('Id_Orden')
 const sortDir = ref(1)
+const filtroCliente = ref('')
 const statTimers = new Map()
 
-// Fecha de hoy formateada para mostrar en el formulario de creación
-const fechaHoyFormateada = computed(() => {
-  return new Date().toLocaleDateString('es-CO', {
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  })
-})
+// ── TOOLTIP MATERIALES ────────────────────────────────────────
+const tooltip = ref({ visible: false, x: 0, y: 0, items: [] })
+function showTooltip(event, items) {
+  const rect = event.target.getBoundingClientRect()
+  tooltip.value = {
+    visible: true,
+    x: rect.left,
+    y: rect.bottom + window.scrollY + 6,
+    items,
+  }
+}
+function hideTooltip() {
+  tooltip.value.visible = false
+}
 
 const formVacio = () => ({
   Id_Orden:                 null,
@@ -477,6 +524,7 @@ const formVacio = () => ({
   Descripcion:              '',
   Cantidad:                 1,
   Prioridad:                'Media',
+  Dificultad:               'Media',
   Estado:                   'En Proceso',
   Fecha_Limite:             '',
   Fecha_Creacion:           null,
@@ -485,7 +533,7 @@ const formVacio = () => ({
 
 const form = ref(formVacio())
 
-// ── Materiales disponibles ──────────────────────────────────────
+// ── Materiales disponibles ────────────────────────────────────
 const materialesDisponibles = computed(() => {
   const yaSeleccionados = new Set(form.value.materiales_seleccionados.map(m => m.Id_Material))
   return materiales.value.filter(m => !yaSeleccionados.has(m.Id_Material))
@@ -550,7 +598,11 @@ onMounted(async () => {
   setTimeout(() => mounted.value = true, 50)
 })
 
+// ── FIX CLAVE: el watch de Id_Cliente NO debe borrar materiales
+// cuando abrirModal acaba de asignarlos. Usamos un flag para ignorarlo.
+const _ignorarWatchCliente = ref(false)
 watch(() => form.value.Id_Cliente, () => {
+  if (_ignorarWatchCliente.value) return
   form.value.materiales_seleccionados = []
   materialParaAgregar.value = ''
 })
@@ -561,10 +613,10 @@ onBeforeUnmount(() => {
 })
 
 // ── STATS ─────────────────────────────────────────────────────
-const ICON_LIST   = 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z'
-const ICON_PROC   = 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
-const ICON_CHECK  = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
-const ICON_PAUSE  = 'M15.75 5.25v13.5m-7.5-13.5v13.5'
+const ICON_LIST  = 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z'
+const ICON_PROC  = 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
+const ICON_CHECK = 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+const ICON_PAUSE = 'M15.75 5.25v13.5m-7.5-13.5v13.5'
 
 const stats = computed(() => [
   { label: 'Total Órdenes', display: statsDisplay.value.total,       accentColor: '#1f3a52', iconPath: ICON_LIST  },
@@ -595,8 +647,14 @@ function animateStats() {
 }
 
 // ── FILTRADO / ORDENAMIENTO ───────────────────────────────────
+const filterKey = ref(0)
+watch(filtroCliente, () => { filterKey.value++ })
+
 const ordenesFiltradas = computed(() => {
   let lista = [...ordenes.value]
+  if (filtroCliente.value) {
+    lista = lista.filter(o => o.Id_Cliente == filtroCliente.value)
+  }
   lista.sort((a, b) => {
     const va = a[sortKey.value], vb = b[sortKey.value]
     if (va == null) return 1
@@ -622,17 +680,6 @@ function formatFecha(fecha) {
     year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'
   })
 }
-
-function formatFechaInput(fecha) {
-  if (!fecha) return '—'
-  try {
-    return new Date(fecha).toLocaleDateString('es-CO', {
-      year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    })
-  } catch { return '—' }
-}
-
 function formatFechaDetalle(fecha) {
   if (!fecha) return '—'
   try {
@@ -642,7 +689,6 @@ function formatFechaDetalle(fecha) {
     })
   } catch { return '—' }
 }
-
 function estaVencida(fecha) {
   if (!fecha) return false
   return new Date(fecha) < new Date()
@@ -652,6 +698,9 @@ function claseEstado(e) {
 }
 function clasePrioridad(p) {
   return { 'Alta': 'prio-alta', 'Media': 'prio-media', 'Baja': 'prio-baja' }[p] || ''
+}
+function claseDificultad(d) {
+  return { 'Alta': 'dif-alta', 'Media': 'dif-media', 'Baja': 'dif-baja' }[d] || 'dif-media'
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
@@ -672,20 +721,26 @@ async function abrirModal(o) {
       }))
     } catch { matsActuales = [] }
 
+    // ── FIX: bloquear el watch mientras asignamos el form ──
+    _ignorarWatchCliente.value = true
     form.value = {
       Id_Orden:                 o.Id_Orden,
       Id_Cliente:               o.Id_Cliente,
-      Id_Operario:              o.Id_Operario  || '',
-      _operarioOriginal:        o.Id_Operario  || '',
-      Producto:                 o.Producto     || '',
-      Descripcion:              o.Descripcion  || '',
+      Id_Operario:              o.Id_Operario          || '',
+      _operarioOriginal:        o.Id_Operario          || '',
+      Producto:                 o.Producto             || '',
+      Descripcion:              o.Descripcion          || '',
       Cantidad:                 o.Cantidad,
-      Prioridad:                o.Prioridad,
-      Estado:                   o.Estado,
+      Prioridad:                o.Prioridad            || 'Media',
+      Dificultad:               o.Dificultad           || 'Media',
+      Estado:                   o.Estado               || 'En Proceso',
       Fecha_Limite:             o.Fecha_Limite?.split('T')[0] || o.Fecha_Limite || '',
-      Fecha_Creacion:           o.Fecha_Creacion || null,
+      Fecha_Creacion:           o.Fecha_Creacion       || null,
       materiales_seleccionados: matsActuales,
     }
+    await new Promise(r => setTimeout(r, 0))
+    _ignorarWatchCliente.value = false
+
   } else {
     form.value = formVacio()
   }
@@ -720,10 +775,15 @@ async function guardar() {
     Producto:     form.value.Producto     || null,
     Descripcion:  form.value.Descripcion,
     Cantidad:     form.value.Cantidad,
-    Prioridad:    form.value.Prioridad,
-    Estado:       form.value.Estado,
+    Prioridad:    form.value.Prioridad    || 'Media',
+    Dificultad:   ['Alta', 'Media', 'Baja'].includes(form.value.Dificultad)
+                    ? form.value.Dificultad
+                    : 'Media',
+    Estado:       form.value.Estado       || 'En Proceso',
     Fecha_Limite: form.value.Fecha_Limite,
   }
+
+  console.log('[DEBUG] payload enviado:', JSON.stringify(payload))
 
   try {
     let idOrden = form.value.Id_Orden
@@ -731,7 +791,6 @@ async function guardar() {
     if (editando.value) {
       await actualizarOrden(idOrden, payload)
 
-      // ── SENDGRID: notificar al operario si fue reasignado ──
       const operarioCambio = payload.Id_Operario &&
                              payload.Id_Operario != form.value._operarioOriginal
       if (operarioCambio) {
@@ -748,11 +807,9 @@ async function guardar() {
       }
 
     } else {
-      // Crear la orden
       const res = await crearOrden(payload)
       idOrden = res.Id_Orden
 
-      // ── CREAR COMPROBANTE AUTOMÁTICAMENTE ──────────────────
       try {
         await crearComprobante({
           Id_Usuario:   auth.idUsuario,
@@ -764,7 +821,6 @@ async function guardar() {
         console.warn('No se pudo crear el comprobante automáticamente:', compErr.message)
       }
 
-      // ── SENDGRID: notificar al operario si fue asignado al crear ──
       if (payload.Id_Operario) {
         const operario = operarios.value.find(op => op.Id_Usuario == payload.Id_Operario)
         if (operario?.Correo) {
@@ -779,7 +835,7 @@ async function guardar() {
       }
     }
 
-    // Gestionar materiales de la orden
+    // Gestionar materiales
     try {
       const matsExistentes = await getMaterialesDeOrden(idOrden)
       for (const m of (matsExistentes || [])) {
@@ -892,12 +948,34 @@ function showToast(msg, type = 'toast-success') {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── TABLA BOX ── */
-.table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; transition-delay: 280ms; }
+.table-box { background: white; border-radius: 14px; border: 1px solid #e5e7eb; overflow: visible; opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; transition-delay: 280ms; }
 .box-visible { opacity: 1; transform: translateY(0); }
-.table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; }
-.table-header-left { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #374151; }
+.table-box > .table-header-bar { border-radius: 14px 14px 0 0; }
+table { border-radius: 0 0 14px 14px; overflow: hidden; table-layout: fixed; width: 100%; }
+th:nth-child(1)  { width: 70px; }
+th:nth-child(2)  { width: 14%; }
+th:nth-child(3)  { width: 14%; }
+th:nth-child(4)  { width: 20%; }
+th:nth-child(5)  { width: 11%; }
+th:nth-child(6)  { width: 11%; }
+th:nth-child(7)  { width: 7%; }
+th:nth-child(8)  { width: 110px; }
+td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+td:nth-child(4)  { white-space: normal; }
+.table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #f1f5f9; background: #f9fafb; gap: 12px; }
+.table-header-left { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #374151; flex-shrink: 0; }
 .table-header-left svg { color: #1f3a52; }
+.table-header-right { display: flex; align-items: center; }
 .count-badge { background: #1f3a52; color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; line-height: 1.6; }
+
+/* ── FILTRO CLIENTE ── */
+.filtro-cliente-wrap { display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 5px 10px; transition: border-color 0.2s, box-shadow 0.2s; }
+.filtro-cliente-wrap:focus-within { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.08); }
+.filtro-icon { color: #9ca3af; flex-shrink: 0; }
+.filtro-cliente-select { border: none; outline: none; font-size: 13px; color: #374151; background: transparent; cursor: pointer; min-width: 160px; max-width: 220px; }
+.filtro-cliente-select option { color: #374151; }
+.filtro-clear { background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; padding: 2px; border-radius: 50%; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
+.filtro-clear:hover { background: #fee2e2; color: #dc2626; }
 
 /* ── TABLA ── */
 table { width: 100%; border-collapse: collapse; }
@@ -907,29 +985,37 @@ th.th-sort { cursor: pointer; user-select: none; transition: color 0.15s; }
 th.th-sort:hover { color: #1f3a52; }
 td { padding: 12px 14px; font-size: 13px; color: #374151; border-bottom: 1px solid #f9fafb; }
 tr:last-child td { border-bottom: none; }
-.table-row { transition: background 0.18s; animation: rowSlideIn 0.35s ease both; }
+.table-row { transition: background 0.18s, opacity 0.25s, transform 0.25s; animation: rowFadeIn 0.28s ease both; }
 .table-row:hover td { background: #f8fafc; }
-@keyframes rowSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes rowFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .row-eliminando { opacity: 0.4; pointer-events: none; transition: opacity 0.35s; }
 .fecha-vencida  { color: #dc2626; font-weight: 600; }
 .order-num-pill { display: inline-block; background: #f1f5f9; color: #1f3a52; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; font-family: 'Courier New', monospace; transition: background 0.15s; }
 tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 
-/* MATERIALES EN TABLA */
+/* ── MATERIALES EN TABLA ── */
 .materiales-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 200px; }
+.badge-material { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; white-space: nowrap; }
+.badge-material--mas { background: #f8fafc; color: #94a3b8; cursor: default; }
+.badge-material--mas:hover { background: #f1f5f9; color: #475569; }
+
+/* ── TOOLTIP ── */
+.mat-tooltip { position: absolute; z-index: 9999; background: #1e293b; border-radius: 10px; padding: 10px 14px; min-width: 150px; max-width: 260px; box-shadow: 0 8px 32px rgba(0,0,0,0.28); display: flex; flex-direction: column; gap: 5px; pointer-events: none; animation: tooltipIn 0.15s ease; }
+@keyframes tooltipIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.mat-tooltip-chip { display: block; font-size: 12px; font-weight: 500; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mat-tooltip-chip::before { content: '• '; color: #60a5fa; }
+
+/* chips en modal detalle */
 .chip-material { display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-.chip-qty     { font-weight: 400; color: #60a5fa; }
-.chip-detalle { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-size: 12px; padding: 3px 12px; }
-.text-muted   { font-size: 13px; color: #9ca3af; }
+.chip-qty      { font-weight: 400; color: #60a5fa; }
+.chip-detalle  { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-size: 12px; padding: 3px 12px; }
+.text-muted    { font-size: 13px; color: #9ca3af; }
 
 /* BADGES */
-.badge-estado, .badge-prioridad { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.badge-estado { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
 .estado-proceso    { background: #dbeafe; color: #1e40af; }
 .estado-completada { background: #dcfce7; color: #166534; }
 .estado-pausado    { background: #fef3c7; color: #92400e; }
-.prio-alta  { background: #fee2e2; color: #991b1b; }
-.prio-media { background: #fef3c7; color: #92400e; }
-.prio-baja  { background: #f0fdf4; color: #166534; }
 
 /* ── ACCIONES ── */
 .acciones { display: flex; gap: 6px; align-items: center; }
@@ -960,13 +1046,9 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .req        { color: #dc2626; }
 .form-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #111827; outline: none; transition: border-color 0.2s; background: white; }
 .form-input:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.08); }
-.form-input--readonly { background: #f9fafb; color: #6b7280; cursor: not-allowed; border-color: #e5e7eb !important; box-shadow: none !important; }
 .input-error  { border-color: #ef4444; }
 .error-msg    { font-size: 11px; color: #dc2626; }
 .error-inline { color: #dc2626; font-size: 13px; padding: 4px 24px; }
-.fecha-creacion-preview { display: flex; align-items: center; gap: 7px; padding: 9px 12px; border: 1px solid #e0eaf2; border-radius: 8px; background: #f0f7ff; font-size: 13px; color: #374151; }
-.fecha-creacion-preview svg { color: #2563eb; flex-shrink: 0; }
-.fecha-creacion-preview strong { color: #1f3a52; }
 
 .btn-cancelar { background: white; color: #374151; border: 1px solid #e5e7eb; border-radius: 8px; padding: 9px 18px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
 .btn-cancelar:hover { background: #f3f4f6; }
@@ -974,7 +1056,7 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .btn-guardar:hover:not(:disabled) { background: #162d42; }
 .btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* CHIPS MATERIALES */
+/* CHIPS MATERIALES (modal) */
 .chips-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; min-height: 46px; }
 .chip-selected { display: inline-flex; align-items: center; gap: 8px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px; padding: 5px 10px 5px 14px; font-size: 12px; color: #1d4ed8; font-weight: 600; }
 .chip-nombre { white-space: nowrap; }
@@ -995,8 +1077,6 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .detalle-full  { grid-column: 1 / -1; }
 .detalle-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
 .detalle-materiales { margin-top: 6px; }
-.detalle-fecha-creacion { grid-column: 1 / -1; }
-.fecha-creacion-valor { font-size: 14px; font-weight: 600; color: #1f3a52; background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 14px; margin-top: 4px; display: inline-block; }
 
 /* CONFIRM */
 .confirm-box  { background: white; border-radius: 16px; width: 380px; max-width: 95vw; padding: 28px 24px; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
@@ -1017,11 +1097,15 @@ tr:hover .order-num-pill { background: #e0ecff; color: #2563eb; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
 .modal-enter-active, .modal-leave-active { transition: opacity 0.25s; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
-.row-enter-active, .row-leave-active { transition: opacity 0.3s; }
-.row-enter-from, .row-leave-to { opacity: 0; }
+.row-enter-active { transition: opacity 0.22s ease, transform 0.22s ease; }
+.row-leave-active { transition: opacity 0.15s ease; position: absolute; }
+.row-enter-from   { opacity: 0; transform: translateY(8px); }
+.row-leave-to     { opacity: 0; }
 
 @media (max-width: 960px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .page-hero  { flex-direction: column; align-items: flex-start; }
+  .table-header-bar { flex-wrap: wrap; gap: 10px; }
+  .filtro-cliente-select { min-width: 120px; }
 }
 </style>

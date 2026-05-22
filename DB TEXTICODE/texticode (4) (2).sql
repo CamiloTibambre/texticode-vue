@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 08, 2026 at 03:49 AM
+-- Generation Time: May 16, 2026 at 03:35 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -53,7 +53,40 @@ INSERT INTO `comprobantes` (`Id_Comprobante`, `Id_Usuario`, `Id_Orden`, `Estado`
 (11, 26, 20, 'Pendiente', '2026-08-05'),
 (12, 26, 21, 'Pendiente', '2026-07-05'),
 (13, 26, 22, 'Pendiente', '2026-07-05'),
-(14, 26, 23, 'Pendiente', '2026-07-05');
+(14, 26, 23, 'Pendiente', '2026-07-05'),
+(15, 26, 24, 'Pendiente', '2026-07-05'),
+(16, 26, 25, 'Pendiente', '2026-07-05'),
+(17, 29, 26, 'Pendiente', '2026-05-16'),
+(18, 29, 27, 'Pendiente', '2026-05-20'),
+(19, 29, 28, 'Pendiente', '2026-05-20'),
+(20, 29, 29, 'Pendiente', '2026-12-05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `google_calendar_tokens`
+--
+
+CREATE TABLE `google_calendar_tokens` (
+  `Id_Usuario` int(11) NOT NULL,
+  `Google_Email` varchar(255) DEFAULT NULL,
+  `Access_Token` text NOT NULL,
+  `Refresh_Token` text DEFAULT NULL,
+  `Scope` text DEFAULT NULL,
+  `Token_Type` varchar(50) DEFAULT NULL,
+  `Expiry_Date` bigint(20) DEFAULT NULL,
+  `Calendar_Id` varchar(255) NOT NULL DEFAULT 'primary',
+  `Sync_Enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `Created_At` timestamp NOT NULL DEFAULT current_timestamp(),
+  `Updated_At` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `google_calendar_tokens`
+--
+
+INSERT INTO `google_calendar_tokens` (`Id_Usuario`, `Google_Email`, `Access_Token`, `Refresh_Token`, `Scope`, `Token_Type`, `Expiry_Date`, `Calendar_Id`, `Sync_Enabled`, `Created_At`, `Updated_At`) VALUES
+(29, 'bacawagnerjulianeduardo@gmail.com', 'ya29.a0AQvPyIMbcfPdPVYma3Ek1-cWGyg3w_Dyjhb2wbbCaJWwx8ANRftiW5PnzLR5sIUzlhU05Bov4oHc9EWXQNXMbl2qiDcQfDOi2ZlXrkJZVPDDybm2YRIQxnhIroDekJw5i6p6QvyU0H26fKaywfGf0pKjrEoGEiQup5ia9z9Uyt8prye-ZLaHABuQRULzzXAHsSR3hOwaCgYKAYUSARESFQHGX2Mis4YehyqAC2Htcah0L3GVTg0206', '1//05ScUqxJw69kYCgYIARAAGAUSNwF-L9Ir34y3O3j7HrF5OtUX6E71we1l6YWrrMM_VhXtxfhEPtYOHqHLV4_4BACKPanrl8XJR88', 'https://www.googleapis.com/auth/userinfo.email openid https://www.googleapis.com/auth/userinfo.profile', 'Bearer', 1778815034877, 'primary', 1, '2026-05-15 02:17:15', '2026-05-15 02:17:15');
 
 -- --------------------------------------------------------
 
@@ -89,6 +122,29 @@ INSERT INTO `material` (`Id_Material`, `Nombre_Material`, `Categoria`, `Stock_Ac
 (17, 'Hilos Negros ', 'Hilos', 20, 'Unidades', 1, 25, '2026-04-10 00:39:37', 34),
 (18, 'Tela piel de durazno', 'Telas', 100, 'Metros', 10, 150, '2026-04-10 00:40:07', 35),
 (20, 'Pies de maquinas', 'Accesorios', 20, 'Unidades', 10, 50, '2026-04-10 00:41:30', 35);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `observacion_operario`
+--
+
+CREATE TABLE `observacion_operario` (
+  `Id_Observacion` int(11) NOT NULL,
+  `Id_Operario` int(11) NOT NULL,
+  `Id_Orden` int(11) DEFAULT NULL,
+  `Id_Admin` int(11) NOT NULL,
+  `Observacion` varchar(500) NOT NULL,
+  `Fecha` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `observacion_operario`
+--
+
+INSERT INTO `observacion_operario` (`Id_Observacion`, `Id_Operario`, `Id_Orden`, `Id_Admin`, `Observacion`, `Fecha`) VALUES
+(5, 28, 13, 29, 'El operario no pudo continuar la orden por falta de material', '2026-05-15 17:59:10'),
+(6, 28, 13, 30, 'El operario no pudo continuar por falta de material', '2026-05-15 18:20:28');
 
 -- --------------------------------------------------------
 
@@ -139,7 +195,19 @@ INSERT INTO `orden_material` (`Id_Orden`, `Id_Producto`, `Cantidad_Usada`) VALUE
 (21, 13, 1),
 (21, 14, 1),
 (22, 11, 1),
-(23, 11, 1);
+(23, 11, 1),
+(24, 11, 1),
+(25, 10, 1),
+(26, 11, 1),
+(27, 15, 1),
+(27, 16, 1),
+(27, 17, 1),
+(28, 16, 1),
+(29, 9, 1),
+(29, 10, 1),
+(29, 11, 1),
+(29, 12, 1),
+(29, 14, 1);
 
 -- --------------------------------------------------------
 
@@ -156,6 +224,7 @@ CREATE TABLE `orden_produccion` (
   `Prioridad` enum('Baja','Media','Alta') NOT NULL DEFAULT 'Media' COMMENT 'Nivel de prioridad',
   `Fecha_Limite` date NOT NULL COMMENT 'La fecha no puede ser anterior al dia vigente',
   `Descripcion` varchar(150) NOT NULL COMMENT 'Descripcion del producto',
+  `Dificultad` enum('Baja','Media','Alta') NOT NULL DEFAULT 'Media',
   `Estado` enum('En Proceso','Completada','Pausado') NOT NULL DEFAULT 'En Proceso' COMMENT 'Estado de la orden',
   `Unidades_Realizadas` int(225) DEFAULT NULL COMMENT 'Unidades realizadas por el operario',
   `Id_Operario` int(11) DEFAULT NULL COMMENT 'Operario asignado a la orden',
@@ -167,21 +236,27 @@ CREATE TABLE `orden_produccion` (
 -- Dumping data for table `orden_produccion`
 --
 
-INSERT INTO `orden_produccion` (`Id_Orden`, `Id_Cliente`, `Id_Material`, `Producto`, `Cantidad`, `Prioridad`, `Fecha_Limite`, `Descripcion`, `Estado`, `Unidades_Realizadas`, `Id_Operario`, `Unidades`, `Fecha_Creacion`) VALUES
-(10, 33, 10, 'Camisas', 100, 'Media', '2026-04-15', 'Camisas para tierra fría ', 'Completada', 100, 27, 100, '2026-04-10 00:43:01'),
-(11, 33, 13, 'Pijamas ', 50, 'Baja', '2026-04-23', 'Pijamas de alta calidad ', 'Completada', 50, 27, 50, '2026-04-10 00:43:55'),
-(12, 33, 14, 'Pantalones', 2000, 'Media', '2026-04-17', 'Pantalones casuales', 'Completada', 2000, 27, 2000, '2026-04-10 00:44:54'),
-(13, 34, 16, 'Pantalonetas', 22, 'Alta', '2026-04-13', 'Pantalonetas del PSG', 'En Proceso', NULL, 28, NULL, '2026-04-10 00:45:47'),
-(14, 34, 17, 'Uniformes', 50, 'Alta', '2026-04-14', 'Uniformes para niño', 'En Proceso', NULL, 28, NULL, '2026-04-10 00:46:29'),
-(15, 34, 16, 'Pantalones ', 33, 'Baja', '2026-04-30', 'Pantalones tipo sudadera ', 'En Proceso', NULL, 28, NULL, '2026-04-10 00:47:25'),
-(16, 35, 20, 'Camisas', 10, 'Baja', '2026-05-14', 'Camisas para mujer y niña', 'Completada', 10, 30, 10, '2026-04-10 00:49:04'),
-(17, 35, 20, 'Medias', 40, 'Media', '2026-04-22', 'Medias termicas', 'Completada', 40, 30, 40, '2026-04-10 00:49:53'),
-(18, 35, 18, 'Boxer', 500, 'Alta', '2026-04-15', 'Ropa interior para niño', 'Completada', 500, 30, 500, '2026-04-10 00:50:25'),
-(19, 33, 14, 'camisas overside', 200, 'Alta', '2026-03-07', 'talla m s y xl', 'En Proceso', NULL, 36, NULL, '2026-05-06 14:21:22'),
-(20, 33, 9, 'SUDADERAS HURLINTONG ', 200, 'Alta', '2026-08-05', 'TALLAS S, M, L Y XL NEGRAS', 'En Proceso', NULL, 28, NULL, '2026-05-06 15:27:58'),
-(21, 33, 10, 'HODDIES HURLINTONG', 15000, 'Alta', '2026-07-05', 'NEGRAS CON BORDADOS LLAMATIVOS ', 'En Proceso', NULL, 28, NULL, '2026-05-06 15:32:34'),
-(22, 33, 11, 'CHAQUETAS THE NORTH FACE ', 80, 'Alta', '2026-07-05', 'NEGRA, CON BORDADOS', 'Completada', 80, 28, 80, '2026-05-06 18:52:19'),
-(23, 33, 11, 'camisas sena', 50, 'Media', '2026-07-05', 'camisas negras sena', 'Completada', 50, 28, 50, '2026-05-07 12:33:19');
+INSERT INTO `orden_produccion` (`Id_Orden`, `Id_Cliente`, `Id_Material`, `Producto`, `Cantidad`, `Prioridad`, `Fecha_Limite`, `Descripcion`, `Dificultad`, `Estado`, `Unidades_Realizadas`, `Id_Operario`, `Unidades`, `Fecha_Creacion`) VALUES
+(10, 33, 10, 'Camisas', 100, 'Media', '2026-04-15', 'Camisas para tierra fría ', 'Media', 'Completada', 100, 27, 100, '2026-04-10 00:43:01'),
+(11, 33, 13, 'Pijamas ', 50, 'Baja', '2026-04-23', 'Pijamas de alta calidad ', 'Media', 'Completada', 50, 27, 50, '2026-04-10 00:43:55'),
+(12, 33, 14, 'Pantalones', 2000, 'Media', '2026-04-17', 'Pantalones casuales', 'Media', 'Completada', 2000, 27, 2000, '2026-04-10 00:44:54'),
+(13, 34, 16, 'Pantalonetas', 22, 'Alta', '2026-04-13', 'Pantalonetas del PSG', 'Media', 'En Proceso', NULL, 28, NULL, '2026-04-10 00:45:47'),
+(14, 34, 17, 'Uniformes', 50, 'Alta', '2026-04-14', 'Uniformes para niño', 'Alta', 'En Proceso', NULL, 28, NULL, '2026-04-10 00:46:29'),
+(15, 34, 16, 'Pantalones ', 33, 'Baja', '2026-04-30', 'Pantalones tipo sudadera ', 'Media', 'En Proceso', NULL, 28, NULL, '2026-04-10 00:47:25'),
+(16, 35, 20, 'Camisas', 10, 'Baja', '2026-05-14', 'Camisas para mujer y niña', 'Media', 'Completada', 10, 30, 10, '2026-04-10 00:49:04'),
+(17, 35, 20, 'Medias', 40, 'Media', '2026-04-22', 'Medias termicas', 'Baja', 'Completada', 40, 30, 40, '2026-04-10 00:49:53'),
+(18, 35, 18, 'Boxer', 500, 'Alta', '2026-04-15', 'Ropa interior para niño', 'Baja', 'Completada', 500, 30, 500, '2026-04-10 00:50:25'),
+(19, 33, 14, 'camisas overside', 200, 'Alta', '2026-03-07', 'talla m s y xl', 'Media', 'En Proceso', NULL, 36, NULL, '2026-05-06 14:21:22'),
+(20, 33, 9, 'SUDADERAS HURLINTONG ', 200, 'Alta', '2026-08-05', 'TALLAS S, M, L Y XL NEGRAS', 'Alta', 'En Proceso', NULL, 28, NULL, '2026-05-06 15:27:58'),
+(21, 33, 10, 'HODDIES HURLINTONG', 15000, 'Alta', '2026-07-05', 'NEGRAS CON BORDADOS LLAMATIVOS ', 'Alta', 'En Proceso', NULL, 28, NULL, '2026-05-06 15:32:34'),
+(22, 33, 11, 'CHAQUETAS THE NORTH FACE ', 80, 'Alta', '2026-07-05', 'NEGRA, CON BORDADOS', 'Alta', 'Completada', 80, 28, 80, '2026-05-06 18:52:19'),
+(23, 33, 11, 'camisas sena', 50, 'Media', '2026-07-05', 'camisas negras sena', 'Media', 'Completada', 50, 28, 50, '2026-05-07 12:33:19'),
+(24, 33, 11, 'SUDADERAS NIKE', 43, 'Alta', '2026-07-05', 'SUDADERAS NIKE', 'Alta', 'Completada', 43, 27, 43, '2026-05-07 21:05:03'),
+(25, 33, 10, 'SUDADERAS ADIDAS', 78, 'Alta', '2026-07-05', 'SUDADERAS ADIDAS', 'Alta', 'Completada', 78, 27, 78, '2026-05-07 21:07:05'),
+(26, 33, 11, 'CHAQUETAS PATPRIMO', 144, 'Alta', '2026-05-16', 'CHAQUETAS ROJAS CON BORDADOS', 'Alta', 'En Proceso', NULL, 28, NULL, '2026-05-15 08:26:41'),
+(27, 34, 16, 'UNIFORMES FUTBOL', 1822, 'Alta', '2026-05-20', 'UNIFORMES FUTBOL NEGRO', 'Alta', 'En Proceso', NULL, 27, NULL, '2026-05-15 08:28:32'),
+(28, 34, 16, 'camisas blancas ', 50, 'Baja', '2026-05-20', 'sencillas', 'Media', 'En Proceso', NULL, 27, NULL, '2026-05-15 08:40:46'),
+(29, 33, 10, 'GORRAS NEW ERA', 1522, 'Alta', '2026-12-05', 'ROJA CON ROSAS BORDADAS', 'Baja', 'En Proceso', NULL, 28, NULL, '2026-05-15 17:17:53');
 
 -- --------------------------------------------------------
 
@@ -236,7 +311,8 @@ INSERT INTO `tokens_recuperacion` (`id`, `Id_Usuario`, `token`, `expiracion`, `u
 (12, 33, '3bf065b1a8bcecd9e30a2d5f264c25e74ff43155be0e9b1281146d901047c6fe', '2026-05-07 13:29:27', 1),
 (13, 33, '71c8cc1e9b4ea622825fe34e8f0649668eabdac8bd1f06780594383a665a8633', '2026-05-07 21:34:23', 0),
 (14, 33, '54f8d9d17dce2a19d3f0adb981daf114d5145d6f52c151f2983fae31ff70af02', '2026-05-07 21:42:30', 0),
-(15, 33, 'bb82f9ef8aedd56a5e2dca16b3b5a3efe7ccd4f1fa1573f10b25c2c36fca72a2', '2026-05-07 21:44:15', 1);
+(15, 33, 'bb82f9ef8aedd56a5e2dca16b3b5a3efe7ccd4f1fa1573f10b25c2c36fca72a2', '2026-05-07 21:44:15', 1),
+(16, 27, '89fc05ddb4dde2fa15e740eece129c4da3d0b86f9e9da7def573500c4d57eebd', '2026-05-13 08:35:44', 1);
 
 -- --------------------------------------------------------
 
@@ -262,13 +338,13 @@ CREATE TABLE `usuario` (
 
 INSERT INTO `usuario` (`Id_Usuario`, `Id_Rol`, `Nombre_Completo`, `Nombre_Usuario`, `Correo`, `Telefono`, `Estado`, `Contrasena`, `Fecha_Registro`) VALUES
 (26, 1, 'Kevin Wagner', 'Wagner', 'wagner@gmail.com', '+57 311 4500925', 'activo', '$2b$10$KqtEIabyifIOJgVwkXmYSeHyw5FNVeNlVUXDfRmC5dmrSrzfDfsTK', '2026-04-09 22:44:57'),
-(27, 2, 'David Hernadez', 'Davincho', 'david@gmail.com', '+57 3102856574', 'activo', '$2b$10$fHz6b1LOpVi9Bs0HGihWPePCvz8PlROHnr5fdIriHSqyZghtSrJCK', '2026-04-09 22:46:49'),
+(27, 2, 'David Hernadez', 'Davincho', 'stevanwagner99@gmail.com', '+57 3102856574', 'activo', '$2b$10$fU1eVd/gf1cXeNPeg34wz.Hut8C7L7XRxmd7M3VcJ57vHrrMm4YtG', '2026-04-09 22:46:49'),
 (28, 2, 'Erika Parada', 'Erika22', 'wagnerrkevin@gmail.com', '+57 3205442212', 'activo', '$2b$10$G7zgIIpWv/Rdfty1eQ4lh.7cW42kf44n.jrCd6Fe6uE8EGkrGHihm', '2026-04-09 22:48:36'),
 (29, 1, 'Luis Quintero', 'Lucho', 'luis@gmail.com', '+573143268696', 'activo', '$2b$10$stzmgitvHK4UfAQQcFEJHOq8qszBC6exdJaX2P2ZbfxYexzkqs1rG', '2026-04-09 22:50:00'),
 (30, 2, 'Sandra Rincon', 'Sandrita', 'stevanwagne@gmail.com', '+57 3134567501', 'activo', '$2b$10$XLJpxEP1ees6luleoxF3S.NsuX5PWmhl4oxPmdM1y186AI/tkZWCy', '2026-04-09 22:57:34'),
 (31, 2, 'Julian Hurtado', 'Juli', 'julian@gmail.com', '+57 3253866559', 'activo', '$2b$10$6Wi1cWmLh7UmhrdcGLNiUewjPJRHrHx6CuB74bcEEYTsMtJG5BkDC', '2026-04-09 22:58:51'),
 (32, 2, 'Elsa Cardenas', 'Elsita', 'elsa@gmai.com', '+57 3143312223', 'activo', '$2b$10$mXjnok5cg6BHqyk3I02ew.sEOgjKFsr4tBbW3rClyBl2/RjpfBqZG', '2026-04-09 23:00:08'),
-(33, 3, 'Patprimo S.A.S.', 'Patprimo', 'stevanwagner99@gmail.com', '+57 3206233245', 'activo', '$2b$10$q0hVKKM7hufNFQpBicB5weO6Sf9BoYKbsyq5Zt3gqA2kd8TXrBXZW', '2026-04-09 23:00:55'),
+(33, 3, 'Patprimo S.A.S.', 'Patprimo', 'stevanwagner@gmail.com', '+57 3206233245', 'activo', '$2b$10$q0hVKKM7hufNFQpBicB5weO6Sf9BoYKbsyq5Zt3gqA2kd8TXrBXZW', '2026-04-09 23:00:55'),
 (34, 3, 'Paola Castro', 'Paolita', 'steva@gmail.com', '+57 3201558565', 'activo', '$2b$10$VhpRy5OTfEh6lLMjAh/lzuicVR2bN4K8/NluNv6VOXN9z19L33lb.', '2026-04-10 00:19:55'),
 (35, 3, 'Andres Fuquene', 'Andresito', 'stevaer1@gmail.com', '+57 3228547462', 'activo', '$2b$10$I9vlBcUnK2utAb/49e54seXF3mrFd0NnMaljmTAAXGth1uKqIw7OG', '2026-04-10 00:20:39'),
 (36, 2, 'sengrid', 'sengrid', 'camilotibambre@gmail.com', '+57 000 000 0000', 'activo', '$2b$10$XKDk2r6YtORKABf1/4rfCO9jAJUaoqzzIwbs8KjV9L.gKZx9gKL0m', '2026-05-05 21:40:57');
@@ -298,12 +374,27 @@ ALTER TABLE `comprobantes`
   ADD KEY `Id_Orden` (`Id_Orden`);
 
 --
+-- Indexes for table `google_calendar_tokens`
+--
+ALTER TABLE `google_calendar_tokens`
+  ADD PRIMARY KEY (`Id_Usuario`);
+
+--
 -- Indexes for table `material`
 --
 ALTER TABLE `material`
   ADD PRIMARY KEY (`Id_Material`),
   ADD UNIQUE KEY `Nombre_Producto` (`Nombre_Material`),
   ADD KEY `fk_material_cliente` (`Id_Cliente`);
+
+--
+-- Indexes for table `observacion_operario`
+--
+ALTER TABLE `observacion_operario`
+  ADD PRIMARY KEY (`Id_Observacion`),
+  ADD KEY `Id_Operario` (`Id_Operario`),
+  ADD KEY `Id_Admin` (`Id_Admin`),
+  ADD KEY `fk_obs_orden` (`Id_Orden`);
 
 --
 -- Indexes for table `orden_material`
@@ -360,7 +451,7 @@ ALTER TABLE `usuario_orden`
 -- AUTO_INCREMENT for table `comprobantes`
 --
 ALTER TABLE `comprobantes`
-  MODIFY `Id_Comprobante` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del comprobante.', AUTO_INCREMENT=15;
+  MODIFY `Id_Comprobante` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del comprobante.', AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `material`
@@ -369,10 +460,16 @@ ALTER TABLE `material`
   MODIFY `Id_Material` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del producto', AUTO_INCREMENT=21;
 
 --
+-- AUTO_INCREMENT for table `observacion_operario`
+--
+ALTER TABLE `observacion_operario`
+  MODIFY `Id_Observacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `orden_produccion`
 --
 ALTER TABLE `orden_produccion`
-  MODIFY `Id_Orden` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la orden de producción', AUTO_INCREMENT=24;
+  MODIFY `Id_Orden` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la orden de producción', AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `rol`
@@ -384,7 +481,7 @@ ALTER TABLE `rol`
 -- AUTO_INCREMENT for table `tokens_recuperacion`
 --
 ALTER TABLE `tokens_recuperacion`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `usuario`
@@ -404,10 +501,24 @@ ALTER TABLE `comprobantes`
   ADD CONSTRAINT `comprobantes_ibfk_2` FOREIGN KEY (`Id_Orden`) REFERENCES `orden_produccion` (`Id_Orden`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `google_calendar_tokens`
+--
+ALTER TABLE `google_calendar_tokens`
+  ADD CONSTRAINT `fk_google_calendar_usuario` FOREIGN KEY (`Id_Usuario`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `material`
 --
 ALTER TABLE `material`
   ADD CONSTRAINT `fk_material_cliente` FOREIGN KEY (`Id_Cliente`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `observacion_operario`
+--
+ALTER TABLE `observacion_operario`
+  ADD CONSTRAINT `fk_obs_orden` FOREIGN KEY (`Id_Orden`) REFERENCES `orden_produccion` (`Id_Orden`) ON DELETE SET NULL,
+  ADD CONSTRAINT `obs_ibfk_1` FOREIGN KEY (`Id_Operario`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE CASCADE,
+  ADD CONSTRAINT `obs_ibfk_2` FOREIGN KEY (`Id_Admin`) REFERENCES `usuario` (`Id_Usuario`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `orden_material`

@@ -1,24 +1,21 @@
-import mysql from 'mysql2/promise'
+import pg from 'pg'
 import dotenv from 'dotenv'
 dotenv.config()
 
-const pool = mysql.createPool({
-  host:     process.env.DB_HOST,
-  port:     Number(process.env.DB_PORT) || 3306,
-  user:     process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
+const { Pool } = pg
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // requerido por Supabase
 })
 
 // Verificar conexión al iniciar
 try {
-  const conn = await pool.getConnection()
-  console.log('✅ Conectado a MySQL — base de datos:', process.env.DB_NAME)
-  conn.release()
+  const client = await pool.connect()
+  console.log('✅ Conectado a Supabase PostgreSQL')
+  client.release()
 } catch (err) {
-  console.error('❌ Error conectando a MySQL:', err.message)
+  console.error('❌ Error conectando a Supabase:', err.message)
   process.exit(1)
 }
 

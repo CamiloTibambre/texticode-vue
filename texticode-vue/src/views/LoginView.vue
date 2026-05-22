@@ -110,6 +110,13 @@
           </div>
         </Transition>
 
+        <button class="btn-google" @click="iniciarSesionGoogle" :disabled="loading" type="button">
+          <span class="google-icon">G</span>
+          Continuar con Google
+        </button>
+
+        <div class="login-separator"><span>o ingresa con contraseña</span></div>
+
         <button class="btn-login" @click="iniciarSesion" :disabled="loading" :class="{ loading }">
           <span class="btn-shimmer"></span>
           <span v-if="!loading" class="btn-text">
@@ -248,8 +255,9 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { getGoogleAuthUrl } from '../services/api'
 
 const email        = ref('')
 const password     = ref('')
@@ -272,6 +280,7 @@ const recuperarEnviado = ref(false)
 const focusRecuperar   = ref(false)
 const inputRecuperar   = ref(null)
 
+const route  = useRoute()
 const router = useRouter()
 const auth   = useAuthStore()
 
@@ -348,6 +357,19 @@ function getRuta(usuario) {
   return '/'
 }
 
+async function iniciarSesionGoogle() {
+  error.value = ''
+  loading.value = true
+  try {
+    const data = await getGoogleAuthUrl('login')
+    window.location.href = data.url
+  } catch (e) {
+    error.value = e?.message || 'No se pudo iniciar con Google.'
+    triggerShake()
+    loading.value = false
+  }
+}
+
 async function iniciarSesion() {
   error.value = ''
   if (!email.value || !password.value) {
@@ -420,6 +442,10 @@ async function enviarRecuperacion() {
 }
 
 onMounted(() => {
+  if (route.query.googleError) {
+    error.value = String(route.query.googleError)
+    triggerShake()
+  }
   setTimeout(() => cardVisible.value = true, 80)
   initFabric()
   window.addEventListener('resize', initFabric)
@@ -647,6 +673,18 @@ h1.visible { opacity: 1; transform: none; }
   color: #1f3a52;
   text-decoration-color: #1f3a52;
 }
+
+
+.btn-google {
+  width: 100%; padding: 12px; margin: 0 0 12px;
+  background: white; color: #1f2937; border: 1.5px solid #e5e7eb; border-radius: 10px;
+  font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+.btn-google:hover:not(:disabled) { transform: translateY(-1px); border-color: #93c5fd; box-shadow: 0 8px 22px rgba(37,99,235,0.12); }
+.google-icon { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: white; background: linear-gradient(135deg,#4285f4,#34a853); font-weight: 900; }
+.login-separator { display: flex; align-items: center; gap: 10px; color: #9ca3af; font-size: 11px; margin: 2px 0 12px; }
+.login-separator::before, .login-separator::after { content: ''; height: 1px; background: #e5e7eb; flex: 1; }
 
 .btn-login {
   width: 100%; padding: 13px; margin-top: 4px;

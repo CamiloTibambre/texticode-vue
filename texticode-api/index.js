@@ -14,6 +14,10 @@ import notificacionesRouter from './routes/notificaciones.js'
 import authRouter           from './routes/auth.route.js'
 import practicaRouter       from './routes/practica.routes.js'
 import eficienciaRouter     from './routes/eficiencia.js'
+import cargaTrabajoRoutes from './routes/carga_trabajo.js'
+import googleCalendarRouter from './routes/googleCalendar.js'
+
+
 
 const app = express()
 
@@ -31,6 +35,8 @@ app.use('/api/notificaciones',   notificacionesRouter)
 app.use('/api/auth',             authRouter)
 app.use('/api/practica',         practicaRouter)
 app.use('/api/eficiencia',       eficienciaRouter)
+app.use('/api/carga-trabajo',    cargaTrabajoRoutes)
+app.use('/api/google',           googleCalendarRouter)
 
 app.get('/', (req, res) => {
   res.json({
@@ -60,6 +66,8 @@ app.get('/', (req, res) => {
       'GET  /api/eficiencia/operarios?rendimiento=Alto|Medio|Bajo',
       'GET  /api/eficiencia/operarios?estado=Completada|En Proceso|Pausado',
       'GET  /api/eficiencia/operarios?limite=5',
+      'GET  /api/google/auth-url?action=link|login',
+      'POST /api/google/sync/delivery-events',
     ]
   })
 })
