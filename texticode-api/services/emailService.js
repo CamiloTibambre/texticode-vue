@@ -1,5 +1,8 @@
 // services/emailService.js
 // ─── Servicio central de SendGrid para Texticode ──────────────────────────────
+import dotenv from 'dotenv';
+dotenv.config();
+
 import sgMail from '@sendgrid/mail';
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
