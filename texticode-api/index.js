@@ -21,7 +21,7 @@ import googleCalendarRouter from './routes/googleCalendar.js'
 
 const app = express()
 
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({ origin: ['http://localhost:5173', 'https://localhost:5173', 'https://localhost:5174'] }))
 app.use(express.json({ limit: '10mb' }))
 
 app.use('/api/usuarios',         usuariosRouter)
