@@ -14,14 +14,18 @@ import notificacionesRouter from './routes/notificaciones.js'
 import authRouter           from './routes/auth.route.js'
 import practicaRouter       from './routes/practica.routes.js'
 import eficienciaRouter     from './routes/eficiencia.js'
-import cargaTrabajoRoutes from './routes/carga_trabajo.js'
+import cargaTrabajoRoutes   from './routes/carga_trabajo.js'
 import googleCalendarRouter from './routes/googleCalendar.js'
-
-
 
 const app = express()
 
-app.use(cors({ origin: ['http://localhost:5173', 'https://localhost:5173', 'https://localhost:5174'] }))
+app.use(cors({ 
+  origin: [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'https://localhost:5173',
+  ] 
+}))
 app.use(express.json({ limit: '10mb' }))
 
 app.use('/api/usuarios',         usuariosRouter)
