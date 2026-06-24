@@ -65,9 +65,6 @@ function normalizeGoogleToken(tokens = {}) {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Crea la tabla si no existe (sintaxis PostgreSQL)
-// ─────────────────────────────────────────────────────────
 async function ensureGoogleSchema() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS google_calendar_tokens (
@@ -180,6 +177,8 @@ async function upsertGoogleTokens(userId, profile, tokenPayload) {
 function redirectWithError(res, message) {
   const url = new URL('/login', FRONTEND_URL)
   url.searchParams.set('googleError', message)
+  console.log('🔴 [redirectWithError] FRONTEND_URL:', FRONTEND_URL)
+  console.log('🔴 [redirectWithError] Redirigiendo a:', url.toString())
   return res.redirect(url.toString())
 }
 
@@ -196,9 +195,6 @@ async function getUserForAuth(id) {
   return rows[0]
 }
 
-// ─────────────────────────────────────────────────────────
-// GET /api/google/auth-url
-// ─────────────────────────────────────────────────────────
 router.get('/auth-url', async (req, res) => {
   if (!requireGoogleConfig(res)) return
 
@@ -230,9 +226,6 @@ router.get('/auth-url', async (req, res) => {
   res.json({ url: url.toString(), scopes: GOOGLE_SCOPES })
 })
 
-// ─────────────────────────────────────────────────────────
-// GET /api/google/callback
-// ─────────────────────────────────────────────────────────
 router.get('/callback', async (req, res) => {
   const { code, state, error } = req.query
   if (error)          return redirectWithError(res, `Google rechazó la autorización: ${error}`)
@@ -256,6 +249,8 @@ router.get('/callback', async (req, res) => {
       await upsertGoogleTokens(user.Id_Usuario, profile, tokenPayload)
       const url = new URL('/google-auth/callback', FRONTEND_URL)
       url.searchParams.set('status', 'linked')
+      console.log('🟡 [link] FRONTEND_URL:', FRONTEND_URL)
+      console.log('🟡 [link] Redirigiendo a:', url.toString())
       return res.redirect(url.toString())
     }
 
@@ -285,6 +280,8 @@ router.get('/callback', async (req, res) => {
     url.searchParams.set('status',  'login')
     url.searchParams.set('token',   appToken)
     url.searchParams.set('usuario', Buffer.from(JSON.stringify({ ...user, rol: (user.Rol || '').toLowerCase() })).toString('base64url'))
+    console.log('🟢 [login] FRONTEND_URL:', FRONTEND_URL)
+    console.log('🟢 [login] Redirigiendo a:', url.toString())
     return res.redirect(url.toString())
 
   } catch (err) {
@@ -293,9 +290,6 @@ router.get('/callback', async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────────────────────
-// GET /api/google/status
-// ─────────────────────────────────────────────────────────
 router.get('/status', requireAuth, async (req, res) => {
   await ensureGoogleSchema()
   const { rows } = await db.query(
@@ -320,17 +314,11 @@ router.get('/status', requireAuth, async (req, res) => {
   })
 })
 
-// ─────────────────────────────────────────────────────────
-// DELETE /api/google/unlink
-// ─────────────────────────────────────────────────────────
 router.delete('/unlink', requireAuth, async (req, res) => {
   await db.query('DELETE FROM google_calendar_tokens WHERE "Id_Usuario" = $1', [req.auth.id])
   res.json({ mensaje: 'Cuenta de Google desvinculada correctamente.' })
 })
 
-// ─────────────────────────────────────────────────────────
-// PATCH /api/google/settings
-// ─────────────────────────────────────────────────────────
 router.patch('/settings', requireAuth, async (req, res) => {
   await ensureGoogleSchema()
   const syncEnabled = !!req.body.syncEnabled
@@ -344,9 +332,6 @@ router.patch('/settings', requireAuth, async (req, res) => {
   res.json({ mensaje: 'Preferencias de Google Calendar actualizadas.' })
 })
 
-// ─────────────────────────────────────────────────────────
-// Helpers internos
-// ─────────────────────────────────────────────────────────
 async function getConnectedGoogleRow(userId) {
   await ensureGoogleSchema()
   const { rows } = await db.query(
@@ -362,7 +347,6 @@ async function getUserOrders(auth) {
   const user = await getUserForAuth(auth.id)
   if (!user) return []
 
-  // Administrador: todas las órdenes
   if (Number(user.Id_Rol) === 1) {
     const { rows } = await db.query(
       `SELECT op."Id_Orden", op."Producto", op."Descripcion", op."Cantidad",
@@ -378,7 +362,6 @@ async function getUserOrders(auth) {
     return rows
   }
 
-  // Operario: sus órdenes asignadas
   if (Number(user.Id_Rol) === 2) {
     const { rows } = await db.query(
       `SELECT op."Id_Orden", op."Producto", op."Descripcion", op."Cantidad",
@@ -397,7 +380,6 @@ async function getUserOrders(auth) {
     return rows
   }
 
-  // Cliente: sus propias órdenes
   const { rows } = await db.query(
     `SELECT op."Id_Orden", op."Producto", op."Descripcion", op."Cantidad",
             op."Prioridad", op."Estado", op."Fecha_Limite", op."Fecha_Creacion",
@@ -473,9 +455,6 @@ async function createOrUpdateCalendarEvent(accessToken, calendarId, order) {
   return { id: data.id, htmlLink: data.htmlLink, status: existing ? 'updated' : 'created', orderId: order.Id_Orden }
 }
 
-// ─────────────────────────────────────────────────────────
-// POST /api/google/sync/delivery-events
-// ─────────────────────────────────────────────────────────
 router.post('/sync/delivery-events', requireAuth, async (req, res) => {
   try {
     const googleRow    = await getConnectedGoogleRow(req.auth.id)
@@ -498,9 +477,6 @@ router.post('/sync/delivery-events', requireAuth, async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────────────────────
-// GET /api/google/events/upcoming
-// ─────────────────────────────────────────────────────────
 router.get('/events/upcoming', requireAuth, async (req, res) => {
   try {
     const googleRow   = await getConnectedGoogleRow(req.auth.id)
@@ -534,9 +510,6 @@ router.get('/events/upcoming', requireAuth, async (req, res) => {
   }
 })
 
-// ─────────────────────────────────────────────────────────
-// GET /api/google/connected-users  (solo admin)
-// ─────────────────────────────────────────────────────────
 router.get('/connected-users', requireAuth, async (req, res) => {
   if (Number(req.auth.rol) !== 1) return res.status(403).json({ error: 'Solo administradores.' })
   await ensureGoogleSchema()
