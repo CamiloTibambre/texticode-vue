@@ -224,7 +224,7 @@
             </button>
           </div>
           <div class="modal-body">
-            <div class="form-group"><label class="form-label">Nombre Completo</label><input v-model="formEdicion.Nombre_Completo" type="text" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Nombre Completo</label><input v-model="formEdicion.Nombre_Completo" type="text" class="form-input" @keypress="soloLetras"></div>
             <div class="form-group"><label class="form-label">Correo Electrónico</label><input v-model="formEdicion.Correo" type="email" class="form-input"></div>
             <div class="form-group"><label class="form-label">Teléfono</label><input v-model="formEdicion.Telefono" type="tel" class="form-input"></div>
             <div class="form-group">
@@ -236,6 +236,12 @@
                   <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
                 </button>
               </div>
+              <div v-if="formEdicion.Contrasena" class="pwd-hints">
+                <span v-for="h in passwordHints" :key="h.label" class="pwd-hint" :class="h.ok ? 'hint-ok' : 'hint-no'">
+                  {{ h.ok ? '✓' : '✗' }} {{ h.label }}
+                </span>
+              </div>
+              <p class="pwd-note">Déjala vacía si no deseas cambiarla.</p>
             </div>
           </div>
           <div v-if="errorGuardar" class="error-inline">{{ errorGuardar }}</div>
@@ -260,6 +266,26 @@ import { useAuthStore } from '../../stores/auth'
 import { getUsuario, actualizarUsuario, getOrdenesDeOperario } from '../../services/api'
 
 const auth = useAuthStore()
+
+// ── VALIDACIÓN DE CONTRASEÑA FUERTE ──
+function validarContrasena(pwd) {
+  if (!pwd) return null // vacío = no cambia, permitido
+  if (pwd.length < 8)              return 'La contraseña debe tener al menos 8 caracteres.'
+  if (!/[A-Z]/.test(pwd))          return 'Debe incluir al menos una letra mayúscula.'
+  if (!/[0-9]/.test(pwd))          return 'Debe incluir al menos un número.'
+  if (!/[^A-Za-z0-9]/.test(pwd))   return 'Debe incluir al menos un carácter especial (@, #, $, etc.).'
+  return null
+}
+
+const passwordHints = computed(() => {
+  const pwd = formEdicion.value.Contrasena || ''
+  return [
+    { label: 'Mínimo 8 caracteres',        ok: pwd.length >= 8 },
+    { label: 'Una letra mayúscula',         ok: /[A-Z]/.test(pwd) },
+    { label: 'Un número',                   ok: /[0-9]/.test(pwd) },
+    { label: 'Un carácter especial (@#$…)', ok: /[^A-Za-z0-9]/.test(pwd) },
+  ]
+})
 
 // ── PALETA DE AVATARES ──
 const PALETTES = [
@@ -383,8 +409,15 @@ onMounted(cargarDatos)
 
 function abrirModal() { formEdicion.value = { ...perfil.value, Contrasena: '' }; mostrarPassword.value = false; errorGuardar.value = ''; modalVisible.value = true }
 function cerrarModal() { modalVisible.value = false; errorGuardar.value = '' }
+function soloLetras(e) {
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÀÈÌÒÙàèìòùÄËÏÖÜäëïöüÑñ\s'-]$/.test(e.key)) e.preventDefault()
+}
+
 async function guardarCambios() {
   if (!formEdicion.value.Nombre_Completo?.trim() || !formEdicion.value.Correo?.trim()) { errorGuardar.value = 'Nombre y correo son obligatorios.'; return }
+  if (/[0-9]/.test(formEdicion.value.Nombre_Completo)) { errorGuardar.value = 'El nombre no puede contener números.'; return }
+  const errPwd = validarContrasena(formEdicion.value.Contrasena)
+  if (errPwd) { errorGuardar.value = errPwd; return }
   guardando.value = true; errorGuardar.value = ''
   try {
     const payload = { Id_Rol: perfil.value.Id_Rol, Nombre_Completo: formEdicion.value.Nombre_Completo, Nombre_Usuario: perfil.value.Nombre_Usuario, Correo: formEdicion.value.Correo, Telefono: formEdicion.value.Telefono || null, Estado: perfil.value.Estado, Contrasena: formEdicion.value.Contrasena || null }
@@ -673,6 +706,11 @@ function mostrarToast(msg, type = 'success') { toast.value = { visible: true, ms
 .toggle-pass { background: none; border: none; cursor: pointer; padding: 0 10px; color: #9ca3af; transition: color .15s; }
 .toggle-pass:hover { color: #374151; }
 .error-inline { color: #dc2626; font-size: 13px; padding: 6px 24px; }
+.pwd-hints { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.pwd-hint { font-size: 11.5px; font-weight: 500; padding: 2px 8px; border-radius: 20px; transition: background .2s, color .2s; }
+.hint-ok { background: #dcfce7; color: #166534; }
+.hint-no { background: #f3f4f6; color: #9ca3af; }
+.pwd-note { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 
 /* ═══ TOAST ═══ */
 .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 2000; }

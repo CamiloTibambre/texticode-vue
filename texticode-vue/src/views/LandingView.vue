@@ -82,12 +82,12 @@
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
-          <div class="hero-stat-num">41</div>
+          <div class="hero-stat-num">49</div>
           <div class="hero-stat-label">Requisitos funcionales</div>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
-          <div class="hero-stat-num">5</div>
+          <div class="hero-stat-num">7</div>
           <div class="hero-stat-label">Módulos principales</div>
         </div>
       </div>
@@ -508,14 +508,16 @@ const rolesData = {
       { name: 'Gestión de Usuarios', icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z', desc: 'Crear, editar y desactivar usuarios con roles' },
       { name: 'Gestión de Inventario', icon: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9', desc: 'Control de materiales, stock y alertas automáticas' },
       { name: 'Gestión de Producción', icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z', desc: 'Órdenes, estados y comprobantes de entrega' },
+      { name: 'Eficiencia de Operarios', icon: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941', desc: 'Métricas de rendimiento y observaciones por operario' },
+      { name: 'Carga de Trabajo', icon: 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6', desc: 'Balanceo y reasignación de órdenes entre operarios' },
       { name: 'Reportes', icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z', desc: 'Análisis de ventas, producción e inventario' },
     ],
     reqs: [
       { id: 1, text: 'Autenticar y autorizar usuarios con permisos por rol' },
       { id: 3, text: 'Asignar roles: Administrador, Operario, Cliente' },
       { id: 7, text: 'Registrar y actualizar materiales con datos de stock' },
-      { id: 10, text: 'Generar reportes automáticos por período' },
-      { id: 12, text: 'Exportar información a Excel y PDF' },
+      { id: 10, text: 'Monitorear eficiencia y carga de trabajo de operarios' },
+      { id: 12, text: 'Generar reportes automáticos y exportar a PDF y Excel' },
     ],
   },
   operario: {
@@ -527,6 +529,7 @@ const rolesData = {
       { name: 'Cuenta Personal', icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0', desc: 'Perfil, datos personales y actividad' },
       { name: 'Tareas Asignadas', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', desc: 'Visualizar órdenes con prioridad y fechas' },
       { name: 'Reportar Avances', icon: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941', desc: 'Actualizar progreso, pausar y reportar incidencias' },
+      { name: 'Google Calendar', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5', desc: 'Sincronización de tareas con Google Calendar' },
     ],
     reqs: [
       { id: 16, text: 'Gestionar perfil: datos personales y estado' },
@@ -545,13 +548,14 @@ const rolesData = {
       { name: 'Cuenta Personal', icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0', desc: 'Perfil, comprobantes y historial de pedidos' },
       { name: 'Pedidos y Entregas', icon: 'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25', desc: 'Seguimiento en tiempo real con barras de progreso' },
       { name: 'Centro de Soporte', icon: 'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z', desc: 'Canales de atención y preguntas frecuentes' },
+      { name: 'Google Calendar', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5', desc: 'Sincronización de entregas con tu calendario Google' },
     ],
     reqs: [
       { id: 29, text: 'Gestionar perfil: datos y estado de cuenta' },
       { id: 30, text: 'Visualizar historial de pedidos con estados' },
-      { id: 33, text: 'Registrar y actualizar órdenes' },
       { id: 34, text: 'Monitorear entregas y confirmar recepción' },
       { id: 36, text: 'Consultar información específica de cada pedido' },
+      { id: 46, text: 'Descargar comprobantes de entrega en PDF' },
     ],
   },
 }
@@ -562,8 +566,10 @@ const mainModules = [
   { title: 'Gestión de Usuarios', desc: 'CRUD completo de usuarios con roles diferenciados y control de acceso seguro por credenciales.', icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z', bg: '#e0eaf2', color: '#1f3a52', tags: ['CRUD', 'Roles', 'Seguridad'] },
   { title: 'Control de Inventario', desc: 'Registro de materiales con stock actual, mínimo y máximo. Alertas automáticas para stock bajo o agotado.', icon: 'm21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9', bg: '#e0f0ff', color: '#2563eb', tags: ['Alertas', 'Stock', 'Categorías'] },
   { title: 'Gestión de Producción', desc: 'Órdenes de producción con seguimiento en tiempo real, asignación de operarios y control de avances.', icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z', bg: '#f0fdf4', color: '#16a34a', tags: ['Órdenes', 'Avances', 'Comprobantes'] },
-  { title: 'Reportes y Análisis', desc: 'Generación automática de reportes en PDF y Excel con estadísticas de producción, inventario y clientes.', icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625z', bg: '#fef9c3', color: '#d97706', tags: ['PDF', 'Excel', 'Gráficas'] },
-  { title: 'Panel del Cliente', desc: 'Vista dedicada con seguimiento de pedidos, descarga de comprobantes y centro de soporte.', icon: 'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12', bg: '#ede9fe', color: '#7c3aed', tags: ['Pedidos', 'Entregas', 'Soporte'] },
+  { title: 'Eficiencia y Carga de Trabajo', desc: 'Métricas de rendimiento por operario, historial comparativo y balanceo automático de órdenes entre operarios.', icon: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941', bg: '#fef9c3', color: '#d97706', tags: ['Métricas', 'Rendimiento', 'Reasignación'] },
+  { title: 'Reportes y Análisis', desc: 'Generación automática de reportes en PDF y Excel con estadísticas de producción, inventario y clientes.', icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625z', bg: '#ede9fe', color: '#7c3aed', tags: ['PDF', 'Excel', 'Gráficas'] },
+  { title: 'Panel del Cliente', desc: 'Vista dedicada con seguimiento de pedidos, descarga de comprobantes de entrega y centro de soporte.', icon: 'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12', bg: '#e0f2fe', color: '#0369a1', tags: ['Pedidos', 'Entregas', 'Soporte'] },
+  { title: 'Google Calendar', desc: 'Sincronización de fechas de entrega con Google Calendar vía OAuth2. Notificaciones por email con SendGrid.', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5', bg: '#fce7f3', color: '#be185d', tags: ['OAuth2', 'SendGrid', 'Notificaciones'] },
 ]
 
 const alcancesSi = [
@@ -571,10 +577,13 @@ const alcancesSi = [
   'Optimización de tiempos y reducción de errores operativos',
   'Mayor control de recursos y gestión de inventario',
   'Control de fechas de inicio, avance y entrega de producción',
-  'Reportes automáticos de inventario y producción',
+  'Reportes automáticos de inventario y producción en PDF y Excel',
   'Sistema de gestión de clientes con comprobantes de entrega',
   'Módulo de asignación de tareas para operarios',
   'Alertas de stock bajo para materiales críticos',
+  'Notificaciones automáticas por email vía SendGrid',
+  'Sincronización de entregas con Google Calendar (OAuth2)',
+  'Métricas de eficiencia y carga de trabajo por operario',
 ]
 
 
@@ -586,6 +595,8 @@ const objetivosEspecificos = [
   'Implementar inicio de sesión con roles diferenciados para garantizar seguridad en el acceso.',
   'Gestionar inventario de materiales con funcionalidades de registro, edición, eliminación y alertas de stock.',
   'Diseñar un módulo de asignación de tareas para operarios con registro de avances y finalización de procesos.',
+  'Integrar Google Calendar vía OAuth2 para sincronizar fechas de entrega y notificar por email con SendGrid.',
+  'Monitorear la eficiencia de operarios y balancear la carga de trabajo con reasignación automática de órdenes.',
 ]
 
 const techStack = [
@@ -594,9 +605,11 @@ const techStack = [
   { name: 'Pinia', abbr: 'Pinia', role: 'State Management', bg: '#fef3c7', color: '#f59e0b' },
   { name: 'Node.js', abbr: 'Node', role: 'Backend Runtime', bg: '#f0fdf4', color: '#15803d' },
   { name: 'Express.js', abbr: 'Exp', role: 'API REST Framework', bg: '#f8fafc', color: '#374151' },
-  { name: 'MySQL', abbr: 'SQL', role: 'Base de Datos', bg: '#eff6ff', color: '#1d4ed8' },
+  { name: 'Supabase', abbr: 'SB', role: 'Base de Datos PostgreSQL', bg: '#ecfdf5', color: '#059669' },
   { name: 'JWT', abbr: 'JWT', role: 'Autenticación', bg: '#e0e7ff', color: '#4338ca' },
   { name: 'bcrypt.js', abbr: 'BC', role: 'Cifrado', bg: '#fce7f3', color: '#be185d' },
+  { name: 'SendGrid', abbr: 'SG', role: 'Notificaciones Email', bg: '#e0f2fe', color: '#0369a1' },
+  { name: 'Google Calendar', abbr: 'GC', role: 'Integración OAuth2', bg: '#fef3c7', color: '#b45309' },
 ]
 
 const teamMembers = [
@@ -969,7 +982,7 @@ onUnmounted(() => {
 
 /* ── STACK ── */
 .section-stack { background: #f8fafc; }
-.stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
+.stack-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 32px; }
 .tech-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 22px 18px; text-align: center; transition: box-shadow 0.2s, transform 0.2s; }
 .tech-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-3px); }
 .tech-icon-wrap { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }

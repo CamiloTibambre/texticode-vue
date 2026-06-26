@@ -123,6 +123,12 @@
               </div>
               <span class="strength-label" :class="fuerzaClase">{{ fuerzaTexto }}</span>
             </div>
+            <div class="pass-hints" v-if="nuevaPassword">
+              <span :class="nuevaPassword.length >= 8 ? 'hint-ok' : 'hint-no'">{{ nuevaPassword.length >= 8 ? '✓' : '✗' }} Mínimo 8 caracteres</span>
+              <span :class="/[A-Z]/.test(nuevaPassword) ? 'hint-ok' : 'hint-no'">{{ /[A-Z]/.test(nuevaPassword) ? '✓' : '✗' }} Una mayúscula</span>
+              <span :class="/[0-9]/.test(nuevaPassword) ? 'hint-ok' : 'hint-no'">{{ /[0-9]/.test(nuevaPassword) ? '✓' : '✗' }} Un número</span>
+              <span :class="/[!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]/.test(nuevaPassword) ? 'hint-ok' : 'hint-no'">{{ /[!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]/.test(nuevaPassword) ? '✓' : '✗' }} Un carácter especial</span>
+            </div>
           </div>
 
           <div class="form-group" :class="{ focused: focusPass2, 'has-error': confirmarPassword && nuevaPassword !== confirmarPassword }">
@@ -313,7 +319,14 @@ const fuerzaPct   = computed(() => {
 })
 const fuerzaClase = computed(() => fuerzaPct.value < 40 ? 'weak' : fuerzaPct.value < 70 ? 'medium' : 'strong')
 const fuerzaTexto = computed(() => fuerzaPct.value < 40 ? 'Débil' : fuerzaPct.value < 70 ? 'Media' : 'Fuerte')
-const formValido  = computed(() => nuevaPassword.value.length >= 8 && nuevaPassword.value === confirmarPassword.value)
+const formValido = computed(() => {
+  const p = nuevaPassword.value
+  return p.length >= 8 &&
+    /[A-Z]/.test(p) &&
+    /[0-9]/.test(p) &&
+    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p) &&
+    p === confirmarPassword.value
+})
 
 function triggerShake() {
   shakeError.value = true
@@ -465,6 +478,10 @@ h1.visible { opacity:1;transform:none; }
 .strength-label.weak   { color:#ef4444; }
 .strength-label.medium { color:#f59e0b; }
 .strength-label.strong { color:#22c55e; }
+.pass-hints { display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px; }
+.pass-hints span { font-size:11.5px;font-weight:500; }
+.hint-ok { color:#16a34a; }
+.hint-no { color:#9ca3af; }
 
 .error-msg { display:flex;align-items:center;gap:6px;color:#dc2626;font-size:12.5px;font-weight:500;margin-bottom:13px;padding:9px 12px;background:#fef2f2;border-radius:8px;border:1px solid #fecaca; }
 .err-enter-active { transition:all 0.22s ease; }
