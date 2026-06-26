@@ -328,7 +328,8 @@
 
           <label>Nombre Completo</label>
           <input v-model="form.nombre" type="text" placeholder="Nombre completo"
-            :class="{ 'input-error': errores.nombre && formTouched }" @blur="formTouched = true">
+            :class="{ 'input-error': errores.nombre && formTouched }" @blur="formTouched = true"
+            @keypress="soloLetras">
           <span v-if="errores.nombre && formTouched" class="error-msg">{{ errores.nombre }}</span>
 
           <label>Nombre de Usuario <span style="color:#9ca3af;font-weight:400;font-size:11px">(para iniciar sesión)</span></label>
@@ -390,7 +391,7 @@
           <span class="close" @click="cerrarModalAdmin">×</span>
 
           <label>Nombre Completo</label>
-          <input v-model="formAdmin.nombre" type="text" placeholder="Nombre completo">
+          <input v-model="formAdmin.nombre" type="text" placeholder="Nombre completo" @keypress="soloLetras">
 
           <label>Nombre de Usuario <span style="color:#9ca3af;font-weight:400;font-size:12px">(para iniciar sesión)</span></label>
           <input v-model="formAdmin.nombreUsuario" type="text" placeholder="Ej: juan.perez">
@@ -626,12 +627,27 @@ const usuariosOrdenados = computed(() =>
 
 // ── VALIDACIÓN ──
 const form = ref({ id: null, nombre: '', nombreUsuario: '', email: '', telefono: '', Id_Rol: '', estado: 'activo', contrasena: '' })
+function validarContrasena(contrasena) {
+  if (!contrasena.trim()) return ''
+  if (contrasena.length < 8) return 'Mínimo 8 caracteres.'
+  if (!/[A-Z]/.test(contrasena)) return 'Debe tener al menos una mayúscula.'
+  if (!/[0-9]/.test(contrasena)) return 'Debe tener al menos un número.'
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(contrasena)) return 'Debe tener al menos un carácter especial (@, #, $, etc.).'
+  return ''
+}
+
 const errores = computed(() => ({
-  nombre: !form.value.nombre.trim() ? 'El nombre es requerido' : '',
+  nombre: !form.value.nombre.trim()
+    ? 'El nombre es requerido'
+    : /[0-9]/.test(form.value.nombre)
+      ? 'El nombre no puede contener números.'
+      : '',
   nombreUsuario: !form.value.nombreUsuario.trim() ? 'El nombre de usuario es requerido' : '',
   email: !form.value.email.includes('@') ? 'Ingresa un email válido' : '',
   Id_Rol: !form.value.Id_Rol ? 'Selecciona un rol' : '',
-  contrasena: !editando.value && !form.value.contrasena.trim() ? 'La contraseña es requerida' : '',
+  contrasena: !editando.value && !form.value.contrasena.trim()
+    ? 'La contraseña es requerida'
+    : validarContrasena(form.value.contrasena),
   telefono: form.value.telefono && !/^\+?[\d\s]{7,}$/.test(form.value.telefono) ? 'Teléfono inválido' : '',
 }))
 const tieneErrores = computed(() => Object.values(errores.value).some(e => e !== ''))
@@ -703,7 +719,17 @@ function abrirModalAdmin() {
 }
 function cerrarModalAdmin() { modalAdminVisible.value = false }
 
+function soloLetras(e) {
+  // Permite letras, tildes, ñ, espacios, guiones y apóstrofes
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÀÈÌÒÙàèìòùÄËÏÖÜäëïöüÑñ\s'-]$/.test(e.key)) {
+    e.preventDefault()
+  }
+}
+
 async function guardarPerfilAdmin() {
+  if (/[0-9]/.test(formAdmin.value.nombre)) {
+    mostrarToast('El nombre no puede contener números.', 'danger'); return
+  }
   guardandoAdmin.value = true
   try {
     const payload = {

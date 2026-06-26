@@ -4,6 +4,28 @@ import bcrypt from 'bcryptjs'
 
 const router = Router()
 
+// ── Validación de nombre (solo letras, espacios y tildes) ──
+function validarNombre(nombre) {
+  if (!nombre || !nombre.trim()) return 'El nombre completo es requerido.'
+  if (/[0-9]/.test(nombre)) return 'El nombre no puede contener números.'
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÀÈÌÒÙàèìòùÄËÏÖÜäëïöüÑñÜü\s'-]+$/.test(nombre.trim()))
+    return 'El nombre solo puede contener letras y espacios.'
+  return null
+}
+
+// ── Validación de contraseña fuerte ──
+function validarContrasena(contrasena) {
+  if (contrasena.length < 8)
+    return 'La contraseña debe tener al menos 8 caracteres.'
+  if (!/[A-Z]/.test(contrasena))
+    return 'La contraseña debe tener al menos una letra mayúscula.'
+  if (!/[0-9]/.test(contrasena))
+    return 'La contraseña debe tener al menos un número.'
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(contrasena))
+    return 'La contraseña debe tener al menos un carácter especial (@, #, $, etc.).'
+  return null
+}
+
 // GET todos los usuarios (con nombre de rol)
 router.get('/', async (req, res) => {
   try {
@@ -83,6 +105,12 @@ router.post('/', async (req, res) => {
   if (!Id_Rol || !Nombre_Completo || !Nombre_Usuario || !Correo || !Contrasena)
     return res.status(400).json({ error: 'Faltan campos obligatorios' })
 
+  const errorNombre = validarNombre(Nombre_Completo)
+  if (errorNombre) return res.status(400).json({ error: errorNombre })
+
+  const errorPass = validarContrasena(Contrasena)
+  if (errorPass) return res.status(400).json({ error: errorPass })
+
   try {
     const hash = await bcrypt.hash(Contrasena, 10)
 
@@ -103,8 +131,13 @@ router.post('/', async (req, res) => {
 // PUT actualizar usuario — encripta la contraseña si se envía una nueva
 router.put('/:id', async (req, res) => {
   const { Id_Rol, Nombre_Completo, Nombre_Usuario, Correo, Telefono, Estado, Contrasena } = req.body
+  const errorNombre = validarNombre(Nombre_Completo)
+  if (errorNombre) return res.status(400).json({ error: errorNombre })
   try {
     if (Contrasena && Contrasena.trim() !== '') {
+      const errorPass = validarContrasena(Contrasena)
+      if (errorPass) return res.status(400).json({ error: errorPass })
+
       const hash = await bcrypt.hash(Contrasena, 10)
       await pool.query(`
         UPDATE usuario

@@ -7,6 +7,19 @@ import bcrypt   from 'bcryptjs'
 
 const router = express.Router()
 
+// ── Validación de contraseña fuerte ──
+function validarContrasena(contrasena) {
+  if (contrasena.length < 8)
+    return 'La contraseña debe tener al menos 8 caracteres.'
+  if (!/[A-Z]/.test(contrasena))
+    return 'La contraseña debe tener al menos una letra mayúscula.'
+  if (!/[0-9]/.test(contrasena))
+    return 'La contraseña debe tener al menos un número.'
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(contrasena))
+    return 'La contraseña debe tener al menos un carácter especial (@, #, $, etc.).'
+  return null
+}
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const JWT_SECRET  = process.env.JWT_SECRET  || 'cambia_este_secreto_seguro'
@@ -229,9 +242,8 @@ router.post('/cambiar-contrasena', async (req, res) => {
     return res.status(400).json({ mensaje: 'Datos incompletos' })
   }
 
-  if (nuevaPassword.length < 8) {
-    return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 8 caracteres' })
-  }
+  const errorPass = validarContrasena(nuevaPassword)
+  if (errorPass) return res.status(400).json({ mensaje: errorPass })
 
   try {
     const { rows } = await db.query(
