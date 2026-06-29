@@ -357,8 +357,19 @@
 
           <template v-if="!editando">
             <label>Contraseña</label>
-            <input v-model="form.contrasena" type="password" placeholder="Contraseña del usuario"
-              :class="{ 'input-error': errores.contrasena && formTouched }" @blur="formTouched = true">
+            <div class="input-wrap-modal">
+              <input v-model="form.contrasena" :type="mostrarPassUsuario ? 'text' : 'password'" placeholder="Contraseña del usuario"
+                :class="{ 'input-error': errores.contrasena && formTouched }" @blur="formTouched = true">
+              <button class="toggle-pass-modal" @click="mostrarPassUsuario = !mostrarPassUsuario" type="button">
+                <svg v-if="!mostrarPassUsuario" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/></svg>
+                <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
+              </button>
+            </div>
+            <div v-if="form.contrasena" class="pwd-hints">
+              <span v-for="h in passwordHintsUsuario" :key="h.label" class="pwd-hint" :class="h.ok ? 'hint-ok' : 'hint-no'">
+                {{ h.ok ? '✓' : '✗' }} {{ h.label }}
+              </span>
+            </div>
             <span v-if="errores.contrasena && formTouched" class="error-msg">{{ errores.contrasena }}</span>
           </template>
 
@@ -403,7 +414,18 @@
           <input v-model="formAdmin.telefono" type="tel" placeholder="+57 300 000 0000">
 
           <label>Nueva Contraseña <span style="color:#9ca3af;font-weight:400;font-size:12px">(dejar vacío para no cambiar)</span></label>
-          <input v-model="formAdmin.contrasena" type="password" placeholder="••••••••">
+          <div class="input-wrap-modal">
+            <input v-model="formAdmin.contrasena" :type="mostrarPassAdmin ? 'text' : 'password'" placeholder="••••••••">
+            <button class="toggle-pass-modal" @click="mostrarPassAdmin = !mostrarPassAdmin" type="button">
+              <svg v-if="!mostrarPassAdmin" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/></svg>
+              <svg v-else fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
+            </button>
+          </div>
+          <div v-if="formAdmin.contrasena" class="pwd-hints">
+            <span v-for="h in passwordHintsAdmin" :key="h.label" class="pwd-hint" :class="h.ok ? 'hint-ok' : 'hint-no'">
+              {{ h.ok ? '✓' : '✗' }} {{ h.label }}
+            </span>
+          </div>
 
           <div class="modal-buttons">
             <button class="btn-cancel" @click="cerrarModalAdmin">Cancelar</button>
@@ -635,6 +657,19 @@ function validarContrasena(contrasena) {
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(contrasena)) return 'Debe tener al menos un carácter especial (@, #, $, etc.).'
   return ''
 }
+
+function buildHints(pwd) {
+  return [
+    { label: 'Mínimo 8 caracteres',        ok: pwd.length >= 8 },
+    { label: 'Una letra mayúscula',         ok: /[A-Z]/.test(pwd) },
+    { label: 'Un número',                   ok: /[0-9]/.test(pwd) },
+    { label: 'Un carácter especial (@#$…)', ok: /[^A-Za-z0-9]/.test(pwd) },
+  ]
+}
+const passwordHintsUsuario = computed(() => buildHints(form.value.contrasena || ''))
+const passwordHintsAdmin   = computed(() => buildHints(formAdmin.value.contrasena || ''))
+const mostrarPassUsuario   = ref(false)
+const mostrarPassAdmin     = ref(false)
 
 const errores = computed(() => ({
   nombre: !form.value.nombre.trim()
@@ -1041,6 +1076,15 @@ td { padding: 14px 18px; font-size: 14px; border-top: 1px solid #f1f5f9; }
 .modal-content input:focus, .modal-content select:focus { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
 .input-error { border-color: #f87171 !important; }
 .error-msg { font-size: 12px; color: #dc2626; margin-top: 4px; display: block; }
+.input-wrap-modal { display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
+.input-wrap-modal input { flex: 1; border: none !important; outline: none; padding: 10px 12px; font-size: 14px; background: transparent; box-shadow: none !important; }
+.input-wrap-modal:focus-within { border-color: #1f3a52; box-shadow: 0 0 0 3px rgba(31,58,82,0.1); }
+.toggle-pass-modal { background: none; border: none; cursor: pointer; padding: 0 10px; color: #9ca3af; transition: color .15s; }
+.toggle-pass-modal:hover { color: #374151; }
+.pwd-hints { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.pwd-hint { font-size: 11.5px; font-weight: 500; padding: 2px 8px; border-radius: 20px; transition: background .2s, color .2s; }
+.hint-ok { background: #dcfce7; color: #166534; }
+.hint-no { background: #f3f4f6; color: #9ca3af; }
 .user-preview { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 12px 14px; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb; }
 .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb; background: white; font-size: 14px; cursor: pointer; transition: background 0.15s; }
